@@ -105,16 +105,19 @@ class DatabaseSeeder extends Seeder
         ];
 
         // 2. Akun Admin Sarpras (Pusat)
-        $sarprasUser = User::create([
-            'name' => 'Admin Sarpras Pusat',
-            'email' => 'sarpras@sekolah.sch.id',
-            'password' => Hash::make('password'),
-            'role' => 'sarpras',
-            'jurusan_id' => null,
-        ]);
+        $sarprasUser = User::firstOrCreate(
+            ['email' => 'sarpras@sekolah.sch.id'],
+            [
+                'name' => 'Admin Sarpras Pusat',
+                'password' => Hash::make('password'),
+                'role' => 'sarpras',
+                'jurusan_id' => null,
+            ]
+        );
 
         // Buat Jurusan & Akun Jurusan
         $createdJurusans = [];
+        $createdJurusanUsers = [];
         foreach ($jurusansData as $data) {
             $jurusan = Jurusan::firstOrCreate(
                 ['kode' => $data['kode']],
@@ -127,13 +130,15 @@ class DatabaseSeeder extends Seeder
 
             $createdJurusans[$data['kode']] = $jurusan;
 
-            $u = User::create([
-                'name' => 'Akun '.$data['kode'].' ('.$data['nama'].')',
-                'email' => $data['email'],
-                'password' => Hash::make('password'),
-                'role' => 'jurusan',
-                'jurusan_id' => $jurusan->id,
-            ]);
+            $u = User::firstOrCreate(
+                ['email' => $data['email']],
+                [
+                    'name' => 'Akun '.$data['kode'].' ('.$data['nama'].')',
+                    'password' => Hash::make('password'),
+                    'role' => 'jurusan',
+                    'jurusan_id' => $jurusan->id,
+                ]
+            );
 
             $createdJurusanUsers[$data['kode']] = $u;
         }
@@ -151,7 +156,7 @@ class DatabaseSeeder extends Seeder
 
         $categories = [];
         foreach ($categoriesData as $c) {
-            $categories[$c['kode']] = Category::create($c);
+            $categories[$c['kode']] = Category::firstOrCreate(['kode' => $c['kode']], $c);
         }
 
         // 4. Sample Barang Awal untuk Jurusan
