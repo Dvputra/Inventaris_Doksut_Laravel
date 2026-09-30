@@ -115,14 +115,15 @@ class DatabaseSeeder extends Seeder
 
         // Buat Jurusan & Akun Jurusan
         $createdJurusans = [];
-        $createdJurusanUsers = [];
         foreach ($jurusansData as $data) {
-            $jurusan = Jurusan::create([
-                'kode' => $data['kode'],
-                'nama' => $data['nama'],
-                'kepala_bengkel' => $data['kepala_bengkel'],
-                'deskripsi' => $data['deskripsi'],
-            ]);
+            $jurusan = Jurusan::firstOrCreate(
+                ['kode' => $data['kode']],
+                [
+                    'nama' => $data['nama'],
+                    'kepala_bengkel' => $data['kepala_bengkel'],
+                    'deskripsi' => $data['deskripsi'],
+                ]
+            );
 
             $createdJurusans[$data['kode']] = $jurusan;
 
