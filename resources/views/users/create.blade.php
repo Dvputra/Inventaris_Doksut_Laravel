@@ -117,7 +117,7 @@
     function toggleJurusan(role) {
         const wrapper = document.getElementById('jurusanWrapper');
         const select = document.getElementById('jurusan_id');
-        if (role === 'sarpras' || role === 'kepala_sekolah') {
+        if (role === 'sarpras' || role === 'kepala_sekolah' || role === 'pembantu_sarpras') {
             wrapper.style.display = 'none';
             select.required = false;
         } else {
