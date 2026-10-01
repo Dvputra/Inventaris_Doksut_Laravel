@@ -329,7 +329,7 @@
 </div>
 
 <!-- MODAL TTD SARPRAS -->
-<div id="sarprasSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+<div id="sarprasSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -361,7 +361,7 @@
 </div>
 
 <!-- MODAL ACC & TTD KEPALA SEKOLAH -->
-<div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+<div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
@@ -401,7 +401,7 @@
 </div>
 
 <!-- MODAL TOLAK KEPALA SEKOLAH -->
-<div id="kepsekRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden flex items-center justify-center p-4">
+<div id="kepsekRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 space-y-4">
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="text-sm font-bold text-rose-700 flex items-center gap-2">
@@ -511,30 +511,42 @@ function clearCanvas(type) {
 
 function openSignatureModal(type) {
     if (type === 'sarpras') {
-        document.getElementById('sarprasSignModal').classList.remove('hidden');
+        const modal = document.getElementById('sarprasSignModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
 }
 
 function closeSignatureModal(type) {
     if (type === 'sarpras') {
-        document.getElementById('sarprasSignModal').classList.add('hidden');
+        const modal = document.getElementById('sarprasSignModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 }
 
 function openKepsekApprovalModal() {
-    document.getElementById('kepsekApprovalModal').classList.remove('hidden');
+    const modal = document.getElementById('kepsekApprovalModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 function closeKepsekApprovalModal() {
-    document.getElementById('kepsekApprovalModal').classList.add('hidden');
+    const modal = document.getElementById('kepsekApprovalModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 
 function openKepsekRejectModal() {
-    document.getElementById('kepsekRejectModal').classList.remove('hidden');
+    const modal = document.getElementById('kepsekRejectModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 }
 
 function closeKepsekRejectModal() {
-    document.getElementById('kepsekRejectModal').classList.add('hidden');
+    const modal = document.getElementById('kepsekRejectModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
 }
 
 function submitSignature(type, event) {
