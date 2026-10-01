@@ -321,8 +321,10 @@ class ProcurementController extends Controller
         }
 
         $procurement->load(['jurusan', 'user', 'items']);
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first();
+        $sarprasUser = User::where('role', 'sarpras')->first();
 
-        return view('procurements.print', compact('procurement'));
+        return view('procurements.print', compact('procurement', 'kepsekUser', 'sarprasUser'));
     }
 
     /**

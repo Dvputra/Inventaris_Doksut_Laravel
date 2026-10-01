@@ -208,9 +208,9 @@
             margin-left: 6px;
         }
 
-        /* Lembar Tanda Tangan Resmi (3 Kolom Sejajar) */
+        /* Lembar Tanda Tangan Resmi (Format Surat Dinas Rapi) */
         .ttd-container {
-            margin-top: 26px;
+            margin-top: 36px;
             width: 100%;
             page-break-inside: avoid;
         }
@@ -223,25 +223,62 @@
         }
 
         .ttd-table td {
-            padding: 0 4px;
+            padding: 0 10px;
             vertical-align: top;
             width: 33.33%;
             border: none;
             color: #000000;
+            line-height: 1.4;
+        }
+
+        .ttd-heading {
+            font-size: 10.5pt;
+            color: #000000;
+            margin-bottom: 2px;
+        }
+
+        .ttd-role {
+            font-size: 10.5pt;
+            font-weight: bold;
+            color: #000000;
+            min-height: 42px;
+            display: block;
         }
 
         .ttd-space {
-            height: 65px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ttd-status-stamp {
+            display: inline-block;
+            border: 1.5px solid #059669;
+            color: #047857;
+            padding: 4px 8px;
+            font-size: 8pt;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: #ecfdf5;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .ttd-nama {
             font-weight: bold;
             text-decoration: underline;
+            font-size: 11pt;
+            color: #000000;
+            letter-spacing: 0.2px;
         }
 
         .ttd-nip {
-            font-size: 10pt;
-            margin-top: 2px;
+            font-size: 9.5pt;
+            margin-top: 3px;
+            color: #1e293b;
         }
 
         /* Pengaturan Cetak / Print Media */
@@ -437,30 +474,42 @@
             Demikian usulan pengadaan barang dan bahan ini kami sampaikan untuk dapat ditindaklanjuti sebagaimana mestinya. Atas perhatian dan persetujuan yang diberikan, kami ucapkan terima kasih.
         </p>
 
-        <!-- LEMBAR TANDA TANGAN / PENGESAHAN RESMI (3 KOLOM) -->
+        <!-- LEMBAR TANDA TANGAN / PENGESAHAN RESMI (3 KOLOM DINAS) -->
         <div class="ttd-container">
             <table class="ttd-table">
                 <tr>
                     <td>
-                        Diajukan Oleh,<br>
-                        <strong>Kepala {{ $procurement->jurusan->nama }}</strong>
-                        <div class="ttd-space"></div>
-                        <div class="ttd-nama">{{ $procurement->jurusan->kepala_bengkel ?? '................................................' }}</div>
+                        <div class="ttd-heading">Diajukan Oleh,</div>
+                        <div class="ttd-role">Kepala {{ $procurement->jurusan->nama }}</div>
+                        <div class="ttd-space">
+                            <!-- Tempat TTD Pemohon -->
+                        </div>
+                        <div class="ttd-nama">{{ $procurement->jurusan->kepala_bengkel ?? ($procurement->user->name ?? '................................................') }}</div>
                         <div class="ttd-nip">NIP/NPY: .......................................</div>
                     </td>
                     <td>
-                        Diverifikasi Oleh,<br>
-                        <strong>Waka Bidang Sarana &amp; Prasarana</strong>
-                        <div class="ttd-space"></div>
-                        <div class="ttd-nama">................................................</div>
+                        <div class="ttd-heading">Diverifikasi Oleh,</div>
+                        <div class="ttd-role">Waka Bidang Sarana &amp; Prasarana</div>
+                        <div class="ttd-space">
+                            @if($procurement->status === 'disetujui')
+                                <div class="ttd-status-stamp">
+                                    &#10003; Telah Diverifikasi<br>
+                                    <span style="font-size: 7pt; font-weight: normal; text-transform: none;">
+                                        {{ $procurement->tanggal_persetujuan ? $procurement->tanggal_persetujuan->translatedFormat('d/m/Y') : 'Sarpras' }}
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="ttd-nama">{{ $sarprasUser->name ?? 'Admin Sarpras Pusat' }}</div>
                         <div class="ttd-nip">NIP/NPY: .......................................</div>
                     </td>
                     <td>
-                        Temanggung, {{ $procurement->created_at->translatedFormat('d F Y') }}<br>
-                        Mengetahui,<br>
-                        <strong>Kepala SMK Dr. Sutomo</strong>
-                        <div class="ttd-space"></div>
-                        <div class="ttd-nama">................................................</div>
+                        <div class="ttd-heading">Temanggung, {{ $procurement->created_at->translatedFormat('d F Y') }}</div>
+                        <div class="ttd-role">Mengetahui,<br>Kepala SMK Dr. Sutomo</div>
+                        <div class="ttd-space">
+                            <!-- Tempat TTD Kepala Sekolah -->
+                        </div>
+                        <div class="ttd-nama">{{ $kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd' }}</div>
                         <div class="ttd-nip">NIP/NPY: .......................................</div>
                     </td>
                 </tr>
