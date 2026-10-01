@@ -44,6 +44,11 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                         Kepala Sekolah
                     </span>
+                @elseif($user->role === 'pembantu_sarpras')
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-800 border border-cyan-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
+                        Pembantu Sarpras
+                    </span>
                 @elseif($user->role === 'sarpras')
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>

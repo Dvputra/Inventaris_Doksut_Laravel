@@ -69,6 +69,7 @@
                     </label>
                     <select name="role" id="role" class="w-full px-3.5 py-2.5 bg-slate-50 border @error('role') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required onchange="toggleJurusan(this.value)">
                         <option value="jurusan" {{ old('role', $user->role) == 'jurusan' ? 'selected' : '' }}>Akun Jurusan / Unit Kerja</option>
+                        <option value="pembantu_sarpras" {{ old('role', $user->role) == 'pembantu_sarpras' ? 'selected' : '' }}>Pembantu Sarpras</option>
                         <option value="sarpras" {{ old('role', $user->role) == 'sarpras' ? 'selected' : '' }}>Admin Pusat (Sarpras)</option>
                         <option value="kepala_sekolah" {{ old('role', $user->role) == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
                     </select>

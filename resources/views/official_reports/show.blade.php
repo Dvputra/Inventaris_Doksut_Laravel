@@ -113,7 +113,7 @@
                     @endif
                 </div>
 
-                @if(Auth::user()->isSarpras() && ! $officialReport->ttd_pihak_pertama)
+                @if(Auth::user()->isStaffSarpras() && ! $officialReport->ttd_pihak_pertama)
                     <button type="button" onclick="openSignatureModal('sarpras')" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
                         <i class="bi bi-pen"></i>
                         <span>Bubuhkan Tanda Tangan Sarpras Sekarang</span>

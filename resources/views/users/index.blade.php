@@ -42,6 +42,7 @@
                     <option value="">Semua Peran</option>
                     <option value="kepala_sekolah" {{ request('role') == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
                     <option value="sarpras" {{ request('role') == 'sarpras' ? 'selected' : '' }}>Sarpras (Pusat)</option>
+                    <option value="pembantu_sarpras" {{ request('role') == 'pembantu_sarpras' ? 'selected' : '' }}>Pembantu Sarpras</option>
                     <option value="jurusan" {{ request('role') == 'jurusan' ? 'selected' : '' }}>Jurusan / Unit Kerja</option>
                 </select>
             </div>
@@ -120,6 +121,11 @@
                                         <i class="bi bi-shield-check text-xs"></i>
                                         <span>Sarpras (Pusat)</span>
                                     </span>
+                                @elseif($u->isPembantuSarpras())
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200">
+                                        <i class="bi bi-person-badge text-xs"></i>
+                                        <span>Pembantu Sarpras</span>
+                                    </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                                         <i class="bi bi-building text-xs"></i>
@@ -195,9 +201,17 @@
                             </div>
                         </div>
                         <div class="shrink-0">
-                            @if($u->isSarpras())
+                            @if($u->isKepalaSekolah())
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                    Kepsek
+                                </span>
+                            @elseif($u->isSarpras())
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                     Sarpras
+                                </span>
+                            @elseif($u->isPembantuSarpras())
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-cyan-50 text-cyan-700 border border-cyan-200">
+                                    Pembantu
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">

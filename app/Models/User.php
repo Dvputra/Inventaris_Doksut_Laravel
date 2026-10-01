@@ -48,6 +48,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah user adalah pembantu sarpras.
+     */
+    public function isPembantuSarpras(): bool
+    {
+        return $this->role === 'pembantu_sarpras';
+    }
+
+    /**
      * Cek apakah user adalah Kepala Sekolah.
      */
     public function isKepalaSekolah(): bool
@@ -56,11 +64,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user memiliki hak akses manajerial (Sarpras atau Kepala Sekolah).
+     * Cek apakah user memiliki hak akses manajerial (Sarpras, Pembantu Sarpras, atau Kepala Sekolah).
      */
     public function isSarprasOrKepalaSekolah(): bool
     {
-        return in_array($this->role, ['sarpras', 'kepala_sekolah'], true);
+        return in_array($this->role, ['sarpras', 'pembantu_sarpras', 'kepala_sekolah'], true);
+    }
+
+    /**
+     * Cek apakah user memiliki hak pengelolaan teknis Sarpras (Sarpras Pusat atau Pembantu Sarpras).
+     */
+    public function isStaffSarpras(): bool
+    {
+        return in_array($this->role, ['sarpras', 'pembantu_sarpras'], true);
     }
 
     /**
@@ -79,6 +95,7 @@ class User extends Authenticatable
         return match ($this->role) {
             'kepala_sekolah' => 'Kepala Sekolah',
             'sarpras' => 'Sarpras Pusat',
+            'pembantu_sarpras' => 'Pembantu Sarpras',
             'jurusan' => 'Jurusan / Unit Kerja',
             default => ucfirst(str_replace('_', ' ', $this->role)),
         };

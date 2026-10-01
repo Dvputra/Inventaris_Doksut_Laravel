@@ -51,8 +51,8 @@ Route::middleware('auth')->group(function () {
     // API Helper generate kode barang
     Route::get('/items/api/generate-code', [ItemController::class, 'generateCode'])->name('items.generate-code');
 
-    // Menu Khusus Sarpras & Fasilitas Sekolah (Inventaris Umum & Stok di Gudang) - Sarpras & Kepala Sekolah
-    Route::middleware('role:sarpras,kepala_sekolah')->group(function () {
+    // Menu Khusus Sarpras & Fasilitas Sekolah (Inventaris Umum & Stok di Gudang) - Sarpras, Pembantu Sarpras & Kepala Sekolah
+    Route::middleware('role:sarpras,pembantu_sarpras,kepala_sekolah')->group(function () {
         Route::get('/sarpras/umum', [SarprasController::class, 'umum'])->name('sarpras.umum');
         Route::get('/sarpras/gudang', [SarprasController::class, 'gudang'])->name('sarpras.gudang');
     });
@@ -101,10 +101,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])->name('procurements.reject')->middleware('role:sarpras');
 
     // Berita Acara Sarpras & Kepala Sekolah (Barang Rusak & Penjualan/Lelang)
-    Route::resource('official-reports', OfficialReportController::class)->middleware('role:sarpras,kepala_sekolah');
+    Route::resource('official-reports', OfficialReportController::class)->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
     Route::get('/official-reports/{officialReport}/print', [OfficialReportController::class, 'print'])
         ->name('official-reports.print')
-        ->middleware('role:sarpras,kepala_sekolah');
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
     Route::patch('/official-reports/{officialReport}/approve', [OfficialReportController::class, 'approve'])
         ->name('official-reports.approve')
         ->middleware('role:sarpras,kepala_sekolah');
@@ -113,7 +113,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:sarpras,kepala_sekolah');
     Route::patch('/official-reports/{officialReport}/sign-pihak-pertama', [OfficialReportController::class, 'signPihakPertama'])
         ->name('official-reports.sign-pihak-pertama')
-        ->middleware('role:sarpras');
+        ->middleware('role:sarpras,pembantu_sarpras');
 
     // Kelola Akun Pengguna (Hanya Admin Sarpras)
     Route::resource('users', UserController::class)->middleware('role:sarpras');

@@ -121,7 +121,15 @@
                 <div>
                     <div class="px-3 mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
                         <span>Sarpras & Sekolah</span>
-                        <span class="text-[9px] font-extrabold bg-amber-400/90 text-slate-950 px-1.5 py-0.5 rounded shadow-xs">{{ Auth::user()->isKepalaSekolah() ? 'KS' : 'SAR' }}</span>
+                        <span class="text-[9px] font-extrabold bg-amber-400/90 text-slate-950 px-1.5 py-0.5 rounded shadow-xs">
+                            @if(Auth::user()->isKepalaSekolah())
+                                KS
+                            @elseif(Auth::user()->isPembantuSarpras())
+                                PS
+                            @else
+                                SAR
+                            @endif
+                        </span>
                     </div>
                     <nav class="space-y-1">
                         <a href="{{ route('sarpras.umum') }}" 
@@ -164,34 +172,43 @@
                         <i class="bi bi-droplet-half text-base {{ request()->routeIs('usages.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
                         <span>Pemakaian Bahan</span>
                     </a>
+                    @if(Auth::user()->isPembantuSarpras())
+                        <a href="{{ route('reports.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('reports.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                            <i class="bi bi-printer text-base {{ request()->routeIs('reports.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
+                            <span>Laporan & Cetak</span>
+                        </a>
+                    @endif
                 </nav>
             </div>
 
-            <!-- Nav Group: Pengadaan & Layanan -->
-            <div>
-                <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                    Pengadaan & Layanan
-                </div>
-                <nav class="space-y-1">
-                    <a href="{{ route('procurements.index') }}" 
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('procurements.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
-                        <i class="bi bi-clipboard2-check text-base {{ request()->routeIs('procurements.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
-                        <span>Usulan Pengadaan</span>
-                    </a>
-                    @if(Auth::user()->isSarpras())
-                        <a href="{{ route('complaints.index') }}" 
-                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('complaints.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
-                            <i class="bi bi-exclamation-octagon text-base {{ request()->routeIs('complaints.*') ? 'text-amber-300' : 'text-rose-400' }} shrink-0"></i>
-                            <span>Pengaduan Guru</span>
+            <!-- Nav Group: Pengadaan & Layanan (Hanya untuk Sarpras, Kepala Sekolah, dan Jurusan; Pembantu Sarpras Tidak Ada) -->
+            @if(!Auth::user()->isPembantuSarpras())
+                <div>
+                    <div class="px-3 mb-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                        Pengadaan & Layanan
+                    </div>
+                    <nav class="space-y-1">
+                        <a href="{{ route('procurements.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('procurements.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                            <i class="bi bi-clipboard2-check text-base {{ request()->routeIs('procurements.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
+                            <span>Usulan Pengadaan</span>
                         </a>
-                    @endif
-                    <a href="{{ route('reports.index') }}" 
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('reports.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
-                        <i class="bi bi-printer text-base {{ request()->routeIs('reports.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
-                        <span>Laporan & Cetak</span>
-                    </a>
-                </nav>
-            </div>
+                        @if(Auth::user()->isSarpras())
+                            <a href="{{ route('complaints.index') }}" 
+                               class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('complaints.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                                <i class="bi bi-exclamation-octagon text-base {{ request()->routeIs('complaints.*') ? 'text-amber-300' : 'text-rose-400' }} shrink-0"></i>
+                                <span>Pengaduan Guru</span>
+                            </a>
+                        @endif
+                        <a href="{{ route('reports.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('reports.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                            <i class="bi bi-printer text-base {{ request()->routeIs('reports.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
+                            <span>Laporan & Cetak</span>
+                        </a>
+                    </nav>
+                </div>
+            @endif
 
             <!-- Nav Group: Pengaturan (Sarpras Only) -->
             @if(Auth::user()->isSarpras())
@@ -226,6 +243,8 @@
                     <p class="text-[11px] text-slate-400 truncate">
                         @if(Auth::user()->isKepalaSekolah())
                             Kepala Sekolah
+                        @elseif(Auth::user()->isPembantuSarpras())
+                            Pembantu Sarpras
                         @elseif(Auth::user()->isSarpras())
                             Sarpras Pusat
                         @else
@@ -257,6 +276,11 @@
                             <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 shadow-xs truncate">
                                 <i class="bi bi-mortarboard-fill text-amber-600 text-xs sm:text-sm shrink-0"></i>
                                 <span class="truncate">KEPALA SEKOLAH</span>
+                            </span>
+                        @elseif(Auth::user()->isPembantuSarpras())
+                            <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-cyan-50 text-cyan-800 border border-cyan-300 shadow-xs truncate">
+                                <i class="bi bi-person-badge-fill text-cyan-600 text-xs sm:text-sm shrink-0"></i>
+                                <span class="truncate">PEMBANTU SARPRAS</span>
                             </span>
                         @elseif(Auth::user()->isSarpras())
                             <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200/80 shadow-xs truncate">
@@ -384,13 +408,21 @@
 
                 <!-- User Info Preview Box -->
                 <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-left mb-6">
-                    <div class="w-10 h-10 rounded-xl {{ Auth::user()->isSarpras() ? 'bg-purple-100 text-purple-700 ring-1 ring-purple-300' : 'bg-blue-100 text-blue-700 ring-1 ring-blue-300' }} font-bold flex items-center justify-center text-sm shrink-0">
+                    <div class="w-10 h-10 rounded-xl @if(Auth::user()->isKepalaSekolah()) bg-amber-100 text-amber-800 ring-1 ring-amber-300 @elseif(Auth::user()->isPembantuSarpras()) bg-cyan-100 text-cyan-800 ring-1 ring-cyan-300 @elseif(Auth::user()->isSarpras()) bg-blue-100 text-blue-700 ring-1 ring-blue-300 @else bg-indigo-100 text-indigo-700 ring-1 ring-indigo-300 @endif font-bold flex items-center justify-center text-sm shrink-0">
                         {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                     </div>
                     <div class="min-w-0 flex-1">
                         <p class="text-xs font-bold text-slate-800 truncate">{{ Auth::user()->name }}</p>
-                        <span class="inline-block mt-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full {{ Auth::user()->isSarpras() ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
-                            {{ Auth::user()->isSarpras() ? 'Sarpras Pusat' : 'Jurusan: ' . (Auth::user()->jurusan->kode ?? 'Jurusan') }}
+                        <span class="inline-block mt-0.5 text-[10px] font-semibold px-2 py-0.5 rounded-full @if(Auth::user()->isKepalaSekolah()) bg-amber-100 text-amber-900 @elseif(Auth::user()->isPembantuSarpras()) bg-cyan-100 text-cyan-800 @elseif(Auth::user()->isSarpras()) bg-blue-100 text-blue-800 @else bg-indigo-100 text-indigo-800 @endif">
+                            @if(Auth::user()->isKepalaSekolah())
+                                Kepala Sekolah
+                            @elseif(Auth::user()->isPembantuSarpras())
+                                Pembantu Sarpras
+                            @elseif(Auth::user()->isSarpras())
+                                Sarpras Pusat
+                            @else
+                                Jurusan: {{ Auth::user()->jurusan->kode ?? 'Jurusan' }}
+                            @endif
                         </span>
                     </div>
                 </div>

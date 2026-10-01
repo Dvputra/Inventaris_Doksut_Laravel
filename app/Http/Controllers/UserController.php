@@ -60,7 +60,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', 'in:sarpras,jurusan,kepala_sekolah'],
+            'role' => ['required', 'in:sarpras,pembantu_sarpras,jurusan,kepala_sekolah'],
             'jurusan_id' => [
                 'nullable',
                 Rule::requiredIf($request->role === 'jurusan'),
@@ -76,7 +76,7 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        if (in_array($validated['role'], ['sarpras', 'kepala_sekolah'], true)) {
+        if (in_array($validated['role'], ['sarpras', 'pembantu_sarpras', 'kepala_sekolah'], true)) {
             $validated['jurusan_id'] = null;
         }
 
@@ -105,7 +105,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['required', 'in:sarpras,jurusan,kepala_sekolah'],
+            'role' => ['required', 'in:sarpras,pembantu_sarpras,jurusan,kepala_sekolah'],
             'jurusan_id' => [
                 'nullable',
                 Rule::requiredIf($request->role === 'jurusan'),
@@ -125,7 +125,7 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
-        if (in_array($validated['role'], ['sarpras', 'kepala_sekolah'], true)) {
+        if (in_array($validated['role'], ['sarpras', 'pembantu_sarpras', 'kepala_sekolah'], true)) {
             $validated['jurusan_id'] = null;
         }
 

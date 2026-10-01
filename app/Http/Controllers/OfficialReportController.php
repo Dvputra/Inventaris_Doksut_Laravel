@@ -270,8 +270,8 @@ class OfficialReportController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->isSarpras()) {
-            abort(403, 'Hanya akun Sarpras yang dapat menandatangani sebagai Pihak Pertama.');
+        if (! $user->isStaffSarpras()) {
+            abort(403, 'Hanya tim Sarpras yang dapat menandatangani sebagai Pihak Pertama.');
         }
 
         $request->validate([
