@@ -487,6 +487,40 @@
         </div>
     </div>
 
+    <!-- Universal Themed Alert / Notification Modal -->
+    <div id="globalAlertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true" aria-labelledby="globalAlertTitle">
+        <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all">
+            <!-- Accent Top Stripe -->
+            <div id="globalAlertStripe" class="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600"></div>
+
+            <div class="p-6 text-center">
+                <!-- Close Button in corner -->
+                <button type="button" onclick="closeAlertDialog()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Tutup">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+
+                <!-- Icon with urgency ring -->
+                <div id="globalAlertIconContainer" class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shadow-xs">
+                    <i id="globalAlertIcon" class="bi bi-exclamation-circle-fill text-2xl"></i>
+                </div>
+
+                <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1.5" id="globalAlertTitle">Pemberitahuan</h3>
+                <p class="text-xs sm:text-sm text-slate-600 mb-5 leading-relaxed" id="globalAlertMessage">
+                    Pesan pemberitahuan sistem.
+                </p>
+
+                <!-- Action Button -->
+                <div>
+                    <button type="button" id="globalAlertOkBtn" onclick="closeAlertDialog()" 
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-500 shadow-md shadow-amber-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-check2"></i>
+                        <span id="globalAlertBtnText">Mengerti</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Interactive Vanilla JS Logic for Sidebar & Modals -->
     <script>
         // Global Modal Helpers
@@ -598,6 +632,90 @@
             activeConfirmCallback = null;
         };
 
+        let activeAlertCallback = null;
+
+        window.showAlertDialog = function(options) {
+            const modal = document.getElementById('globalAlertModal');
+            if (!modal) {
+                window._nativeAlert ? window._nativeAlert(typeof options === 'string' ? options : options.message) : console.log(options);
+                return;
+            }
+
+            const titleEl = document.getElementById('globalAlertTitle');
+            const msgEl = document.getElementById('globalAlertMessage');
+            const iconContainer = document.getElementById('globalAlertIconContainer');
+            const iconEl = document.getElementById('globalAlertIcon');
+            const stripeEl = document.getElementById('globalAlertStripe');
+            const okBtn = document.getElementById('globalAlertOkBtn');
+            const btnText = document.getElementById('globalAlertBtnText');
+
+            const opts = typeof options === 'string' ? { message: options } : (options || {});
+            const type = opts.type || 'warning';
+            const title = opts.title || (type === 'danger' ? 'Terjadi Kesalahan' : (type === 'success' ? 'Berhasil' : 'Pemberitahuan'));
+            const message = opts.message || '';
+            const btnLabel = opts.btnText || 'Mengerti';
+
+            titleEl.textContent = title;
+            msgEl.innerHTML = message;
+            btnText.textContent = btnLabel;
+
+            // Reset classes
+            iconContainer.className = 'mx-auto mb-4 w-14 h-14 rounded-2xl flex items-center justify-center shadow-xs';
+            okBtn.className = 'w-full py-2.5 px-4 rounded-xl text-xs font-bold shadow-md transition-all flex items-center justify-center gap-1.5 active:scale-95';
+
+            if (type === 'danger') {
+                stripeEl.className = 'h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500';
+                iconContainer.classList.add('bg-rose-50', 'text-rose-600', 'border', 'border-rose-200');
+                iconEl.className = opts.icon || 'bi bi-x-circle-fill text-2xl';
+                okBtn.classList.add('bg-rose-600', 'hover:bg-rose-700', 'text-white', 'shadow-rose-200');
+            } else if (type === 'success') {
+                stripeEl.className = 'h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-teal-400';
+                iconContainer.classList.add('bg-emerald-50', 'text-emerald-600', 'border', 'border-emerald-200');
+                iconEl.className = opts.icon || 'bi bi-check-circle-fill text-2xl';
+                okBtn.classList.add('bg-emerald-600', 'hover:bg-emerald-700', 'text-white', 'shadow-emerald-200');
+            } else if (type === 'info') {
+                stripeEl.className = 'h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-400';
+                iconContainer.classList.add('bg-blue-50', 'text-blue-600', 'border', 'border-blue-200');
+                iconEl.className = opts.icon || 'bi bi-info-circle-fill text-2xl';
+                okBtn.classList.add('bg-blue-600', 'hover:bg-blue-700', 'text-white', 'shadow-blue-200');
+            } else {
+                stripeEl.className = 'h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600';
+                iconContainer.classList.add('bg-amber-50', 'text-amber-600', 'border', 'border-amber-200');
+                iconEl.className = opts.icon || 'bi bi-exclamation-triangle-fill text-2xl';
+                okBtn.classList.add('bg-amber-400', 'hover:bg-amber-500', 'text-slate-950', 'shadow-amber-200');
+            }
+
+            activeAlertCallback = function() {
+                closeAlertDialog();
+                if (typeof opts.onOk === 'function') {
+                    opts.onOk();
+                }
+            };
+
+            okBtn.onclick = activeAlertCallback;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        window.closeAlertDialog = function() {
+            const modal = document.getElementById('globalAlertModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+            activeAlertCallback = null;
+        };
+
+        // Override standard window.alert to automatically use our stylish modal
+        window._nativeAlert = window.alert;
+        window.alert = function(msg) {
+            window.showAlertDialog({
+                title: 'Perhatian',
+                message: msg,
+                type: 'warning'
+            });
+        };
+
         document.addEventListener('DOMContentLoaded', function() {
             // Sidebar Drawer Toggle for Mobile
             const sidebar = document.getElementById('sidebar');
@@ -673,9 +791,18 @@
                 }
             });
 
+            // Global Alert Modal backdrop click
+            const alertModal = document.getElementById('globalAlertModal');
+            if (alertModal) {
+                alertModal.addEventListener('click', function(e) {
+                    if (e.target === alertModal) closeAlertDialog();
+                });
+            }
+
             // Keyboard accessibility: Escape closes any open modal
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
+                    if (alertModal && !alertModal.classList.contains('hidden')) closeAlertDialog();
                     if (confirmModal && !confirmModal.classList.contains('hidden')) closeConfirmDialog();
                     if (logoutModal && !logoutModal.classList.contains('hidden')) closeLogout();
                     if (sidebar && !sidebar.classList.contains('-translate-x-full') && window.innerWidth < 1024) closeSidebar();

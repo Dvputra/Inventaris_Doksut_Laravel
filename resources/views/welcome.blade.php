@@ -286,201 +286,228 @@
 
     <!-- MODAL 1: FORMULIR PENGADUAN GURU -->
     <div id="modalPengaduan" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="relative w-full max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-8 text-left transform transition-all my-8 max-h-[90vh] overflow-y-auto">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6 sticky top-0 bg-white z-10">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                        <i class="bi bi-tools text-lg"></i>
+        <div class="relative w-full max-w-2xl bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden text-left transform transition-all my-8 max-h-[90vh] flex flex-col">
+            <!-- Accent Top Stripe -->
+            <div class="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 shrink-0"></div>
+
+            <div class="p-6 sm:p-8 overflow-y-auto">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6 sticky top-0 bg-white z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                            <i class="bi bi-tools text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-900">Formulir Lapor Kendala Fasilitas</h2>
+                            <p class="text-xs text-slate-400">SMK Dr. Sutomo Temanggung - Tanpa Perlu Login</p>
+                        </div>
                     </div>
+                    <button type="button" onclick="closeModal('modalPengaduan')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                        <i class="bi bi-x-lg text-sm"></i>
+                    </button>
+                </div>
+
+                @if($errors->any())
+                    <div class="mb-4 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2.5">
+                        <i class="bi bi-exclamation-triangle-fill text-rose-600 text-base shrink-0"></i>
+                        <span>Mohon lengkapi seluruh isian wajib yang ditandai bintang merah (*).</span>
+                    </div>
+                @endif
+
+                <form action="{{ route('public.complaint.store') }}" method="POST" enctype="multipart/form-data" id="formComplaintModal" class="space-y-6">
+                    @csrf
+
+                    <!-- Section 1 -->
                     <div>
-                        <h2 class="text-base sm:text-lg font-bold text-slate-900">Formulir Lapor Kendala Fasilitas</h2>
-                        <p class="text-xs text-slate-400">SMK Dr. Sutomo Temanggung - Tanpa Perlu Login</p>
+                        <span class="block text-xs font-bold uppercase tracking-wider text-blue-600 mb-3">1. Data Guru / Tenaga Kependidikan</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="nama_pelapor" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Nama Lengkap Pelapor <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="nama_pelapor" id="nama_pelapor" 
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border @error('nama_pelapor') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                       placeholder="Contoh: Bpk. Budi Santoso, S.Pd" 
+                                       value="{{ old('nama_pelapor') }}" required>
+                                @error('nama_pelapor') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div>
+                                <label for="kontak" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Nomor WhatsApp / HP Aktif <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="kontak" id="kontak" 
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border @error('kontak') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                       placeholder="Contoh: 081234567890" 
+                                       value="{{ old('kontak') }}" required>
+                                <span class="block text-[11px] text-slate-400 mt-1">Agar teknisi mudah menghubungi di lokasi.</span>
+                                @error('kontak') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <button type="button" onclick="closeModal('modalPengaduan')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <i class="bi bi-x-lg text-sm"></i>
-                </button>
+
+                    <!-- Section 2 -->
+                    <div>
+                        <span class="block text-xs font-bold uppercase tracking-wider text-blue-600 mb-3">2. Lokasi &amp; Jenis Fasilitas</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="jurusan_id" class="block text-xs font-semibold text-slate-700 mb-1.5">Jurusan / Unit Terkait</label>
+                                <select name="jurusan_id" id="jurusan_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                    <option value="">-- Sarpras Umum / Bukan Jurusan Tertentu --</option>
+                                    @foreach($jurusans as $j)
+                                        <option value="{{ $j->id }}" {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
+                                            {{ $j->kode }} - {{ $j->nama }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="kategori" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Kategori Fasilitas <span class="text-rose-500">*</span>
+                                </label>
+                                <select name="kategori" id="kategori" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required>
+                                    <option value="komputer_it" {{ old('kategori') == 'komputer_it' ? 'selected' : '' }}>Komputer, Workstation Lab &amp; Jaringan IT</option>
+                                    <option value="kelistrikan" {{ old('kategori') == 'kelistrikan' ? 'selected' : '' }}>Kelistrikan, MCB &amp; Penerangan Ruang</option>
+                                    <option value="mesin_peralatan" {{ old('kategori') == 'mesin_peralatan' ? 'selected' : '' }}>Mesin Industri &amp; Peralatan Bengkel</option>
+                                    <option value="sarana_gedung" {{ old('kategori') == 'sarana_gedung' ? 'selected' : '' }}>Sarana Gedung, Meja, Kursi, &amp; Kipas</option>
+                                    <option value="lainnya" {{ old('kategori') == 'lainnya' ? 'selected' : '' }}>Lain-lain / Perlengkapan KBM</option>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="lokasi_ruang" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Lokasi Ruang / Lab / Bengkel Spesifik <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="lokasi_ruang" id="lokasi_ruang" 
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border @error('lokasi_ruang') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                       placeholder="Contoh: Lab Komputer 1 Meja PC-08, Ruang Teori TITL Lantai 2, Bengkel Bubut Mesin 3..." 
+                                       value="{{ old('lokasi_ruang') }}" required>
+                                @error('lokasi_ruang') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="item_id" class="block text-xs font-semibold text-slate-700 mb-1.5">Barang / Alat Spesifik (Opsional jika diketahui)</label>
+                                <select name="item_id" id="item_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                    <option value="">-- Lewati jika kendala bersifat umum / tidak ada di daftar --</option>
+                                    @foreach($items as $it)
+                                        <option value="{{ $it->id }}" {{ old('item_id') == $it->id ? 'selected' : '' }}>
+                                            [{{ $it->kode_barang }}] {{ $it->nama_barang }} ({{ $it->lokasi ?? 'Lokasi Sekolah' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3 -->
+                    <div>
+                        <span class="block text-xs font-bold uppercase tracking-wider text-blue-600 mb-3">3. Rincian Masalah / Gejala Kerusakan</span>
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                            <div class="sm:col-span-8">
+                                <label for="judul_kendala" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Ringkasan Masalah / Judul Kendala <span class="text-rose-500">*</span>
+                                </label>
+                                <input type="text" name="judul_kendala" id="judul_kendala" 
+                                       class="w-full px-3.5 py-2.5 bg-slate-50 border @error('judul_kendala') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                       placeholder="Contoh: Monitor PC Meja 04 mati total, MCB Bengkel Listrik anjlok..." 
+                                       value="{{ old('judul_kendala') }}" required>
+                                @error('judul_kendala') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="sm:col-span-4">
+                                <label for="tingkat_urgensi" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Tingkat Urgensi <span class="text-rose-500">*</span>
+                                </label>
+                                <select name="tingkat_urgensi" id="tingkat_urgensi" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required>
+                                    <option value="rendah" {{ old('tingkat_urgensi') == 'rendah' ? 'selected' : '' }}>Rendah (Masih bisa KBM)</option>
+                                    <option value="sedang" {{ old('tingkat_urgensi', 'sedang') == 'sedang' ? 'selected' : '' }}>Sedang (Perlu dicek)</option>
+                                    <option value="tinggi_darurat" {{ old('tingkat_urgensi') == 'tinggi_darurat' ? 'selected' : '' }}>Darurat (Menghentikan KBM)</option>
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-12">
+                                <label for="deskripsi" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Uraian Gejala Kerusakan <span class="text-rose-500">*</span>
+                                </label>
+                                <textarea name="deskripsi" id="deskripsi" rows="3" 
+                                          class="w-full px-3.5 py-2.5 bg-slate-50 border @error('deskripsi') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                          placeholder="Jelaskan kronologi kendala atau apa yang terjadi saat fasilitas digunakan..." required>{{ old('deskripsi') }}</textarea>
+                                @error('deskripsi') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="sm:col-span-12">
+                                <label for="foto" class="block text-xs font-semibold text-slate-700 mb-1.5">Lampiran Foto Kerusakan (Opsional)</label>
+                                <input type="file" name="foto" id="foto" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*" onchange="validateFileSize(this)">
+                                <span class="block text-[11px] text-slate-400 mt-1">Format JPG, PNG, atau WEBP (maksimal 3 MB, otomatis dikompresi).</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-5 border-t border-slate-100">
+                        <button type="button" onclick="closeModal('modalPengaduan')" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors">
+                            Batal
+                        </button>
+                        <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-xs transition-colors">
+                            <i class="bi bi-send-check text-sm"></i>
+                            <span>Kirim Laporan Sekarang</span>
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            @if($errors->any())
-                <div class="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center gap-2">
-                    <i class="bi bi-exclamation-triangle-fill text-rose-600"></i>
-                    <span>Mohon lengkapi seluruh isian wajib yang ditandai bintang merah (*).</span>
-                </div>
-            @endif
-
-            <form action="{{ route('public.complaint.store') }}" method="POST" enctype="multipart/form-data" id="formComplaintModal" class="space-y-6">
-                @csrf
-
-                <!-- Section 1 -->
-                <div>
-                    <span class="block text-xs font-bold uppercase tracking-wider text-blue-600 mb-3">1. Data Guru / Tenaga Kependidikan</span>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="nama_pelapor" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Nama Lengkap Pelapor <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" name="nama_pelapor" id="nama_pelapor" 
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border @error('nama_pelapor') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                                   placeholder="Contoh: Bpk. Budi Santoso, S.Pd" 
-                                   value="{{ old('nama_pelapor') }}" required>
-                            @error('nama_pelapor') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div>
-                            <label for="kontak" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Nomor WhatsApp / HP Aktif <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" name="kontak" id="kontak" 
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border @error('kontak') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                                   placeholder="Contoh: 081234567890" 
-                                   value="{{ old('kontak') }}" required>
-                            <span class="block text-[11px] text-slate-400 mt-1">Agar teknisi mudah menghubungi di lokasi.</span>
-                            @error('kontak') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 2 -->
-                <div>
-                    <span class="block text-xs font-bold uppercase tracking-wider text-blue-600 mb-3">2. Lokasi &amp; Jenis Fasilitas</span>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label for="jurusan_id" class="block text-xs font-semibold text-slate-700 mb-1.5">Jurusan / Unit Terkait</label>
-                            <select name="jurusan_id" id="jurusan_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                                <option value="">-- Sarpras Umum / Bukan Jurusan Tertentu --</option>
-                                @foreach($jurusans as $j)
-                                    <option value="{{ $j->id }}" {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
-                                        {{ $j->kode }} - {{ $j->nama }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="kategori" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Kategori Fasilitas <span class="text-rose-500">*</span>
-                            </label>
-                            <select name="kategori" id="kategori" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required>
-                                <option value="komputer_it" {{ old('kategori') == 'komputer_it' ? 'selected' : '' }}>Komputer, Workstation Lab &amp; Jaringan IT</option>
-                                <option value="kelistrikan" {{ old('kategori') == 'kelistrikan' ? 'selected' : '' }}>Kelistrikan, MCB &amp; Penerangan Ruang</option>
-                                <option value="mesin_peralatan" {{ old('kategori') == 'mesin_peralatan' ? 'selected' : '' }}>Mesin Industri &amp; Peralatan Bengkel</option>
-                                <option value="sarana_gedung" {{ old('kategori') == 'sarana_gedung' ? 'selected' : '' }}>Sarana Gedung, Meja, Kursi, &amp; Kipas</option>
-                                <option value="lainnya" {{ old('kategori') == 'lainnya' ? 'selected' : '' }}>Lain-lain / Perlengkapan KBM</option>
-                            </select>
-                        </div>
-
-                        <div class="sm:col-span-2">
-                            <label for="lokasi_ruang" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Lokasi Ruang / Lab / Bengkel Spesifik <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" name="lokasi_ruang" id="lokasi_ruang" 
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border @error('lokasi_ruang') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                                   placeholder="Contoh: Lab Komputer 1 Meja PC-08, Ruang Teori TITL Lantai 2, Bengkel Bubut Mesin 3..." 
-                                   value="{{ old('lokasi_ruang') }}" required>
-                            @error('lokasi_ruang') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div class="sm:col-span-2">
-                            <label for="item_id" class="block text-xs font-semibold text-slate-700 mb-1.5">Barang / Alat Spesifik (Opsional jika diketahui)</label>
-                            <select name="item_id" id="item_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                                <option value="">-- Lewati jika kendala bersifat umum / tidak ada di daftar --</option>
-                                @foreach($items as $it)
-                                    <option value="{{ $it->id }}" {{ old('item_id') == $it->id ? 'selected' : '' }}>
-                                        [{{ $it->kode_barang }}] {{ $it->nama_barang }} ({{ $it->lokasi ?? 'Lokasi Sekolah' }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Section 3 -->
-                <div>
-                    <span class="block text-xs font-bold uppercase tracking-wider text-blue-600 mb-3">3. Rincian Masalah / Gejala Kerusakan</span>
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                        <div class="sm:col-span-8">
-                            <label for="judul_kendala" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Ringkasan Masalah / Judul Kendala <span class="text-rose-500">*</span>
-                            </label>
-                            <input type="text" name="judul_kendala" id="judul_kendala" 
-                                   class="w-full px-3.5 py-2.5 bg-slate-50 border @error('judul_kendala') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                                   placeholder="Contoh: Monitor PC Meja 04 mati total, MCB Bengkel Listrik anjlok..." 
-                                   value="{{ old('judul_kendala') }}" required>
-                            @error('judul_kendala') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div class="sm:col-span-4">
-                            <label for="tingkat_urgensi" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Tingkat Urgensi <span class="text-rose-500">*</span>
-                            </label>
-                            <select name="tingkat_urgensi" id="tingkat_urgensi" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required>
-                                <option value="rendah" {{ old('tingkat_urgensi') == 'rendah' ? 'selected' : '' }}>Rendah (Masih bisa KBM)</option>
-                                <option value="sedang" {{ old('tingkat_urgensi', 'sedang') == 'sedang' ? 'selected' : '' }}>Sedang (Perlu dicek)</option>
-                                <option value="tinggi_darurat" {{ old('tingkat_urgensi') == 'tinggi_darurat' ? 'selected' : '' }}>Darurat (Menghentikan KBM)</option>
-                            </select>
-                        </div>
-
-                        <div class="sm:col-span-12">
-                            <label for="deskripsi" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Uraian Gejala Kerusakan <span class="text-rose-500">*</span>
-                            </label>
-                            <textarea name="deskripsi" id="deskripsi" rows="3" 
-                                      class="w-full px-3.5 py-2.5 bg-slate-50 border @error('deskripsi') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                                      placeholder="Jelaskan kronologi kendala atau apa yang terjadi saat fasilitas digunakan..." required>{{ old('deskripsi') }}</textarea>
-                            @error('deskripsi') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div class="sm:col-span-12">
-                            <label for="foto" class="block text-xs font-semibold text-slate-700 mb-1.5">Lampiran Foto Kerusakan (Opsional)</label>
-                            <input type="file" name="foto" id="foto" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" accept="image/*" onchange="validateFileSize(this)">
-                            <span class="block text-[11px] text-slate-400 mt-1">Format JPG, PNG, atau WEBP (maksimal 3 MB, otomatis dikompresi).</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end gap-3 pt-5 border-t border-slate-100">
-                    <button type="button" onclick="closeModal('modalPengaduan')" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors">
-                        Batal
-                    </button>
-                    <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs shadow-xs transition-colors">
-                        <i class="bi bi-send-check text-sm"></i>
-                        <span>Kirim Laporan Sekarang</span>
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 
     <!-- MODAL 2: LACAK TIKET PENGADUAN -->
     <div id="modalLacakTiket" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="relative w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl p-6 sm:p-7 text-left transform transition-all">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <i class="bi bi-search text-sm"></i>
+        <div class="relative w-full max-w-md bg-white rounded-3xl border border-slate-200 shadow-2xl overflow-hidden text-left transform transition-all">
+            <!-- Accent Top Stripe -->
+            <div class="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-amber-400"></div>
+
+            <div class="p-6 sm:p-7">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <i class="bi bi-search text-sm"></i>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-900">Lacak Status Pengaduan</h2>
                     </div>
-                    <h2 class="text-base font-bold text-slate-900">Lacak Status Pengaduan</h2>
+                    <button type="button" onclick="closeModal('modalLacakTiket')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                        <i class="bi bi-x-lg text-sm"></i>
+                    </button>
                 </div>
-                <button type="button" onclick="closeModal('modalLacakTiket')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <i class="bi bi-x-lg text-sm"></i>
+
+                <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                    Masukkan <strong>Kode Tiket</strong> yang Anda peroleh saat mengirim laporan, atau gunakan <strong>Nomor WhatsApp</strong> yang Anda daftarkan:
+                </p>
+
+                <form action="{{ route('public.track') }}" method="GET" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Kode Tiket / No. WhatsApp</label>
+                        <input type="text" name="ticket" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono uppercase text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="Contoh: ADU-2609-XXXX / 081234567890" required>
+                    </div>
+                    <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors">
+                        <i class="bi bi-search"></i>
+                        <span>Cek Status Sekarang</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Themed Alert Modal for Public Landing -->
+    <div id="welcomeAlertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true">
+        <div class="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all text-center">
+            <div id="welcomeAlertStripe" class="h-1.5 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600"></div>
+            <div class="p-6">
+                <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shadow-xs">
+                    <i class="bi bi-exclamation-triangle-fill text-2xl"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 mb-1.5" id="welcomeAlertTitle">Perhatian</h3>
+                <p class="text-xs text-slate-600 mb-5 leading-relaxed" id="welcomeAlertMessage">Pemberitahuan sistem.</p>
+                <button type="button" onclick="closeWelcomeAlert()" class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-500 shadow-md shadow-amber-200 transition-all active:scale-95">
+                    Mengerti
                 </button>
             </div>
-
-            <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-                Masukkan <strong>Kode Tiket</strong> yang Anda peroleh saat mengirim laporan, atau gunakan <strong>Nomor WhatsApp</strong> yang Anda daftarkan:
-            </p>
-
-            <form action="{{ route('public.track') }}" method="GET" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Kode Tiket / No. WhatsApp</label>
-                    <input type="text" name="ticket" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono uppercase text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" placeholder="Contoh: ADU-2609-XXXX / 081234567890" required>
-                </div>
-                <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors">
-                    <i class="bi bi-search"></i>
-                    <span>Cek Status Sekarang</span>
-                </button>
-            </form>
         </div>
     </div>
 
@@ -513,10 +540,31 @@
             }
         }
 
+        function showWelcomeAlert(message, title = 'Perhatian') {
+            const modal = document.getElementById('welcomeAlertModal');
+            if (!modal) return;
+            document.getElementById('welcomeAlertTitle').textContent = title;
+            document.getElementById('welcomeAlertMessage').textContent = message;
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function closeWelcomeAlert() {
+            const modal = document.getElementById('welcomeAlertModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+        }
+
+        window.alert = function(msg) {
+            showWelcomeAlert(msg);
+        };
+
         function validateFileSize(input) {
             if (input.files && input.files[0]) {
                 if (input.files[0].size > 3 * 1024 * 1024) {
-                    alert('Ukuran foto melebihi 3 MB! Silakan pilih foto dengan ukuran maksimal 3 MB.');
+                    showWelcomeAlert('Ukuran foto melebihi 3 MB! Silakan pilih foto dengan ukuran maksimal 3 MB.');
                     input.value = '';
                 }
             }
@@ -524,12 +572,16 @@
 
         // Close on backdrop click & ESC key
         document.addEventListener('DOMContentLoaded', function() {
-            ['modalPengaduan', 'modalLacakTiket'].forEach(function(modalId) {
+            ['modalPengaduan', 'modalLacakTiket', 'welcomeAlertModal'].forEach(function(modalId) {
                 const modal = document.getElementById(modalId);
                 if (modal) {
                     modal.addEventListener('click', function(e) {
                         if (e.target === modal) {
-                            closeModal(modalId);
+                            if (modalId === 'welcomeAlertModal') {
+                                closeWelcomeAlert();
+                            } else {
+                                closeModal(modalId);
+                            }
                         }
                     });
                 }
@@ -537,6 +589,7 @@
 
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
+                    closeWelcomeAlert();
                     closeModal('modalPengaduan');
                     closeModal('modalLacakTiket');
                 }

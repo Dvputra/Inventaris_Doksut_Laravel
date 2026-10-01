@@ -44,7 +44,12 @@
                 <span>Cetak Surat Dinas</span>
             </a>
             @if(Auth::user()->isSarpras())
-                <form action="{{ route('official-reports.destroy', $officialReport) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus arsip berita acara ini?');" class="inline-block">
+                <form action="{{ route('official-reports.destroy', $officialReport) }}" method="POST" class="inline-block"
+                      data-confirm="Apakah Anda yakin ingin menghapus arsip Berita Acara {{ addslashes($officialReport->nomor_surat) }}?"
+                      data-confirm-title="Hapus Berita Acara"
+                      data-confirm-type="danger"
+                      data-confirm-btn="Ya, Hapus Arsip"
+                      data-confirm-icon="bi bi-trash3-fill text-2xl">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="inline-flex items-center justify-center p-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm transition-colors" title="Hapus Dokumen">
@@ -330,102 +335,148 @@
 
 <!-- MODAL TTD SARPRAS -->
 <div id="sarprasSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <i class="bi bi-pen-fill text-blue-600"></i>
-                <span>Tanda Tangan Pihak Pertama (Sarpras)</span>
-            </h3>
-            <button type="button" onclick="closeSignatureModal('sarpras')" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
-        </div>
-        <p class="text-xs text-slate-500">Gunakan jari (pada layar sentuh HP) atau kursor mouse/touchpad untuk menandatangani di dalam kotak berikut:</p>
-        
-        <div class="border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-slate-50 touch-none flex justify-center">
-            <canvas id="sarprasCanvas" width="380" height="180" class="cursor-crosshair bg-white"></canvas>
-        </div>
+    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left">
+        <!-- Top accent stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-amber-400"></div>
 
-        <div class="flex items-center justify-between">
-            <button type="button" onclick="clearCanvas('sarpras')" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold">
-                <i class="bi bi-eraser me-1"></i> Bersihkan Canvas
-            </button>
-            <form action="{{ route('official-reports.sign-pihak-pertama', $officialReport) }}" method="POST" id="sarprasSignForm">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="signature_data" id="sarprasSignatureData">
-                <button type="submit" onclick="submitSignature('sarpras', event)" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs">
-                    Simpan Tanda Tangan
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <i class="bi bi-pen-fill text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Tanda Tangan Pihak Pertama</h3>
+                        <p class="text-[11px] text-slate-400">Tim Sarpras Sekolah</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSignatureModal('sarpras')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    <i class="bi bi-x-lg text-xs"></i>
                 </button>
-            </form>
+            </div>
+            
+            <p class="text-xs text-slate-500 leading-relaxed">
+                Gunakan jari (pada layar sentuh HP) atau kursor mouse/touchpad untuk menandatangani di dalam kotak berikut:
+            </p>
+            
+            <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
+                <canvas id="sarprasCanvas" width="380" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <button type="button" onclick="clearCanvas('sarpras')" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                    <i class="bi bi-eraser text-xs"></i>
+                    <span>Bersihkan</span>
+                </button>
+                <form action="{{ route('official-reports.sign-pihak-pertama', $officialReport) }}" method="POST" id="sarprasSignForm">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="signature_data" id="sarprasSignatureData">
+                    <button type="submit" onclick="submitSignature('sarpras', event)" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center gap-1.5 active:scale-95">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan Tanda Tangan</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- MODAL ACC & TTD KEPALA SEKOLAH -->
 <div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-lg w-full p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-                <i class="bi bi-shield-check text-emerald-600"></i>
-                <span>Persetujuan (ACC) &amp; TTD Kepala Sekolah</span>
-            </h3>
-            <button type="button" onclick="closeKepsekApprovalModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
-        </div>
+    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-left">
+        <!-- Top accent stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-400"></div>
 
-        <form action="{{ route('official-reports.approve', $officialReport) }}" method="POST" id="kepsekApproveForm" class="space-y-4">
-            @csrf
-            @method('PATCH')
-            <input type="hidden" name="signature_data" id="kepsekSignatureData">
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan Persetujuan (Opsional)</label>
-                <textarea name="catatan_approval" rows="2" placeholder="Contoh: Disetujui untuk dihapuskan dari daftar inventaris aktif..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"></textarea>
-            </div>
-
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
-                <div class="border-2 border-dashed border-emerald-300 rounded-xl overflow-hidden bg-slate-50 touch-none flex justify-center">
-                    <canvas id="kepsekCanvas" width="420" height="180" class="cursor-crosshair bg-white"></canvas>
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i class="bi bi-shield-check text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Persetujuan &amp; TTD Kepala Sekolah</h3>
+                        <p class="text-[11px] text-slate-400">Pengesahan Resmi Dokumen Berita Acara</p>
+                    </div>
                 </div>
+                <button type="button" onclick="closeKepsekApprovalModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
             </div>
 
-            <div class="flex items-center justify-between pt-1">
-                <button type="button" onclick="clearCanvas('kepsek')" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold">
-                    <i class="bi bi-eraser me-1"></i> Bersihkan Canvas
-                </button>
-                <button type="submit" onclick="submitSignature('kepsek', event)" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20">
-                    <i class="bi bi-check2-circle me-1"></i> ACC &amp; Sahkan Dokumen
-                </button>
-            </div>
-        </form>
+            <form action="{{ route('official-reports.approve', $officialReport) }}" method="POST" id="kepsekApproveForm" class="space-y-4">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="signature_data" id="kepsekSignatureData">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catatan Persetujuan (Opsional)</label>
+                    <textarea name="catatan_approval" rows="2" placeholder="Contoh: Disetujui untuk dihapuskan dari daftar inventaris aktif..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
+                    <div class="border-2 border-dashed border-emerald-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
+                        <canvas id="kepsekCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <button type="button" onclick="clearCanvas('kepsek')" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                        <i class="bi bi-eraser text-xs"></i>
+                        <span>Bersihkan</span>
+                    </button>
+                    <button type="submit" onclick="submitSignature('kepsek', event)" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-200 transition-all flex items-center gap-1.5 active:scale-95">
+                        <i class="bi bi-check2-circle"></i>
+                        <span>ACC &amp; Sahkan Dokumen</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- MODAL TOLAK KEPALA SEKOLAH -->
 <div id="kepsekRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-5 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-sm font-bold text-rose-700 flex items-center gap-2">
-                <i class="bi bi-x-circle-fill"></i>
-                <span>Tolak / Minta Revisi Berita Acara</span>
-            </h3>
-            <button type="button" onclick="closeKepsekRejectModal()" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
-        </div>
+    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left">
+        <!-- Top accent stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400"></div>
 
-        <form action="{{ route('official-reports.reject', $officialReport) }}" method="POST" class="space-y-4">
-            @csrf
-            @method('PATCH')
-            <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Alasan Penolakan / Catatan Revisi <span class="text-rose-500">*</span></label>
-                <textarea name="catatan_approval" rows="3" required placeholder="Jelaskan alasan mengapa berita acara ini ditolak atau data apa yang harus diperbaiki..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500"></textarea>
-            </div>
-
-            <div class="flex items-center justify-end gap-2">
-                <button type="button" onclick="closeKepsekRejectModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold">Batal</button>
-                <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-xs">
-                    Kirim Penolakan
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+                        <i class="bi bi-x-circle-fill text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Tolak / Revisi Berita Acara</h3>
+                        <p class="text-[11px] text-slate-400">Kembalikan dokumen untuk diperbaiki</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeKepsekRejectModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    <i class="bi bi-x-lg text-xs"></i>
                 </button>
             </div>
-        </form>
+
+            <form action="{{ route('official-reports.reject', $officialReport) }}" method="POST" class="space-y-4">
+                @csrf
+                @method('PATCH')
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Alasan Penolakan / Catatan Revisi <span class="text-rose-500">*</span></label>
+                    <textarea name="catatan_approval" rows="3" required placeholder="Jelaskan alasan mengapa berita acara ini ditolak atau data apa yang harus diperbaiki..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-2">
+                    <button type="button" onclick="closeKepsekRejectModal()" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-95">
+                        Batal
+                    </button>
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-x-circle"></i>
+                        <span>Kirim Penolakan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
