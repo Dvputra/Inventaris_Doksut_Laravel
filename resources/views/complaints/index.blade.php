@@ -14,10 +14,10 @@
                 <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Pengaduan Kendala Fasilitas Guru</h1>
             </div>
             <p class="text-sm text-slate-500 mt-1">
-                @if(Auth::user()->isSarpras())
+                @if(Auth::user()->isSarprasOrKepalaSekolah() || !Auth::user()->jurusan_id)
                     Daftar laporan kendala sarana, komputer, dan fasilitas sekolah yang diajukan oleh guru &amp; staf.
                 @else
-                    Daftar laporan kendala fasilitas dan bengkel pada lingkup <strong>{{ Auth::user()->jurusan->nama }}</strong>.
+                    Daftar laporan kendala fasilitas dan bengkel pada lingkup <strong>{{ Auth::user()->jurusan ? Auth::user()->jurusan->nama : 'Unit Kerja' }}</strong>.
                 @endif
             </p>
         </div>

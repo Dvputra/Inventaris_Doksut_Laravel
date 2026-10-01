@@ -12,10 +12,10 @@
             </span>
         </h2>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">
-            @if(Auth::user()->isSarpras())
+            @if(Auth::user()->isSarprasOrKepalaSekolah() || !Auth::user()->jurusan_id)
                 Menampilkan daftar seluruh aset, mesin bengkel, lab komputer, dan bahan praktik di lingkungan sekolah.
             @else
-                Menampilkan daftar inventaris bengkel / laboratorium <strong class="text-slate-700">{{ Auth::user()->jurusan->nama }}</strong>.
+                Menampilkan daftar inventaris bengkel / laboratorium <strong class="text-slate-700">{{ Auth::user()->jurusan ? Auth::user()->jurusan->nama : 'Unit' }}</strong>.
             @endif
         </p>
     </div>

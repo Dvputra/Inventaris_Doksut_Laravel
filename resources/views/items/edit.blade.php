@@ -47,7 +47,7 @@
             </div>
 
             <!-- Jurusan & Kategori -->
-            @if(Auth::user()->isSarpras())
+            @if(Auth::user()->isSarprasOrKepalaSekolah() || !Auth::user()->jurusan_id)
                 <div class="md:col-span-6">
                     <label for="jurusan_id" class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Unit Kepemilikan / Jurusan <span class="text-rose-500">*</span>
@@ -65,8 +65,8 @@
             @else
                 <div class="md:col-span-6">
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Jurusan Penempatan</label>
-                    <input type="text" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-600" value="{{ $item->jurusan->nama }} ({{ $item->jurusan->kode }})" readonly disabled>
-                    <input type="hidden" id="jurusan_id" value="{{ $item->jurusan_id }}" data-kode="{{ $item->jurusan->kode }}">
+                    <input type="text" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-600" value="{{ $item->jurusan ? ($item->jurusan->nama . ' (' . $item->jurusan->kode . ')') : '-' }}" readonly disabled>
+                    <input type="hidden" id="jurusan_id" value="{{ $item->jurusan_id }}" data-kode="{{ $item->jurusan->kode ?? 'UMUM' }}">
                 </div>
             @endif
 

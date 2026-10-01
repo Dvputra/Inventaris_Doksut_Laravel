@@ -258,7 +258,7 @@ class ItemController extends Controller
             'foto' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:3072'],
         ];
 
-        if ($user->isSarpras()) {
+        if ($user->isSarprasOrKepalaSekolah() || ! $user->jurusan_id) {
             $rules['jurusan_id'] = ['required', 'exists:jurusans,id'];
             $rules['penempatan_sarpras'] = ['nullable', 'in:gudang,umum'];
         }
@@ -441,7 +441,7 @@ class ItemController extends Controller
             'hapus_foto' => ['nullable', 'boolean'],
         ];
 
-        if ($user->isSarpras()) {
+        if ($user->isSarprasOrKepalaSekolah() || ! $user->jurusan_id) {
             $rules['jurusan_id'] = ['required', 'exists:jurusans,id'];
         }
 
