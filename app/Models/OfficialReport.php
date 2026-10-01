@@ -27,6 +27,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'latar_belakang',
     'total_nominal',
     'status_dokumen',
+    'status_approval',
+    'approved_by',
+    'approved_at',
+    'catatan_approval',
+    'ttd_pihak_pertama',
+    'ttd_pihak_pertama_at',
+    'ttd_mengetahui',
+    'ttd_mengetahui_at',
     'file_lampiran',
     'catatan',
 ])]
@@ -40,12 +48,20 @@ class OfficialReport extends Model
         return [
             'tanggal' => 'date',
             'total_nominal' => 'decimal:2',
+            'approved_at' => 'datetime',
+            'ttd_pihak_pertama_at' => 'datetime',
+            'ttd_mengetahui_at' => 'datetime',
         ];
     }
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function approver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function jurusan(): BelongsTo

@@ -21,7 +21,7 @@ class DashboardController extends Controller
     {
         $user = $request->user();
 
-        if ($user->isSarpras()) {
+        if ($user->isSarprasOrKepalaSekolah()) {
             $totalJurusans = Jurusan::count();
             $totalItems = Item::count();
             $totalUnit = Item::sum('jumlah');

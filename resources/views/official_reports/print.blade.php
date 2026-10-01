@@ -313,7 +313,9 @@
                     <td style="width: 45%; vertical-align: top;">
                         Pihak Kedua,<br>
                         <strong>{{ $officialReport->pihak_kedua_jabatan }}</strong>
-                        <div style="height: 65px;"></div>
+                        <div style="height: 70px; display: flex; align-items: center; justify-content: center;">
+                            <!-- Kolom TTD Basah Pihak Kedua -->
+                        </div>
                         <strong><u>{{ $officialReport->pihak_kedua_nama }}</u></strong>
                         @if($officialReport->pihak_kedua_instansi)
                             <div style="font-size: 9.5pt;">{{ $officialReport->pihak_kedua_instansi }}</div>
@@ -324,7 +326,14 @@
                         Temanggung, {{ $officialReport->tanggal->translatedFormat('d F Y') }}<br>
                         Pihak Pertama,<br>
                         <strong>{{ $officialReport->pihak_pertama_jabatan }}</strong>
-                        <div style="height: 65px;"></div>
+                        <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            @if($officialReport->ttd_pihak_pertama)
+                                <img src="{{ Storage::url($officialReport->ttd_pihak_pertama) }}" alt="TTD Sarpras" style="max-height: 55px; max-width: 160px; object-contain: contain;">
+                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                    Ditandatangani elektronik: {{ $officialReport->ttd_pihak_pertama_at ? $officialReport->ttd_pihak_pertama_at->translatedFormat('d/m/Y H:i') : '' }}
+                                </div>
+                            @endif
+                        </div>
                         <strong><u>{{ $officialReport->pihak_pertama_nama }}</u></strong>
                         @if($officialReport->pihak_pertama_nip)
                             <div style="font-size: 9.5pt;">NIP: {{ $officialReport->pihak_pertama_nip }}</div>
@@ -332,10 +341,21 @@
                     </td>
                 </tr>
                 <tr>
-                    <td colspan="3" style="text-align: center; padding-top: 25px;">
+                    <td colspan="3" style="text-align: center; padding-top: 20px;">
                         Mengetahui / Mengesahkan,<br>
                         <strong>{{ $officialReport->mengetahui_jabatan }}</strong>
-                        <div style="height: 65px;"></div>
+                        <div style="height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 3px;">
+                            @if($officialReport->ttd_mengetahui)
+                                <img src="{{ Storage::url($officialReport->ttd_mengetahui) }}" alt="TTD Kepsek" style="max-height: 55px; max-width: 160px; object-contain: contain;">
+                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                    Disetujui &amp; TTD elektronik: {{ $officialReport->ttd_mengetahui_at ? $officialReport->ttd_mengetahui_at->translatedFormat('d/m/Y H:i') : '' }}
+                                </div>
+                            @elseif($officialReport->status_approval === 'disetujui')
+                                <div style="border: 1px solid #10b981; color: #047857; padding: 4px 10px; font-size: 8pt; border-radius: 4px; font-weight: bold;">
+                                    DISETUJUI SECARA ELEKTRONIK OLEH KEPALA SEKOLAH
+                                </div>
+                            @endif
+                        </div>
                         <strong><u>{{ $officialReport->mengetahui_nama }}</u></strong>
                         @if($officialReport->mengetahui_nip)
                             <div style="font-size: 9.5pt;">NIP: {{ $officialReport->mengetahui_nip }}</div>

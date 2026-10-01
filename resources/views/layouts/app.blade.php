@@ -116,12 +116,12 @@
                 </nav>
             </div>
 
-            <!-- Nav Group: Khusus Sarpras -->
-            @if(Auth::user()->isSarpras())
+            <!-- Nav Group: Khusus Sarpras & Kepala Sekolah -->
+            @if(Auth::user()->isSarprasOrKepalaSekolah())
                 <div>
                     <div class="px-3 mb-2 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
                         <span>Sarpras & Sekolah</span>
-                        <span class="text-[9px] font-extrabold bg-amber-400/90 text-slate-950 px-1.5 py-0.5 rounded shadow-xs">SAR</span>
+                        <span class="text-[9px] font-extrabold bg-amber-400/90 text-slate-950 px-1.5 py-0.5 rounded shadow-xs">{{ Auth::user()->isKepalaSekolah() ? 'KS' : 'SAR' }}</span>
                     </div>
                     <nav class="space-y-1">
                         <a href="{{ route('sarpras.umum') }}" 
@@ -224,7 +224,13 @@
                 <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-white truncate">{{ Auth::user()->name }}</p>
                     <p class="text-[11px] text-slate-400 truncate">
-                        {{ Auth::user()->isSarpras() ? 'Sarpras Pusat' : 'Unit: ' . (Auth::user()->jurusan->kode ?? 'Jurusan') }}
+                        @if(Auth::user()->isKepalaSekolah())
+                            Kepala Sekolah
+                        @elseif(Auth::user()->isSarpras())
+                            Sarpras Pusat
+                        @else
+                            Unit: {{ Auth::user()->jurusan->kode ?? 'Jurusan' }}
+                        @endif
                     </p>
                 </div>
             </div>
@@ -246,7 +252,12 @@
                         <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-6 h-6 sm:w-7 sm:h-7 object-contain lg:hidden shrink-0">
                         
                         <!-- Role Badge -->
-                        @if(Auth::user()->isSarpras())
+                        @if(Auth::user()->isKepalaSekolah())
+                            <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 shadow-xs truncate">
+                                <i class="bi bi-mortarboard-fill text-amber-600 text-xs sm:text-sm shrink-0"></i>
+                                <span class="truncate">KEPALA SEKOLAH</span>
+                            </span>
+                        @elseif(Auth::user()->isSarpras())
                             <span class="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200/80 shadow-xs truncate">
                                 <i class="bi bi-shield-fill-check text-amber-500 text-xs sm:text-sm shrink-0"></i>
                                 <span class="truncate hidden xs:inline sm:inline">ADMIN PUSAT (SARPRAS)</span>

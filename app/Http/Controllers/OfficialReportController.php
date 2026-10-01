@@ -206,11 +206,117 @@ class OfficialReportController extends Controller
     }
 
     /**
+     * Setujui (ACC) Berita Acara oleh Kepala Sekolah beserta Tanda Tangan Digital.
+     */
+    public function approve(Request $request, OfficialReport $officialReport): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isKepalaSekolah() && ! $user->isSarpras()) {
+            abort(403, 'Hanya Kepala Sekolah atau Sarpras yang dapat melakukan persetujuan/ACC.');
+        }
+
+        $request->validate([
+            'catatan_approval' => 'nullable|string|max:500',
+            'signature_data' => 'nullable|string', // Base64 data URL from signature pad
+        ]);
+
+        $signaturePath = $officialReport->ttd_mengetahui;
+        if ($request->filled('signature_data')) {
+            $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/kepsek');
+        }
+
+        $officialReport->update([
+            'status_approval' => 'disetujui',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+            'catatan_approval' => $request->catatan_approval,
+            'ttd_mengetahui' => $signaturePath,
+            'ttd_mengetahui_at' => $signaturePath ? now() : $officialReport->ttd_mengetahui_at,
+        ]);
+
+        return back()->with('success', 'Berita Acara berhasil disetujui (ACC) dan ditandatangani.');
+    }
+
+    /**
+     * Tolak / minta revisi Berita Acara oleh Kepala Sekolah.
+     */
+    public function reject(Request $request, OfficialReport $officialReport): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isKepalaSekolah() && ! $user->isSarpras()) {
+            abort(403, 'Hanya Kepala Sekolah atau Sarpras yang dapat memproses penolakan.');
+        }
+
+        $request->validate([
+            'catatan_approval' => 'required|string|max:500',
+        ]);
+
+        $officialReport->update([
+            'status_approval' => 'ditolak',
+            'approved_by' => $user->id,
+            'approved_at' => now(),
+            'catatan_approval' => $request->catatan_approval,
+        ]);
+
+        return back()->with('success', 'Berita Acara ditolak dengan catatan evaluasi.');
+    }
+
+    /**
+     * Tanda Tangan Digital oleh Pihak Pertama (Sarpras).
+     */
+    public function signPihakPertama(Request $request, OfficialReport $officialReport): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isSarpras()) {
+            abort(403, 'Hanya akun Sarpras yang dapat menandatangani sebagai Pihak Pertama.');
+        }
+
+        $request->validate([
+            'signature_data' => 'required|string',
+        ]);
+
+        $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/sarpras');
+
+        $officialReport->update([
+            'ttd_pihak_pertama' => $signaturePath,
+            'ttd_pihak_pertama_at' => now(),
+        ]);
+
+        return back()->with('success', 'Tanda tangan Pihak Pertama (Sarpras) berhasil disimpan.');
+    }
+
+    /**
+     * Helper simpan base64 canvas signature ke storage PNG.
+     */
+    private function saveBase64Signature(string $base64Data, string $folder): string
+    {
+        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $type)) {
+            $data = substr($base64Data, strpos($base64Data, ',') + 1);
+            $type = strtolower($type[1]); // png, jpg, etc.
+
+            $data = base64_decode($data);
+            if ($data === false) {
+                throw new \Exception('Gagal memproses data tanda tangan digital.');
+            }
+
+            $fileName = $folder . '/' . uniqid('ttd_') . '.' . $type;
+            Storage::disk('public')->put($fileName, $data);
+
+            return $fileName;
+        }
+
+        throw new \Exception('Format tanda tangan tidak valid.');
+    }
+
+    /**
      * Cetak Berita Acara resmi (format Surat Dinas A4 dengan Kop Resmi).
      */
     public function print(OfficialReport $officialReport): View
     {
-        $officialReport->load(['user', 'jurusan', 'items']);
+        $officialReport->load(['user', 'jurusan', 'items', 'approver']);
 
         return view('official_reports.print', compact('officialReport'));
     }

@@ -123,6 +123,7 @@
                         <th class="py-3 px-4">Tanggal &amp; Unit</th>
                         <th class="py-3 px-4">Pihak Terkait</th>
                         <th class="py-3 px-4 text-center">Rincian Barang</th>
+                        <th class="py-3 px-4 text-center">Status ACC</th>
                         <th class="py-3 px-4 text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -178,6 +179,24 @@
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                                     {{ $rep->items->count() }} Item
                                 </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                @if($rep->status_approval === 'disetujui')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <i class="bi bi-check-circle-fill text-xs"></i>
+                                        <span>Disetujui Kepsek</span>
+                                    </span>
+                                @elseif($rep->status_approval === 'ditolak')
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                        <i class="bi bi-x-circle-fill text-xs"></i>
+                                        <span>Ditolak</span>
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        <i class="bi bi-clock-history text-xs"></i>
+                                        <span>Menunggu ACC</span>
+                                    </span>
+                                @endif
                             </td>
                             <td class="py-3.5 px-4 text-right">
                                 <div class="inline-flex items-center gap-1.5">

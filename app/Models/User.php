@@ -48,6 +48,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Cek apakah user adalah Kepala Sekolah.
+     */
+    public function isKepalaSekolah(): bool
+    {
+        return $this->role === 'kepala_sekolah';
+    }
+
+    /**
+     * Cek apakah user memiliki hak akses manajerial (Sarpras atau Kepala Sekolah).
+     */
+    public function isSarprasOrKepalaSekolah(): bool
+    {
+        return in_array($this->role, ['sarpras', 'kepala_sekolah'], true);
+    }
+
+    /**
      * Cek apakah user adalah akun jurusan.
      */
     public function isJurusan(): bool

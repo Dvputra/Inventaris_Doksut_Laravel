@@ -37,16 +37,16 @@ Route::middleware('auth')->group(function () {
     // Dashboard (Otomatis menampilkan data Sarpras atau Jurusan)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Manajemen Pengaduan Kendala Fasilitas dari Guru/Tendik (Hanya Akun Sarpras)
+    // Manajemen Pengaduan Kendala Fasilitas dari Guru/Tendik (Akun Sarpras & Kepala Sekolah)
     Route::resource('complaints', ComplaintController::class)
         ->only(['index', 'show', 'update', 'destroy'])
-        ->middleware('role:sarpras');
+        ->middleware('role:sarpras,kepala_sekolah');
 
     // API Helper generate kode barang
     Route::get('/items/api/generate-code', [ItemController::class, 'generateCode'])->name('items.generate-code');
 
-    // Menu Khusus Sarpras & Fasilitas Sekolah (Inventaris Umum & Stok di Gudang) - Hanya Akun Sarpras
-    Route::middleware('role:sarpras')->group(function () {
+    // Menu Khusus Sarpras & Fasilitas Sekolah (Inventaris Umum & Stok di Gudang) - Sarpras & Kepala Sekolah
+    Route::middleware('role:sarpras,kepala_sekolah')->group(function () {
         Route::get('/sarpras/umum', [SarprasController::class, 'umum'])->name('sarpras.umum');
         Route::get('/sarpras/gudang', [SarprasController::class, 'gudang'])->name('sarpras.gudang');
     });
@@ -94,10 +94,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('/procurements/{procurement}/approve', [ProcurementController::class, 'approve'])->name('procurements.approve')->middleware('role:sarpras');
     Route::patch('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])->name('procurements.reject')->middleware('role:sarpras');
 
-    // Berita Acara Sarpras (Barang Rusak & Penjualan/Lelang)
-    Route::resource('official-reports', OfficialReportController::class)->middleware('role:sarpras');
+    // Berita Acara Sarpras & Kepala Sekolah (Barang Rusak & Penjualan/Lelang)
+    Route::resource('official-reports', OfficialReportController::class)->middleware('role:sarpras,kepala_sekolah');
     Route::get('/official-reports/{officialReport}/print', [OfficialReportController::class, 'print'])
         ->name('official-reports.print')
+        ->middleware('role:sarpras,kepala_sekolah');
+    Route::patch('/official-reports/{officialReport}/approve', [OfficialReportController::class, 'approve'])
+        ->name('official-reports.approve')
+        ->middleware('role:sarpras,kepala_sekolah');
+    Route::patch('/official-reports/{officialReport}/reject', [OfficialReportController::class, 'reject'])
+        ->name('official-reports.reject')
+        ->middleware('role:sarpras,kepala_sekolah');
+    Route::patch('/official-reports/{officialReport}/sign-pihak-pertama', [OfficialReportController::class, 'signPihakPertama'])
+        ->name('official-reports.sign-pihak-pertama')
         ->middleware('role:sarpras');
 
     // Kelola Akun Pengguna (Hanya Admin Sarpras)
@@ -117,10 +126,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/usages/export-excel', [ReportController::class, 'exportUsagesExcel'])->name('reports.usages.export-excel');
     Route::get('/reports/complaints/print', [ReportController::class, 'printComplaints'])
         ->name('reports.complaints.print')
-        ->middleware('role:sarpras');
+        ->middleware('role:sarpras,kepala_sekolah');
     Route::get('/reports/complaints/export-excel', [ReportController::class, 'exportComplaintsExcel'])
         ->name('reports.complaints.export-excel')
-        ->middleware('role:sarpras');
+        ->middleware('role:sarpras,kepala_sekolah');
 });
 
 // Fallback route untuk menyajikan file publik jika filesystem host tidak mendukung symlink
