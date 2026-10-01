@@ -217,12 +217,12 @@
 
         <!-- User Profile Pill in Sidebar Footer -->
         <div class="p-3 border-t border-slate-800/90 bg-slate-950/70">
-            <div class="flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 font-bold flex items-center justify-center shadow-xs shrink-0 ring-1 ring-amber-400/40 text-sm">
+            <a href="{{ route('profile.show') }}" class="flex items-center gap-3 px-2 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800/90 border border-slate-800 transition-all group">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-300 to-amber-500 text-slate-950 font-bold flex items-center justify-center shadow-xs shrink-0 ring-1 ring-amber-400/40 text-sm group-hover:scale-105 transition-transform">
                     {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-xs font-semibold text-white truncate">{{ Auth::user()->name }}</p>
+                    <p class="text-xs font-semibold text-white truncate group-hover:text-amber-300 transition-colors">{{ Auth::user()->name }}</p>
                     <p class="text-[11px] text-slate-400 truncate">
                         @if(Auth::user()->isKepalaSekolah())
                             Kepala Sekolah
@@ -233,7 +233,8 @@
                         @endif
                     </p>
                 </div>
-            </div>
+                <i class="bi bi-gear text-slate-400 group-hover:text-amber-300 text-sm shrink-0 transition-colors"></i>
+            </a>
         </div>
     </aside>
 
@@ -281,11 +282,16 @@
                 </div>
 
                 <!-- Right: Account Info & Keluar (Urgency: Danger/Red) -->
-                <div class="flex items-center gap-2 sm:gap-4 shrink-0">
-                    <div class="hidden sm:block text-right">
-                        <span class="block text-xs font-semibold text-slate-800 leading-tight">{{ Auth::user()->name }}</span>
-                        <span class="block text-[11px] text-slate-500 leading-tight">{{ Auth::user()->email }}</span>
-                    </div>
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <a href="{{ route('profile.show') }}" class="hidden sm:flex items-center gap-2 p-1.5 -mr-1 rounded-xl hover:bg-slate-100 transition-colors group text-right" title="Buka Profil Akun">
+                        <div>
+                            <span class="block text-xs font-semibold text-slate-800 group-hover:text-blue-600 transition-colors leading-tight">{{ Auth::user()->name }}</span>
+                            <span class="block text-[11px] text-slate-500 leading-tight">{{ Auth::user()->email }}</span>
+                        </div>
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 group-hover:bg-blue-50 text-slate-600 group-hover:text-blue-600 flex items-center justify-center text-xs font-bold transition-colors">
+                            <i class="bi bi-person-gear text-sm"></i>
+                        </div>
+                    </a>
 
                     <!-- Tombol Keluar (Warna Urgensi: Red/Rose) -->
                     <button type="button" id="openLogoutModalBtn" 

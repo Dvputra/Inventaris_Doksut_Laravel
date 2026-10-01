@@ -11,6 +11,7 @@ use App\Http\Controllers\ItemUsageController;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\MaintenanceLogController;
 use App\Http\Controllers\OfficialReportController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\PublicComplaintController;
 use App\Http\Controllers\ReportController;
@@ -36,6 +37,11 @@ Route::middleware('auth')->group(function () {
 
     // Dashboard (Otomatis menampilkan data Sarpras atau Jurusan)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Pengaturan Akun & Profil Mandiri
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
     // Manajemen Pengaduan Kendala Fasilitas dari Guru/Tendik (Akun Sarpras & Kepala Sekolah)
     Route::resource('complaints', ComplaintController::class)
