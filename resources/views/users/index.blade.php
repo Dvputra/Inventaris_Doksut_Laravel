@@ -40,8 +40,9 @@
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Peran / Role</label>
                 <select name="role" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                     <option value="">Semua Peran</option>
+                    <option value="kepala_sekolah" {{ request('role') == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
                     <option value="sarpras" {{ request('role') == 'sarpras' ? 'selected' : '' }}>Sarpras (Pusat)</option>
-                    <option value="jurusan" {{ request('role') == 'jurusan' ? 'selected' : '' }}>Akun Jurusan</option>
+                    <option value="jurusan" {{ request('role') == 'jurusan' ? 'selected' : '' }}>Jurusan / Unit Kerja</option>
                 </select>
             </div>
 
@@ -109,15 +110,20 @@
                                 {{ $u->email }}
                             </td>
                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                @if($u->isSarpras())
+                                @if($u->isKepalaSekolah())
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                        <i class="bi bi-mortarboard-fill text-xs text-amber-700"></i>
+                                        <span>Kepala Sekolah</span>
+                                    </span>
+                                @elseif($u->isSarpras())
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                         <i class="bi bi-shield-check text-xs"></i>
                                         <span>Sarpras (Pusat)</span>
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                                        <i class="bi bi-mortarboard text-xs"></i>
-                                        <span>Akun Jurusan</span>
+                                        <i class="bi bi-building text-xs"></i>
+                                        <span>Jurusan / Unit Kerja</span>
                                     </span>
                                 @endif
                             </td>

@@ -64,10 +64,23 @@ class User extends Authenticatable
     }
 
     /**
-     * Cek apakah user adalah akun jurusan.
+     * Cek apakah user adalah akun jurusan / unit kerja.
      */
     public function isJurusan(): bool
     {
         return $this->role === 'jurusan';
+    }
+
+    /**
+     * Label representasi nama role dalam sistem.
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'kepala_sekolah' => 'Kepala Sekolah',
+            'sarpras' => 'Sarpras Pusat',
+            'jurusan' => 'Jurusan / Unit Kerja',
+            default => ucfirst(str_replace('_', ' ', $this->role)),
+        };
     }
 }

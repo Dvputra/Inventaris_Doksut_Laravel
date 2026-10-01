@@ -68,8 +68,9 @@
                         Peran / Hak Akses <span class="text-rose-500">*</span>
                     </label>
                     <select name="role" id="role" class="w-full px-3.5 py-2.5 bg-slate-50 border @error('role') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" required onchange="toggleJurusan(this.value)">
-                        <option value="jurusan" {{ old('role', 'jurusan') == 'jurusan' ? 'selected' : '' }}>Akun Jurusan (Program Keahlian)</option>
+                        <option value="jurusan" {{ old('role', 'jurusan') == 'jurusan' ? 'selected' : '' }}>Akun Jurusan / Unit Kerja</option>
                         <option value="sarpras" {{ old('role') == 'sarpras' ? 'selected' : '' }}>Admin Pusat (Sarpras)</option>
+                        <option value="kepala_sekolah" {{ old('role') == 'kepala_sekolah' ? 'selected' : '' }}>Kepala Sekolah</option>
                     </select>
                     @error('role')
                         <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
@@ -79,17 +80,17 @@
                 <!-- Jurusan Selection (hanya jika role == jurusan) -->
                 <div class="sm:col-span-12" id="jurusanWrapper">
                     <label for="jurusan_id" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Pilih Program Keahlian / Jurusan <span class="text-rose-500">*</span>
+                        Pilih Program Keahlian / Unit Kerja <span class="text-rose-500">*</span>
                     </label>
                     <select name="jurusan_id" id="jurusan_id" class="w-full px-3.5 py-2.5 bg-slate-50 border @error('jurusan_id') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                        <option value="">-- Pilih Jurusan --</option>
+                        <option value="">-- Pilih Jurusan / Unit Kerja --</option>
                         @foreach($jurusans as $j)
                             <option value="{{ $j->id }}" {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
-                                {{ $j->kode }} - {{ $j->nama }} (Kepala Bengkel: {{ $j->kepala_bengkel ?? '-' }})
+                                {{ $j->kode }} - {{ $j->nama }} (Penanggung Jawab: {{ $j->kepala_bengkel ?? '-' }})
                             </option>
                         @endforeach
                     </select>
-                    <span class="block text-[11px] text-slate-400 mt-1">Akun ini hanya akan memiliki akses data pada jurusan yang dipilih.</span>
+                    <span class="block text-[11px] text-slate-400 mt-1">Akun ini hanya akan memiliki akses data pada jurusan atau unit kerja yang dipilih.</span>
                     @error('jurusan_id')
                         <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                     @enderror
@@ -115,7 +116,7 @@
     function toggleJurusan(role) {
         const wrapper = document.getElementById('jurusanWrapper');
         const select = document.getElementById('jurusan_id');
-        if (role === 'sarpras') {
+        if (role === 'sarpras' || role === 'kepala_sekolah') {
             wrapper.style.display = 'none';
             select.required = false;
         } else {

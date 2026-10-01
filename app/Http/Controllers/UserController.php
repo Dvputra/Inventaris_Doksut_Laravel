@@ -60,7 +60,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', 'in:sarpras,jurusan'],
+            'role' => ['required', 'in:sarpras,jurusan,kepala_sekolah'],
             'jurusan_id' => [
                 'nullable',
                 Rule::requiredIf($request->role === 'jurusan'),
@@ -72,11 +72,11 @@ class UserController extends Controller
             'email.unique' => 'Email ini sudah terdaftar di sistem.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
-            'jurusan_id.required' => 'Untuk akun jurusan, program keahlian wajib dipilih.',
+            'jurusan_id.required' => 'Untuk akun Jurusan / Unit Kerja, penempatan unit wajib dipilih.',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        if ($validated['role'] === 'sarpras') {
+        if (in_array($validated['role'], ['sarpras', 'kepala_sekolah'], true)) {
             $validated['jurusan_id'] = null;
         }
 
@@ -105,7 +105,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['required', 'in:sarpras,jurusan'],
+            'role' => ['required', 'in:sarpras,jurusan,kepala_sekolah'],
             'jurusan_id' => [
                 'nullable',
                 Rule::requiredIf($request->role === 'jurusan'),
@@ -116,7 +116,7 @@ class UserController extends Controller
             'email.required' => 'Alamat email wajib diisi.',
             'email.unique' => 'Email ini sudah digunakan oleh akun lain.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
-            'jurusan_id.required' => 'Untuk akun jurusan, program keahlian wajib dipilih.',
+            'jurusan_id.required' => 'Untuk akun Jurusan / Unit Kerja, penempatan unit wajib dipilih.',
         ]);
 
         if (! empty($validated['password'])) {
@@ -125,7 +125,7 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
-        if ($validated['role'] === 'sarpras') {
+        if (in_array($validated['role'], ['sarpras', 'kepala_sekolah'], true)) {
             $validated['jurusan_id'] = null;
         }
 
