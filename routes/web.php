@@ -10,6 +10,7 @@ use App\Http\Controllers\ItemUnitController;
 use App\Http\Controllers\ItemUsageController;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\MaintenanceLogController;
+use App\Http\Controllers\OfficialReportController;
 use App\Http\Controllers\ProcurementController;
 use App\Http\Controllers\PublicComplaintController;
 use App\Http\Controllers\ReportController;
@@ -92,6 +93,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/procurements/{procurement}/print', [ProcurementController::class, 'print'])->name('procurements.print');
     Route::patch('/procurements/{procurement}/approve', [ProcurementController::class, 'approve'])->name('procurements.approve')->middleware('role:sarpras');
     Route::patch('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])->name('procurements.reject')->middleware('role:sarpras');
+
+    // Berita Acara Sarpras (Barang Rusak & Penjualan/Lelang)
+    Route::resource('official-reports', OfficialReportController::class)->middleware('role:sarpras');
+    Route::get('/official-reports/{officialReport}/print', [OfficialReportController::class, 'print'])
+        ->name('official-reports.print')
+        ->middleware('role:sarpras');
 
     // Kelola Akun Pengguna (Hanya Admin Sarpras)
     Route::resource('users', UserController::class)->middleware('role:sarpras');
