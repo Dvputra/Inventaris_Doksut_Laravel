@@ -83,7 +83,7 @@ class ProcurementController extends Controller
             'items.*.keterangan' => ['nullable', 'string'],
         ];
 
-        if ($user->isSarpras()) {
+        if ($user->isSarprasOrKepalaSekolah() || ! $user->jurusan_id) {
             $rules['jurusan_id'] = ['required', 'exists:jurusans,id'];
         }
 
@@ -95,7 +95,7 @@ class ProcurementController extends Controller
             'items.*.satuan.required' => 'Satuan barang wajib diisi.',
         ]);
 
-        $jurusanId = $user->isJurusan() ? $user->jurusan_id : $validated['jurusan_id'];
+        $jurusanId = ($user->isJurusan() && $user->jurusan_id) ? $user->jurusan_id : $validated['jurusan_id'];
 
         $procurement = DB::transaction(function () use ($validated, $user, $jurusanId) {
             // Generate nomor usulan otomatis: UP-YYYYMM-XXXX
@@ -220,7 +220,7 @@ class ProcurementController extends Controller
             'items.*.keterangan' => ['nullable', 'string'],
         ];
 
-        if ($user->isSarpras()) {
+        if ($user->isSarprasOrKepalaSekolah() || ! $user->jurusan_id) {
             $rules['jurusan_id'] = ['required', 'exists:jurusans,id'];
         }
 

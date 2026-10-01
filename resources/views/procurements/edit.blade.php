@@ -70,7 +70,7 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-5">
                     <!-- Jurusan Pemohon -->
-                    @if(Auth::user()->isSarpras())
+                    @if(Auth::user()->isSarprasOrKepalaSekolah() || !Auth::user()->jurusan_id)
                         <div class="sm:col-span-6">
                             <label for="jurusan_id" class="block text-xs font-semibold text-slate-700 mb-1.5">
                                 Jurusan / Unit Pemohon <span class="text-rose-500">*</span>
@@ -87,7 +87,7 @@
                     @else
                         <div class="sm:col-span-6">
                             <label class="block text-xs font-semibold text-slate-700 mb-1.5">Jurusan / Unit Pemohon</label>
-                            <input type="text" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium cursor-not-allowed" value="{{ $procurement->jurusan->nama }} ({{ $procurement->jurusan->kode }})" readonly disabled>
+                            <input type="text" class="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm text-slate-700 font-medium cursor-not-allowed" value="{{ $procurement->jurusan ? ($procurement->jurusan->nama . ' (' . $procurement->jurusan->kode . ')') : '-' }}" readonly disabled>
                             <span class="block text-[11px] text-slate-400 mt-1">Usulan tercatat atas nama unit bengkel Anda.</span>
                         </div>
                     @endif
