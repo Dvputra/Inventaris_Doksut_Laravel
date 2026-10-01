@@ -165,7 +165,13 @@
 
         <!-- Judul Berita Acara -->
         <div class="title-block">
-            <h4>{{ $officialReport->judul }}</h4>
+            <h4>
+                @if(str_contains($officialReport->judul, 'Pemeriksaan dan Penghapusan Barang Rusak Berat'))
+                    {{ str_replace('Berita Acara Pemeriksaan dan Penghapusan Barang Rusak Berat', 'Berita Acara Barang Rusak', $officialReport->judul) }}
+                @else
+                    {{ $officialReport->judul }}
+                @endif
+            </h4>
             <div class="nomor">Nomor: {{ $officialReport->nomor_surat }}</div>
         </div>
 

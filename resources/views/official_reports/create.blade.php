@@ -69,7 +69,7 @@
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Judul Berita Acara <span class="text-rose-500">*</span>
                     </label>
-                    <input type="text" name="judul" id="judulInput" value="{{ old('judul', 'Berita Acara Pemeriksaan dan Penghapusan Barang Rusak Berat') }}" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <input type="text" name="judul" id="judulInput" value="{{ old('judul', 'Berita Acara Barang Rusak') }}" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                 </div>
 
                 <div>
@@ -319,7 +319,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update nomor & judul default jika masih default
         if (isJual) {
             if (nomorSuratInput.value === suggestedRusak) nomorSuratInput.value = suggestedJual;
-            if (judulInput.value.includes('Pemeriksaan dan Penghapusan')) {
+            if (judulInput.value.includes('Barang Rusak') || judulInput.value.includes('Pemeriksaan dan Penghapusan')) {
                 judulInput.value = 'Berita Acara Penjualan / Pelepasan Aset Barang Bekas';
             }
             labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Penerima Barang)';
@@ -335,8 +335,8 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         } else {
             if (nomorSuratInput.value === suggestedJual) nomorSuratInput.value = suggestedRusak;
-            if (judulInput.value.includes('Pelepasan Aset')) {
-                judulInput.value = 'Berita Acara Pemeriksaan dan Penghapusan Barang Rusak Berat';
+            if (judulInput.value.includes('Pelepasan Aset') || judulInput.value.includes('Penjualan')) {
+                judulInput.value = 'Berita Acara Barang Rusak';
             }
             labelPihakKedua.textContent = 'Pihak Kedua (Saksi / Kepala Bengkel / Laboratorium)';
             if (pihakKeduaJabatan.value === 'Pembeli / Pihak Ketiga') {
