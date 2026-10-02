@@ -275,14 +275,23 @@
 
         <!-- Kronologi / Dasar Berita Acara -->
         <p class="text-justify">
-            @if($officialReport->latar_belakang)
-                {{ $officialReport->latar_belakang }}
-            @elseif($officialReport->jenis === 'serah_terima')
-                Menyatakan bahwa PIHAK PERTAMA telah menyerahkan barang inventaris sarana dan prasarana dalam keadaan baik dan lengkap kepada PIHAK KEDUA, dan PIHAK KEDUA telah menerima barang tersebut dengan rincian sebagai berikut:
+            @php
+                $isDamagedBoilerplate = $officialReport->latar_belakang && str_contains($officialReport->latar_belakang, 'rusak berat dan dinilai tidak efisien');
+            @endphp
+            @if($officialReport->jenis === 'serah_terima')
+                @if($officialReport->latar_belakang && !$isDamagedBoilerplate)
+                    {{ $officialReport->latar_belakang }}
+                @else
+                    Menyatakan bahwa PIHAK PERTAMA telah menyerahkan barang inventaris sarana dan prasarana dalam keadaan baik dan lengkap kepada PIHAK KEDUA untuk dipergunakan dan dipelihara sebagaimana mestinya di unit kerja, dan PIHAK KEDUA telah memeriksa serta menerima barang tersebut dengan rincian sebagai berikut:
+                @endif
             @elseif($officialReport->jenis === 'penjualan')
-                Menyatakan bahwa sehubungan dengan pelepasan aset/inventaris sekolah yang telah melalui prosedur verifikasi, bersama ini PIHAK PERTAMA melepaskan/menjual barang kepada PIHAK KEDUA dengan rincian sebagai berikut:
+                @if($officialReport->latar_belakang && !$isDamagedBoilerplate)
+                    {{ $officialReport->latar_belakang }}
+                @else
+                    Menyatakan bahwa sehubungan dengan pelepasan aset/inventaris sekolah yang telah melalui prosedur verifikasi dan disetujui untuk dilepas/dijual guna optimalisasi ruang gudang dan kas sekolah, bersama ini PIHAK PERTAMA menyerahkan/menjual barang kepada PIHAK KEDUA dengan rincian sebagai berikut:
+                @endif
             @else
-                Menyatakan bahwa dengan mempertimbangkan kondisi fisik aset sarana dan prasarana yang ada pada lingkungan sekolah, bersama ini telah dilakukan pemeriksaan fisik bersama terhadap barang-barang inventaris dengan rincian sebagai berikut:
+                {{ $officialReport->latar_belakang ?? 'Menyatakan bahwa dengan mempertimbangkan kondisi fisik aset sarana dan prasarana yang ada pada lingkungan sekolah, bersama ini telah dilakukan pemeriksaan fisik bersama terhadap barang-barang inventaris yang telah rusak berat dan tidak dapat dipergunakan kembali dengan rincian sebagai berikut:' }}
             @endif
         </p>
 

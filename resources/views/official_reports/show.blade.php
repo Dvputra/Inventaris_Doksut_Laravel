@@ -335,7 +335,15 @@
         <!-- Latar Belakang & Catatan -->
         @if($officialReport->latar_belakang)
             <div class="p-4 rounded-xl bg-slate-50/50 border border-slate-200/60">
-                <span class="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">Latar Belakang / Dasar Pemeriksaan:</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-700 block mb-1">
+                    @if($officialReport->jenis === 'serah_terima')
+                        Latar Belakang / Dasar Serah Terima:
+                    @elseif($officialReport->jenis === 'penjualan')
+                        Latar Belakang / Dasar Pelepasan Aset:
+                    @else
+                        Latar Belakang / Dasar Pemeriksaan:
+                    @endif
+                </span>
                 <p class="text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed">{{ $officialReport->latar_belakang }}</p>
             </div>
         @endif
