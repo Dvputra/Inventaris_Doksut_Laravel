@@ -105,6 +105,11 @@
                                                 <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Akun Anda</span>
                                             @endif
                                         </div>
+                                        @if($u->username)
+                                            <div class="text-[11px] font-mono text-slate-500 mt-0.5">
+                                                <i class="bi bi-person-fill text-slate-400"></i> {{ $u->username }}
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
@@ -207,7 +212,14 @@
                                         <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">Anda</span>
                                     @endif
                                 </div>
-                                <p class="font-mono text-xs text-slate-500 truncate mt-0.5">{{ $u->email }}</p>
+                                <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                                    <span class="font-mono text-xs text-slate-500 truncate">{{ $u->email }}</span>
+                                    @if($u->username)
+                                        <span class="text-[10px] font-mono bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded border border-slate-200">
+                                            @{{ $u->username }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                         <div class="shrink-0">

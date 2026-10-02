@@ -58,6 +58,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['nullable', 'string', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
             'role' => ['required', 'in:sarpras,pembantu_sarpras,jurusan,kepala_sekolah'],
@@ -68,12 +69,26 @@ class UserController extends Controller
             ],
         ], [
             'name.required' => 'Nama lengkap pengguna wajib diisi.',
+            'username.unique' => 'Username ini sudah digunakan.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda strip, dan garis bawah.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.unique' => 'Email ini sudah terdaftar di sistem.',
             'password.required' => 'Kata sandi wajib diisi.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
             'jurusan_id.required' => 'Untuk akun Jurusan / Unit Kerja, penempatan unit wajib dipilih.',
         ]);
+
+        if (empty($validated['username'])) {
+            $prefix = strtolower(explode('@', $validated['email'])[0]);
+            $prefix = preg_replace('/[^a-z0-9_]/', '_', $prefix);
+            $base = $prefix;
+            $counter = 1;
+            while (User::where('username', $prefix)->exists()) {
+                $prefix = $base . $counter;
+                $counter++;
+            }
+            $validated['username'] = $prefix;
+        }
 
         $rawPassword = $validated['password'];
         $validated['password'] = Hash::make($rawPassword);
@@ -105,6 +120,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['nullable', 'string', 'max:50', 'alpha_dash', Rule::unique('users', 'username')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:6'],
             'role' => ['required', 'in:sarpras,pembantu_sarpras,jurusan,kepala_sekolah'],
@@ -115,11 +131,25 @@ class UserController extends Controller
             ],
         ], [
             'name.required' => 'Nama lengkap pengguna wajib diisi.',
+            'username.unique' => 'Username ini sudah digunakan oleh akun lain.',
+            'username.alpha_dash' => 'Username hanya boleh berisi huruf, angka, tanda strip, dan garis bawah.',
             'email.required' => 'Alamat email wajib diisi.',
             'email.unique' => 'Email ini sudah digunakan oleh akun lain.',
             'password.min' => 'Kata sandi minimal 6 karakter.',
             'jurusan_id.required' => 'Untuk akun Jurusan / Unit Kerja, penempatan unit wajib dipilih.',
         ]);
+
+        if (empty($validated['username'])) {
+            $prefix = strtolower(explode('@', $validated['email'])[0]);
+            $prefix = preg_replace('/[^a-z0-9_]/', '_', $prefix);
+            $base = $prefix;
+            $counter = 1;
+            while (User::where('username', $prefix)->where('id', '!=', $user->id)->exists()) {
+                $prefix = $base . $counter;
+                $counter++;
+            }
+            $validated['username'] = $prefix;
+        }
 
         if (! empty($validated['password'])) {
             $rawPassword = $validated['password'];

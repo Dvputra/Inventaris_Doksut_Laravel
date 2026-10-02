@@ -73,8 +73,18 @@ class JurusanController extends Controller
         ]);
 
         if ($request->boolean('create_user_account') && ! empty($validated['user_email'])) {
+            $prefix = strtolower(explode('@', $validated['user_email'])[0]);
+            $prefix = preg_replace('/[^a-z0-9_]/', '_', $prefix);
+            $base = $prefix;
+            $counter = 1;
+            while (User::where('username', $prefix)->exists()) {
+                $prefix = $base . $counter;
+                $counter++;
+            }
+
             User::create([
                 'name' => 'Akun '.$jurusan->nama,
+                'username' => $prefix,
                 'email' => $validated['user_email'],
                 'password' => Hash::make($validated['user_password']),
                 'display_password' => $validated['user_password'],
