@@ -225,7 +225,6 @@
         .ttd-table td {
             padding: 0 10px;
             vertical-align: top;
-            width: 33.33%;
             border: none;
             color: #000000;
             line-height: 1.4;
@@ -474,22 +473,24 @@
             Demikian usulan pengadaan barang dan bahan ini kami sampaikan untuk dapat ditindaklanjuti sebagaimana mestinya. Atas perhatian dan persetujuan yang diberikan, kami ucapkan terima kasih.
         </p>
 
-        <!-- LEMBAR TANDA TANGAN / PENGESAHAN RESMI (3 KOLOM DINAS) -->
+        <!-- LEMBAR TANDA TANGAN / PENGESAHAN RESMI (FORMAT DINAS) -->
         <div class="ttd-container">
             <table class="ttd-table">
+                <!-- Baris 1: Diajukan Oleh (Kiri) dan Diverifikasi Waka Sarpras (Kanan) -->
                 <tr>
-                    <td>
+                    <td style="width: 45%;">
                         <div class="ttd-heading">Diajukan Oleh,</div>
-                        <div class="ttd-role">Kepala {{ $procurement->jurusan->nama }}</div>
+                        <div class="ttd-role">Kepala Program / Unit Kerja<br>{{ $procurement->jurusan->nama }}</div>
                         <div class="ttd-space">
                             <!-- Tempat TTD Pemohon -->
                         </div>
                         <div class="ttd-nama">{{ $procurement->jurusan->kepala_bengkel ?? ($procurement->user->name ?? '................................................') }}</div>
                         <div class="ttd-nip">NIP/NPY: .......................................</div>
                     </td>
-                    <td>
-                        <div class="ttd-heading">Diverifikasi Oleh,</div>
-                        <div class="ttd-role">Waka Bidang Sarana &amp; Prasarana</div>
+                    <td style="width: 10%;"></td>
+                    <td style="width: 45%;">
+                        <div class="ttd-heading">Temanggung, {{ ($procurement->tanggal_persetujuan ?? $procurement->created_at)->translatedFormat('d F Y') }}</div>
+                        <div class="ttd-role">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
                         <div class="ttd-space">
                             @if($procurement->status === 'disetujui')
                                 <div class="ttd-status-stamp">
@@ -501,16 +502,22 @@
                             @endif
                         </div>
                         <div class="ttd-nama">{{ $sarprasUser->name ?? 'Admin Sarpras Pusat' }}</div>
-                        <div class="ttd-nip">NIP/NPY: .......................................</div>
+                        <div class="ttd-nip">NIP/NPY: {{ $sarprasUser->nip ?? '.......................................' }}</div>
                     </td>
-                    <td>
-                        <div class="ttd-heading">Temanggung, {{ $procurement->created_at->translatedFormat('d F Y') }}</div>
-                        <div class="ttd-role">Mengetahui,<br>Kepala SMK Dr. Sutomo</div>
-                        <div class="ttd-space">
-                            <!-- Tempat TTD Kepala Sekolah -->
+                </tr>
+
+                <!-- Baris 2: Mengetahui Kepala Sekolah (Tengah, sedikit ke bawah) -->
+                <tr>
+                    <td colspan="3" style="width: 100%; padding-top: 24px;">
+                        <div style="width: 50%; margin: 0 auto;">
+                            <div class="ttd-heading">Mengetahui / Menyetujui,</div>
+                            <div class="ttd-role">Kepala SMK Dr. Sutomo Temanggung</div>
+                            <div class="ttd-space">
+                                <!-- Tempat TTD Kepala Sekolah -->
+                            </div>
+                            <div class="ttd-nama">{{ $kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd' }}</div>
+                            <div class="ttd-nip">NIP/NPY: {{ $kepsekUser->nip ?? '.......................................' }}</div>
                         </div>
-                        <div class="ttd-nama">{{ $kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd' }}</div>
-                        <div class="ttd-nip">NIP/NPY: .......................................</div>
                     </td>
                 </tr>
             </table>
