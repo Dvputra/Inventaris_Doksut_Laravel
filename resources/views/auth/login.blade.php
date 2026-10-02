@@ -162,8 +162,13 @@
                             <i class="bi bi-lock text-sm"></i>
                         </div>
                         <input type="password" name="password" id="password" 
-                               class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border @error('password') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                               class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border @error('password') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                                placeholder="Masukkan password" value="password" required>
+                        <button type="button" onclick="togglePasswordVisibility('password', 'eyeIconLogin')" 
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
+                                title="Tampilkan/Sembunyikan Kata Sandi">
+                            <i id="eyeIconLogin" class="bi bi-eye text-base"></i>
+                        </button>
                     </div>
                 </div>
 
@@ -243,6 +248,22 @@
 </div>
 
 <script>
+    function togglePasswordVisibility(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (!input || !icon) return;
+
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+
     function fillForm(email) {
         document.getElementById('email').value = email;
         document.getElementById('password').value = 'password';
