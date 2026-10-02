@@ -58,13 +58,13 @@
             <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-2">{{ $procurement->judul_pengadaan ?: $procurement->summary_barang }}</h1>
         </div>
 
-        <div class="flex items-center gap-2">
-            <a href="{{ route('procurements.print', $procurement) }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-xs transition-colors">
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+            <a href="{{ route('procurements.print', $procurement) }}" target="_blank" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-colors">
                 <i class="bi bi-printer text-base"></i>
                 <span>Cetak Dokumen Resmi (A4)</span>
             </a>
             @if(Auth::user()->isSarpras() || ($procurement->jurusan_id === Auth::user()->jurusan_id && $procurement->status === 'menunggu'))
-                <a href="{{ route('procurements.edit', $procurement) }}" class="inline-flex items-center justify-center p-2.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm transition-colors" title="Edit Usulan">
+                <a href="{{ route('procurements.edit', $procurement) }}" class="inline-flex items-center justify-center p-2.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm transition-colors shrink-0" title="Edit Usulan">
                     <i class="bi bi-pencil"></i>
                 </a>
             @endif
@@ -325,7 +325,8 @@
             </h3>
         </div>
 
-        <div class="overflow-x-auto">
+        <!-- Desktop Table View -->
+        <div class="overflow-x-auto hidden md:block">
             <table class="w-full text-left border-collapse text-xs">
                 <thead>
                     <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider">
@@ -386,15 +387,68 @@
                 </tfoot>
             </table>
         </div>
+
+        <!-- Mobile Card View -->
+        <div class="divide-y divide-slate-100 md:hidden">
+            @foreach($items as $idx => $it)
+                <div class="p-4 space-y-2.5">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-md bg-slate-100 text-slate-500 font-bold text-[11px] flex items-center justify-center shrink-0 mt-0.5">
+                                {{ $idx + 1 }}
+                            </span>
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-sm leading-snug">{{ $it->nama_barang }}</h4>
+                                @if(!empty($it->spesifikasi))
+                                    <div class="text-xs text-slate-500 mt-0.5">Spek: {{ $it->spesifikasi }}</div>
+                                @endif
+                            </div>
+                        </div>
+                        <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 shrink-0">
+                            {{ number_format($it->jumlah) }} {{ $it->satuan }}
+                        </span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1 border-t border-slate-100 text-xs">
+                        <span class="text-slate-500">
+                            @if($it->harga_satuan)
+                                @ Rp {{ number_format($it->harga_satuan, 0, ',', '.') }}
+                            @else
+                                -
+                            @endif
+                        </span>
+                        <div class="text-right">
+                            <span class="text-[11px] text-slate-500">Subtotal:</span>
+                            <span class="text-xs font-bold text-slate-900">
+                                {{ $it->perkiraan_biaya ? 'Rp ' . number_format($it->perkiraan_biaya, 0, ',', '.') : '-' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    @if(!empty($it->keterangan))
+                        <div class="text-[11px] text-slate-500 bg-slate-50 p-2 rounded-lg">
+                            <span class="font-semibold text-slate-600">Ket:</span> {{ $it->keterangan }}
+                        </div>
+                    @endif
+                </div>
+            @endforeach
+
+            @if($procurement->perkiraan_biaya)
+                <div class="p-4 bg-blue-50/60 border-t border-blue-200/70 flex items-center justify-between">
+                    <span class="text-xs font-bold text-blue-900 uppercase tracking-wider">Total Estimasi:</span>
+                    <span class="text-base font-extrabold text-blue-700">Rp {{ number_format($procurement->perkiraan_biaya, 0, ',', '.') }}</span>
+                </div>
+            @endif
+        </div>
     </div>
 </div>
 
 <!-- MODAL TTD PEMOHON SUSULAN -->
-<div id="pemohonSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left">
-        <div class="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-amber-400"></div>
+<div id="pemohonSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
+        <div class="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-amber-400 shrink-0"></div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -439,7 +493,7 @@
                         Goreskan tanda tangan digital di dalam kotak berikut menggunakan mouse atau sentuhan jari:
                     </p>
                     <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
-                        <canvas id="pemohonModalCanvas" width="380" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                        <canvas id="pemohonModalCanvas" width="380" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner w-full max-w-[420px] h-[150px] sm:h-[180px] block"></canvas>
                     </div>
                     <div class="flex items-center justify-between">
                         <button type="button" onclick="clearModalCanvas('pemohon')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
@@ -465,11 +519,11 @@
 </div>
 
 <!-- MODAL VERIFIKASI & TTD SARPRAS -->
-<div id="sarprasSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-left">
-        <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-400"></div>
+<div id="sarprasSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
+        <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-400 shrink-0"></div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
@@ -517,7 +571,7 @@
                 <div id="sarprasDrawSection" class="{{ Auth::user()->signature ? 'hidden' : '' }} space-y-2">
                     <label class="block text-xs font-semibold text-slate-700">Goreskan Tanda Tangan Digital Waka Sarpras:</label>
                     <div class="border-2 border-dashed border-emerald-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
-                        <canvas id="sarprasModalCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                        <canvas id="sarprasModalCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner w-full max-w-[420px] h-[150px] sm:h-[180px] block"></canvas>
                     </div>
                     <div class="flex items-center justify-between">
                         <button type="button" onclick="clearModalCanvas('sarpras')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
@@ -543,11 +597,11 @@
 </div>
 
 <!-- MODAL TOLAK SARPRAS -->
-<div id="sarprasRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left">
-        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400"></div>
+<div id="sarprasRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
+        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400 shrink-0"></div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
@@ -586,11 +640,11 @@
 </div>
 
 <!-- MODAL ACC & TTD KEPALA SEKOLAH -->
-<div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-left">
-        <div class="h-1.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-amber-400"></div>
+<div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
+        <div class="h-1.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-amber-400 shrink-0"></div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
@@ -642,7 +696,7 @@
                 <div id="kepsekDrawSection" class="{{ $availableKepsekSig ? 'hidden' : '' }} space-y-2">
                     <label class="block text-xs font-semibold text-slate-700">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
                     <div class="border-2 border-dashed border-purple-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
-                        <canvas id="kepsekModalCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                        <canvas id="kepsekModalCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner w-full max-w-[420px] h-[150px] sm:h-[180px] block"></canvas>
                     </div>
                     <div class="flex items-center justify-between">
                         <button type="button" onclick="clearModalCanvas('kepsek')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
@@ -668,11 +722,11 @@
 </div>
 
 <!-- MODAL TOLAK KEPALA SEKOLAH -->
-<div id="kepsekRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left">
-        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400"></div>
+<div id="kepsekRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
+        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400 shrink-0"></div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
                     <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
@@ -711,11 +765,11 @@
 </div>
 
 <!-- MODAL KONFIRMASI PEMBATALAN TANDA TANGAN (SESUAI TEMA APLIKASI) -->
-<div id="cancelSignatureModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left animate-in fade-in zoom-in-95 duration-150">
-        <div class="h-1.5 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600"></div>
+<div id="cancelSignatureModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto animate-in fade-in zoom-in-95 duration-150">
+        <div class="h-1.5 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600 shrink-0"></div>
 
-        <div class="p-6 space-y-4">
+        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
             <div class="flex items-start justify-between gap-3">
                 <div class="flex items-center gap-3">
                     <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">

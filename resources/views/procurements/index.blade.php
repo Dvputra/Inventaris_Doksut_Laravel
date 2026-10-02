@@ -21,8 +21,8 @@
                 @endif
             </p>
         </div>
-        <div class="flex items-center gap-2.5">
-            <a href="{{ route('procurements.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-xs transition-colors">
+        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <a href="{{ route('procurements.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-xs transition-colors">
                 <i class="bi bi-plus-lg text-sm"></i>
                 <span>Buat Usulan Pengadaan</span>
             </a>

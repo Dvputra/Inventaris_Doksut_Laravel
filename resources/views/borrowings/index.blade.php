@@ -8,10 +8,10 @@
         <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Peminjaman Alat Praktikum</h2>
         <p class="text-xs sm:text-sm text-slate-500 mt-1">Catatan sirkulasi peminjaman alat dan perkakas bengkel oleh siswa atau guru.</p>
     </div>
-    <div>
+    <div class="w-full md:w-auto">
         <!-- Catat Peminjaman Baru (Urgency: Primary Action / Blue) -->
         <a href="{{ route('borrowings.create') }}" 
-           class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-200 rounded-xl transition-all active:scale-95">
+           class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-200 rounded-xl transition-all active:scale-95">
             <i class="bi bi-plus-lg"></i>
             <span>Catat Peminjaman Baru</span>
         </a>

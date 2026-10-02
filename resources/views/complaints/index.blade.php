@@ -21,8 +21,8 @@
                 @endif
             </p>
         </div>
-        <div>
-            <a href="{{ route('welcome') }}" target="_blank" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 font-semibold text-sm shadow-xs transition-colors">
+        <div class="w-full sm:w-auto">
+            <a href="{{ route('welcome') }}" target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-blue-700 font-semibold text-sm shadow-xs transition-colors">
                 <i class="bi bi-box-arrow-up-right text-sm"></i>
                 <span>Buka Portal Pengaduan Publik</span>
             </a>

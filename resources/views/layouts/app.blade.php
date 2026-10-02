@@ -55,6 +55,7 @@
     <style>
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -71,10 +72,19 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        /* Prevent canvas overflow & touch handling on mobile */
+        canvas {
+            touch-action: none;
+            max-width: 100%;
+        }
+        /* Responsive table scrolling with smooth inertia */
+        .overflow-x-auto {
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
     @stack('styles')
 </head>
-<body class="h-full flex flex-col text-slate-800 bg-slate-50 antialiased selection:bg-brand-500 selection:text-white">
+<body class="h-full flex flex-col text-slate-800 bg-slate-50 antialiased selection:bg-brand-500 selection:text-white overflow-x-hidden">
 
     <!-- Mobile Sidebar Backdrop Overlay -->
     <div id="sidebarBackdrop" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-xs hidden transition-opacity lg:hidden"></div>
@@ -336,7 +346,7 @@
         </header>
 
         <!-- Main Body Content Area -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        <main class="flex-1 px-3.5 py-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
             <!-- Flash Message: Success (Emerald Green) -->
             @if(session('success'))
                 <div class="mb-5 flex items-center justify-between p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 shadow-xs animate-fade-in" role="alert">

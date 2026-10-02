@@ -17,8 +17,8 @@
                 Pencatatan dan pengarsipan formal dokumen Berita Acara Kerusakan / Penghapusan Barang dan Penjualan / Lelang Aset Barang.
             </p>
         </div>
-        <div class="flex items-center gap-2.5">
-            <a href="{{ route('official-reports.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-xs transition-colors">
+        <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <a href="{{ route('official-reports.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-xs transition-colors">
                 <i class="bi bi-plus-lg text-sm"></i>
                 <span>Buat Berita Acara Baru</span>
             </a>
@@ -26,49 +26,49 @@
     </div>
 
     <!-- Statistik Ringkas -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Dokumen</p>
-                <p class="text-2xl font-bold text-slate-900 mt-1">{{ number_format($stats['total']) }}</p>
+                <p class="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Dokumen</p>
+                <p class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">{{ number_format($stats['total']) }}</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                 <i class="bi bi-files"></i>
             </div>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Serah Terima (BAST)</p>
-                <p class="text-2xl font-bold text-blue-600 mt-1">{{ number_format($stats['serah_terima'] ?? 0) }}</p>
+                <p class="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Serah Terima (BAST)</p>
+                <p class="text-xl sm:text-2xl font-bold text-blue-600 mt-1">{{ number_format($stats['serah_terima'] ?? 0) }}</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                 <i class="bi bi-box-seam-fill"></i>
             </div>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Barang Rusak / Afkir</p>
-                <p class="text-2xl font-bold text-rose-600 mt-1">{{ number_format($stats['barang_rusak']) }}</p>
+                <p class="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Barang Rusak</p>
+                <p class="text-xl sm:text-2xl font-bold text-rose-600 mt-1">{{ number_format($stats['barang_rusak']) }}</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                 <i class="bi bi-trash3-fill"></i>
             </div>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div class="bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Penjualan / Lelang</p>
-                <p class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($stats['penjualan']) }}</p>
+                <p class="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate">Penjualan / Lelang</p>
+                <p class="text-xl sm:text-2xl font-bold text-emerald-600 mt-1">{{ number_format($stats['penjualan']) }}</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                 <i class="bi bi-cash-stack"></i>
             </div>
         </div>
-        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div class="col-span-2 lg:col-span-1 bg-white rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Hasil Lelang</p>
-                <p class="text-base font-bold text-slate-900 mt-1">Rp {{ number_format($stats['total_penjualan'], 0, ',', '.') }}</p>
+                <p class="text-[11px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Hasil Lelang</p>
+                <p class="text-base sm:text-lg font-bold text-slate-900 mt-1">Rp {{ number_format($stats['total_penjualan'], 0, ',', '.') }}</p>
             </div>
-            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
                 <i class="bi bi-wallet2"></i>
             </div>
         </div>
@@ -263,46 +263,85 @@
             @forelse($reports as $rep)
                 <div class="p-4 space-y-3">
                     <div class="flex items-start justify-between gap-2">
-                        <div>
-                            @if($rep->jenis === 'serah_terima')
-                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700">
-                                    Serah Terima
-                                </span>
-                            @elseif($rep->jenis === 'barang_rusak')
-                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
-                                    Barang Rusak
-                                </span>
-                            @else
-                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">
-                                    Penjualan
-                                </span>
-                            @endif
-                            <h3 class="text-sm font-bold text-slate-900 mt-1">
-                                <a href="{{ route('official-reports.show', $rep) }}">{{ $rep->nomor_surat }}</a>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                @if($rep->jenis === 'serah_terima')
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700">
+                                        Serah Terima
+                                    </span>
+                                @elseif($rep->jenis === 'barang_rusak')
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
+                                        Barang Rusak
+                                    </span>
+                                @else
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">
+                                        Penjualan
+                                    </span>
+                                @endif
+
+                                @if($rep->status_approval === 'disetujui')
+                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <i class="bi bi-check-circle-fill text-[9px]"></i> Disetujui
+                                    </span>
+                                @elseif($rep->status_approval === 'ditolak')
+                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                        <i class="bi bi-x-circle-fill text-[9px]"></i> Ditolak
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                        <i class="bi bi-clock-history text-[9px]"></i> Menunggu
+                                    </span>
+                                @endif
+                            </div>
+
+                            <h3 class="text-sm font-bold text-slate-900 leading-snug">
+                                <a href="{{ route('official-reports.show', $rep) }}" class="hover:text-blue-600 transition-colors">{{ $rep->nomor_surat }}</a>
                             </h3>
-                            <p class="text-xs text-slate-600 line-clamp-1">{{ $rep->judul }}</p>
+                            <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">{{ $rep->judul }}</p>
                         </div>
+
                         <div class="text-right shrink-0">
-                            <span class="text-xs font-semibold text-slate-500">{{ $rep->tanggal->format('d/m/Y') }}</span>
+                            <span class="text-[11px] font-semibold text-slate-500 block">{{ $rep->tanggal->translatedFormat('d M Y') }}</span>
                             @if($rep->total_nominal > 0)
-                                <div class="text-xs font-bold text-emerald-600">
+                                <div class="text-xs font-bold text-emerald-600 mt-0.5">
                                     Rp {{ number_format($rep->total_nominal, 0, ',', '.') }}
                                 </div>
                             @endif
                         </div>
                     </div>
+
                     <div class="text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl space-y-1">
                         <div><strong class="text-slate-700">Pihak 1:</strong> {{ $rep->pihak_pertama_nama }} ({{ $rep->pihak_pertama_jabatan }})</div>
                         <div><strong class="text-slate-700">Pihak 2:</strong> {{ $rep->pihak_kedua_nama }} ({{ $rep->pihak_kedua_jabatan }})</div>
-                        <div><strong class="text-slate-700">Total Barang:</strong> {{ $rep->items->count() }} Item</div>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-200/60 mt-1">
+                            <span class="text-slate-600 font-medium">Unit: {{ $rep->jurusan ? $rep->jurusan->nama : 'Sarpras Pusat' }}</span>
+                            <span class="font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 text-[11px]">{{ $rep->items->count() }} Item</span>
+                        </div>
                     </div>
+
                     <div class="flex items-center justify-end gap-2 pt-1">
-                        <a href="{{ route('official-reports.print', $rep) }}" target="_blank" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-medium">
-                            <i class="bi bi-printer me-1"></i> Cetak
+                        <a href="{{ route('official-reports.print', $rep) }}" target="_blank" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-50 transition-colors">
+                            <i class="bi bi-printer text-xs"></i>
+                            <span>Cetak</span>
                         </a>
-                        <a href="{{ route('official-reports.show', $rep) }}" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-medium">
-                            Detail
+                        <a href="{{ route('official-reports.show', $rep) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors">
+                            <i class="bi bi-eye text-xs"></i>
+                            <span>Detail</span>
                         </a>
+                        @if(Auth::user()->isSarpras())
+                            <form action="{{ route('official-reports.destroy', $rep) }}" method="POST" class="inline-block"
+                                  data-confirm="Apakah Anda yakin ingin menghapus arsip Berita Acara {{ addslashes($rep->nomor_surat) }}?"
+                                  data-confirm-title="Hapus Berita Acara"
+                                  data-confirm-type="danger"
+                                  data-confirm-btn="Ya, Hapus Arsip"
+                                  data-confirm-icon="bi bi-trash3-fill text-2xl">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="inline-flex items-center justify-center p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition-colors" title="Hapus Dokumen">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             @empty

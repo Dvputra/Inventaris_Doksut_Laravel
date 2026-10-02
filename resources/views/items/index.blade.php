@@ -19,16 +19,16 @@
             @endif
         </p>
     </div>
-    <div class="flex flex-wrap items-center gap-2.5">
+    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
         <!-- Log Pemakaian Bahan (Urgency: Neutral Secondary) -->
         <a href="{{ route('usages.index') }}" 
-           class="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-all active:scale-95">
+           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 py-2.5 sm:py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl shadow-xs transition-all active:scale-95">
             <i class="bi bi-droplet-half text-sky-600"></i>
             <span>Log Pemakaian Bahan</span>
         </a>
         <!-- Tambah Barang Baru (Urgency: Primary Action / Blue) -->
         <a href="{{ route('items.create') }}" 
-           class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-200 rounded-xl transition-all active:scale-95">
+           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-200 rounded-xl transition-all active:scale-95">
             <i class="bi bi-plus-lg text-sm"></i>
             <span>Tambah Barang Baru</span>
         </a>

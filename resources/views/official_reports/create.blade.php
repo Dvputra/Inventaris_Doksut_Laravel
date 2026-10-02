@@ -189,12 +189,17 @@
         <!-- 3. RINCIAN BARANG -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-3">
-                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center text-xs">3</span>
-                    <span>Daftar Rincian Barang</span>
-                </h2>
+                <div>
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center text-xs">3</span>
+                        <span>Daftar Rincian Barang</span>
+                    </h2>
+                    <p class="text-[11px] text-slate-400 mt-0.5 sm:hidden flex items-center gap-1">
+                        <i class="bi bi-arrows-expand text-slate-400"></i> Geser tabel ke samping untuk melihat & mengisi semua kolom
+                    </p>
+                </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" id="addItemRowBtn" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs transition-colors">
+                    <button type="button" id="addItemRowBtn" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs transition-colors">
                         <i class="bi bi-plus-circle"></i>
                         <span>Tambah Baris Barang</span>
                     </button>
@@ -300,11 +305,11 @@
         </div>
 
         <!-- Tombol Simpan -->
-        <div class="flex items-center justify-end gap-3 pt-2">
-            <a href="{{ route('official-reports.index') }}" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors">
+        <div class="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-2">
+            <a href="{{ route('official-reports.index') }}" class="w-full sm:w-auto text-center px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors">
                 Batal
             </a>
-            <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 transition-all">
+            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 transition-all">
                 <i class="bi bi-check2-circle text-base"></i>
                 <span>Simpan &amp; Terbitkan Berita Acara</span>
             </button>
