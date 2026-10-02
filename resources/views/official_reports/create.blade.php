@@ -218,6 +218,7 @@
                             <th class="py-2.5 px-3 w-24">Satuan</th>
                             <th class="py-2.5 px-3 w-32" id="headerKondisi">Kondisi</th>
                             <th class="py-2.5 px-3 w-36 hidden" id="headerHarga">Harga Satuan (Rp)</th>
+                            <th class="py-2.5 px-3 w-36 hidden" id="headerSubtotal">Subtotal Biaya (Rp)</th>
                             <th class="py-2.5 px-3 min-w-[150px]">Keterangan</th>
                             <th class="py-2.5 px-2 w-10 text-center"></th>
                         </tr>
@@ -249,6 +250,9 @@
                             </td>
                             <td class="py-2 px-3 col-harga hidden">
                                 <input type="number" name="items[0][harga_satuan]" value="0" min="0" step="1000" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-right focus:outline-none focus:ring-1 focus:ring-blue-500 item-price">
+                            </td>
+                            <td class="py-2 px-3 col-subtotal hidden">
+                                <input type="text" readonly class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-right text-slate-700 item-subtotal" value="Rp 0">
                             </td>
                             <td class="py-2 px-3">
                                 <input type="text" name="items[0][keterangan]" placeholder="Dinamo terbakar / tidak bisa diperbaiki" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
@@ -330,6 +334,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const pihakKeduaJabatan = document.getElementById('pihakKeduaJabatan');
     const pihakKeduaNip = document.getElementById('pihakKeduaNip');
     const headerHarga = document.getElementById('headerHarga');
+    const headerSubtotal = document.getElementById('headerSubtotal');
     const totalPenjualanBox = document.getElementById('totalPenjualanBox');
     const latarBelakangInput = document.getElementById('latarBelakangInput');
 
@@ -381,8 +386,10 @@ document.addEventListener('DOMContentLoaded', function () {
             labelPihakKedua.textContent = 'Pihak Kedua (Pihak yang Menerima / Kepala Program / Unit)';
             
             headerHarga.classList.add('hidden');
+            if (headerSubtotal) headerSubtotal.classList.add('hidden');
             totalPenjualanBox.classList.add('hidden');
             document.querySelectorAll('.col-harga').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.col-subtotal').forEach(el => el.classList.add('hidden'));
 
             if (!latarBelakangInput.value || latarBelakangInput.value.includes('rusak berat') || latarBelakangInput.value.includes('pelepasan aset')) {
                 latarBelakangInput.value = 'Menyatakan bahwa Pihak Pertama telah menyerahkan barang/aset sarana dan prasarana dalam keadaan baik dan lengkap kepada Pihak Kedua untuk dimanfaatkan serta dipelihara sesuai peruntukannya di unit kerja.';
@@ -400,8 +407,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
             }
             headerHarga.classList.remove('hidden');
+            if (headerSubtotal) headerSubtotal.classList.remove('hidden');
             totalPenjualanBox.classList.remove('hidden');
             document.querySelectorAll('.col-harga').forEach(el => el.classList.remove('hidden'));
+            document.querySelectorAll('.col-subtotal').forEach(el => el.classList.remove('hidden'));
             
             if (latarBelakangInput.value.includes('rusak berat dan dinilai') || latarBelakangInput.value.includes('Pihak Pertama telah menyerahkan')) {
                 latarBelakangInput.value = 'Berdasarkan keputusan pelepasan aset inventaris yang telah habis masa pakai/scrap dan disetujui untuk dijual/dilelang guna optimalisasi ruang gudang dan kas sekolah.';
@@ -418,8 +427,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 pihakKeduaJabatan.value = 'Kepala Bengkel / Laboratorium';
             }
             headerHarga.classList.add('hidden');
+            if (headerSubtotal) headerSubtotal.classList.add('hidden');
             totalPenjualanBox.classList.add('hidden');
             document.querySelectorAll('.col-harga').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.col-subtotal').forEach(el => el.classList.add('hidden'));
 
             if (latarBelakangInput.value.includes('dijual/dilelang') || latarBelakangInput.value.includes('Pihak Pertama telah menyerahkan')) {
                 latarBelakangInput.value = 'Menyatakan bahwa dengan mempertimbangkan kondisi fisik aset sarana dan prasarana yang ada pada lingkungan sekolah, bersama ini telah dilakukan pemeriksaan fisik bersama terhadap barang-barang inventaris yang telah rusak berat dan tidak dapat dipergunakan kembali.';
@@ -502,6 +513,9 @@ document.addEventListener('DOMContentLoaded', function () {
             <td class="py-2 px-3 col-harga ${isJual ? '' : 'hidden'}">
                 <input type="number" name="items[${rowIdx}][harga_satuan]" value="0" min="0" step="1000" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-right focus:outline-none focus:ring-1 focus:ring-blue-500 item-price">
             </td>
+            <td class="py-2 px-3 col-subtotal ${isJual ? '' : 'hidden'}">
+                <input type="text" readonly class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-right text-slate-700 item-subtotal" value="Rp 0">
+            </td>
             <td class="py-2 px-3">
                 <input type="text" name="items[${rowIdx}][keterangan]" placeholder="Keterangan" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
             </td>
@@ -546,7 +560,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.item-row').forEach(row => {
             const qty = parseFloat(row.querySelector('.item-qty')?.value || 0);
             const price = parseFloat(row.querySelector('.item-price')?.value || 0);
-            total += (qty * price);
+            const subtotal = qty * price;
+            const subtotalInput = row.querySelector('.item-subtotal');
+            if (subtotalInput) {
+                subtotalInput.value = 'Rp ' + subtotal.toLocaleString('id-ID');
+            }
+            total += subtotal;
         });
         document.getElementById('totalPenjualanDisplay').textContent = 'Rp ' + total.toLocaleString('id-ID');
     }

@@ -299,19 +299,26 @@
         <table class="table-items">
             <thead>
                 <tr>
-                    <th style="width: 6%;">No</th>
-                    <th style="width: 32%;">Nama Barang / Identitas Aset</th>
-                    <th style="width: 18%;">Kode / No. Seri</th>
-                    <th style="width: 10%;">Jumlah</th>
-                    @if($officialReport->jenis === 'serah_terima')
-                        <th style="width: 16%;">Kondisi Serah</th>
-                        <th style="width: 18%;">Keterangan / Lokasi</th>
-                    @elseif($officialReport->jenis === 'penjualan')
-                        <th style="width: 14%;">Kondisi</th>
-                        <th style="width: 20%;">Harga Satuan &amp; Total (Rp)</th>
+                    @if($officialReport->jenis === 'penjualan')
+                        <th style="width: 5%;">No</th>
+                        <th style="width: 27%;">Nama Barang / Identitas Aset</th>
+                        <th style="width: 15%;">Kode / No. Seri</th>
+                        <th style="width: 9%;">Jumlah</th>
+                        <th style="width: 12%;">Kondisi</th>
+                        <th style="width: 15%;">Harga Satuan (Rp)</th>
+                        <th style="width: 17%;">Subtotal Biaya (Rp)</th>
                     @else
-                        <th style="width: 16%;">Kondisi Kerusakan</th>
-                        <th style="width: 18%;">Keterangan</th>
+                        <th style="width: 6%;">No</th>
+                        <th style="width: 32%;">Nama Barang / Identitas Aset</th>
+                        <th style="width: 18%;">Kode / No. Seri</th>
+                        <th style="width: 10%;">Jumlah</th>
+                        @if($officialReport->jenis === 'serah_terima')
+                            <th style="width: 16%;">Kondisi Serah</th>
+                            <th style="width: 18%;">Keterangan / Lokasi</th>
+                        @else
+                            <th style="width: 16%;">Kondisi Kerusakan</th>
+                            <th style="width: 18%;">Keterangan</th>
+                        @endif
                     @endif
                 </tr>
             </thead>
@@ -336,10 +343,10 @@
                         </td>
                         @if($officialReport->jenis === 'penjualan')
                             <td style="text-align: right;">
-                                @if($item->harga_satuan > 0)
-                                    <div style="font-size: 8pt; color: #555;">@ Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</div>
-                                @endif
-                                <strong>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</strong>
+                                Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
+                            </td>
+                            <td style="text-align: right; font-weight: bold;">
+                                Rp {{ number_format($item->subtotal, 0, ',', '.') }}
                             </td>
                         @else
                             <td>
@@ -352,8 +359,8 @@
             @if($officialReport->jenis === 'penjualan')
                 <tfoot>
                     <tr style="font-weight: bold; background-color: #f9f9f9;">
-                        <td colspan="5" style="text-align: right; text-transform: uppercase;">Total Nilai Penjualan / Lelang :</td>
-                        <td style="text-align: right;">Rp {{ number_format($officialReport->total_nominal, 0, ',', '.') }}</td>
+                        <td colspan="6" style="text-align: right; text-transform: uppercase;">Total Nilai Penjualan / Lelang :</td>
+                        <td style="text-align: right; font-size: 10.5pt;">Rp {{ number_format($officialReport->total_nominal, 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
             @endif
