@@ -41,6 +41,7 @@ Route::middleware('auth')->group(function () {
     // Pengaturan Akun & Profil Mandiri
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile/signature', [ProfileController::class, 'destroySignature'])->name('profile.signature.destroy');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
     // Manajemen Pengaduan Kendala Fasilitas dari Guru/Tendik (Akun Sarpras & Kepala Sekolah)

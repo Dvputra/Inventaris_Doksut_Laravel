@@ -170,11 +170,6 @@ class OfficialReportController extends Controller
             'catatan' => 'nullable|string',
             'file_lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
 
-            // Tanda Tangan Digital Pembuat / Jurusan
-            'signature_data' => 'nullable|string',
-            'use_saved_signature' => 'nullable|boolean',
-            'save_signature_profile' => 'nullable|boolean',
-
             // Rincian barang
             'items' => 'required|array|min:1',
             'items.*.nama_barang' => 'required|string|max:200',
@@ -188,31 +183,12 @@ class OfficialReportController extends Controller
             'items.*.keterangan' => 'nullable|string|max:255',
         ]);
 
-        $user = $request->user();
-        if ($user->isJurusan()) {
-            if (! $request->boolean('use_saved_signature') && ! $request->filled('signature_data') && ! $user->signature) {
-                return back()->withInput()->with('error', 'Wajib membubuhkan tanda tangan digital pihak jurusan/unit kerja.');
-            }
-        }
-
         $filePath = null;
         if ($request->hasFile('file_lampiran')) {
             $filePath = $request->file('file_lampiran')->store('official_reports', 'public');
         }
 
-        // Proses tanda tangan jika ada
-        $creatorSignature = null;
-        if ($request->boolean('use_saved_signature') && $user->signature) {
-            $creatorSignature = $user->signature;
-        } elseif ($request->filled('signature_data')) {
-            $folder = $user->isJurusan() ? 'signatures/jurusan' : 'signatures/sarpras';
-            $creatorSignature = $this->saveBase64Signature($request->signature_data, $folder);
-            if ($request->boolean('save_signature_profile')) {
-                $user->update(['signature' => $creatorSignature]);
-            }
-        }
-
-        DB::transaction(function () use ($request, $validated, $filePath, $user, $creatorSignature) {
+        DB::transaction(function () use ($request, $validated, $filePath) {
             $totalNominal = 0;
 
             if ($validated['jenis'] === 'penjualan') {
@@ -223,30 +199,12 @@ class OfficialReportController extends Controller
                 }
             }
 
-            // Tentukan field tanda tangan berdasarkan pembuat
-            // Jika jurusan yang membuat berita acara barang rusak, tanda tangannya masuk ke Pihak Kedua (Saksi/Kepala Bengkel/Pihak Jurusan)
-            // Jika staf sarpras yang membuat, tanda tangan masuk ke Pihak Pertama (Sarpras)
-            $ttdPihakPertama = null;
-            $ttdPihakPertamaAt = null;
-            $ttdPihakKedua = null;
-            $ttdPihakKeduaAt = null;
-
-            if ($creatorSignature) {
-                if ($user->isJurusan()) {
-                    $ttdPihakKedua = $creatorSignature;
-                    $ttdPihakKeduaAt = now();
-                } elseif ($user->isStaffSarpras()) {
-                    $ttdPihakPertama = $creatorSignature;
-                    $ttdPihakPertamaAt = now();
-                }
-            }
-
             $report = OfficialReport::create([
                 'nomor_surat' => $validated['nomor_surat'],
                 'jenis' => $validated['jenis'],
                 'judul' => $validated['judul'],
                 'tanggal' => $validated['tanggal'],
-                'user_id' => $user->id,
+                'user_id' => $request->user()->id,
                 'jurusan_id' => $validated['jurusan_id'] ?? null,
                 'pihak_pertama_nama' => $validated['pihak_pertama_nama'],
                 'pihak_pertama_jabatan' => $validated['pihak_pertama_jabatan'],
@@ -264,10 +222,6 @@ class OfficialReportController extends Controller
                 'status_dokumen' => 'selesai',
                 'file_lampiran' => $filePath,
                 'catatan' => $validated['catatan'] ?? null,
-                'ttd_pihak_pertama' => $ttdPihakPertama,
-                'ttd_pihak_pertama_at' => $ttdPihakPertamaAt,
-                'ttd_pihak_kedua' => $ttdPihakKedua,
-                'ttd_pihak_kedua_at' => $ttdPihakKeduaAt,
             ]);
 
             foreach ($request->items as $itemData) {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
@@ -53,6 +54,26 @@ class ProfileController extends Controller
         }
 
         return back()->with('success', 'Profil Anda berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus tanda tangan digital tersimpan pada profil pengguna.
+     */
+    public function destroySignature(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->signature) {
+            if (Storage::disk('public')->exists($user->signature)) {
+                Storage::disk('public')->delete($user->signature);
+            }
+
+            $user->update([
+                'signature' => null,
+            ]);
+        }
+
+        return back()->with('success', 'Tanda tangan digital tersimpan berhasil dihapus dari profil Anda.');
     }
 
     /**
