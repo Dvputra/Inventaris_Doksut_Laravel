@@ -140,37 +140,52 @@
                                 <span class="text-xs text-slate-600 line-clamp-2">{{ Str::limit($p->alasan, 60) }}</span>
                             </td>
                             <td class="py-3.5 px-4 whitespace-nowrap">
-                                @if($p->status === 'menunggu')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                                        <i class="bi bi-hourglass-split"></i>
-                                        <span>Menunggu</span>
-                                    </span>
-                                @elseif($p->status === 'disetujui')
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                        <span>Disetujui</span>
-                                    </span>
-                                    @if($p->catatan_sarpras)
-                                        <span class="block text-[11px] text-slate-500 mt-1 max-w-xs truncate" title="{{ $p->catatan_sarpras }}">
-                                            Catatan: {{ $p->catatan_sarpras }}
+                                <div class="space-y-1">
+                                    @if($p->status === 'menunggu')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                            <i class="bi bi-hourglass-split"></i>
+                                            <span>Menunggu Sarpras</span>
+                                        </span>
+                                    @elseif($p->status === 'disetujui')
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            <span>ACC Sarpras</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                                            <i class="bi bi-x-circle-fill"></i>
+                                            <span>Ditolak Sarpras</span>
                                         </span>
                                     @endif
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                                        <i class="bi bi-x-circle-fill"></i>
-                                        <span>Ditolak</span>
-                                    </span>
-                                    @if($p->catatan_sarpras)
-                                        <span class="block text-[11px] text-rose-600 mt-1 max-w-xs truncate" title="{{ $p->catatan_sarpras }}">
-                                            Alasan: {{ $p->catatan_sarpras }}
-                                        </span>
+
+                                    @if($p->status === 'disetujui')
+                                        <div>
+                                            @if($p->status_kepsek === 'disetujui')
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    <i class="bi bi-award-fill"></i> ACC Kepsek
+                                                </span>
+                                            @elseif($p->status_kepsek === 'ditolak')
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                                                    <i class="bi bi-x-octagon-fill"></i> Ditolak Kepsek
+                                                </span>
+                                            @else
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                                                    <i class="bi bi-clock"></i> Tunggu Kepsek
+                                                </span>
+                                            @endif
+                                        </div>
                                     @endif
-                                @endif
+                                </div>
                             </td>
 
                             <!-- Aksi Menu -->
                             <td class="py-3.5 px-4 text-right whitespace-nowrap">
                                 <div class="inline-flex items-center gap-1.5">
+                                    <!-- Detail & Pengesahan Tanda Tangan -->
+                                    <a href="{{ route('procurements.show', $p) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 transition-colors" title="Lihat Detail & Pengesahan TTD">
+                                        <i class="bi bi-eye text-xs"></i>
+                                    </a>
+
                                     <!-- Cetak PDF/Dokumen Resmi -->
                                     <a href="{{ route('procurements.print', $p) }}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors" title="Cetak Surat Usulan (A4)">
                                         <i class="bi bi-printer text-xs"></i>
@@ -178,7 +193,7 @@
 
                                     <!-- Tombol Edit Usulan (Sarpras atau Unit Pemilik saat Menunggu) -->
                                     @if(Auth::user()->isSarpras() || ($p->jurusan_id === Auth::user()->jurusan_id && $p->status === 'menunggu'))
-                                        <a href="{{ route('procurements.edit', $p) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 transition-colors" title="Edit Usulan Pengadaan">
+                                        <a href="{{ route('procurements.edit', $p) }}" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/80 transition-colors" title="Edit Usulan Pengadaan">
                                             <i class="bi bi-pencil text-xs"></i>
                                         </a>
                                     @endif
@@ -196,32 +211,6 @@
                                                 <i class="bi bi-trash text-xs"></i>
                                             </button>
                                         </form>
-                                    @endif
-
-                                    <!-- Aksi Verifikasi Sarpras -->
-                                    @if(Auth::user()->isSarpras() && $p->status === 'menunggu')
-                                        <!-- Tombol Setujui -->
-                                        <form action="{{ route('procurements.approve', $p) }}" method="POST" class="inline"
-                                              data-confirm="Setujui usulan pengadaan {{ addslashes($p->summary_barang) }} untuk jurusan {{ $p->jurusan->kode }} - {{ $p->jurusan->nama }}?"
-                                              data-confirm-title="Persetujuan Usulan Pengadaan"
-                                              data-confirm-type="success"
-                                              data-confirm-btn="Ya, Setujui Usulan"
-                                              data-confirm-icon="bi bi-check2-circle text-2xl">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition-colors" title="Setujui Usulan">
-                                                <i class="bi bi-check-lg text-sm"></i>
-                                            </button>
-                                        </form>
-
-                                        <!-- Tombol Tolak Modal Trigger -->
-                                        <button type="button" 
-                                                data-reject-id="{{ $p->id }}"
-                                                onclick="openRejectModal('{{ route('procurements.reject', $p) }}', '{{ addslashes($p->nomor_usulan ?? 'UP-'.$p->id) }}', '{{ addslashes($p->judul_pengadaan ?: $p->summary_barang) }}', '{{ addslashes($p->jurusan->kode . ' - ' . $p->jurusan->nama) }}', '{{ $p->perkiraan_biaya ? 'Rp ' . number_format($p->perkiraan_biaya, 0, ',', '.') : '-' }}')" 
-                                                class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/80 transition-colors shadow-2xs" 
-                                                title="Tolak Usulan">
-                                            <i class="bi bi-x-lg text-xs"></i>
-                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -335,6 +324,13 @@
 
                     <!-- Action Footer -->
                     <div class="flex flex-wrap items-center justify-end gap-2 mt-3 pt-2.5 border-t border-slate-100">
+                        <a href="{{ route('procurements.show', $p) }}" 
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold border border-blue-200 transition-colors shadow-xs" 
+                           title="Lihat Detail & Tanda Tangan">
+                            <i class="bi bi-eye text-xs"></i>
+                            <span>Detail & TTD</span>
+                        </a>
+
                         <a href="{{ route('procurements.print', $p) }}" target="_blank" 
                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 text-xs font-semibold border border-slate-200 transition-colors shadow-xs" 
                            title="Cetak Berkas Usulan">

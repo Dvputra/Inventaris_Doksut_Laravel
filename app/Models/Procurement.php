@@ -18,9 +18,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'satuan',
     'perkiraan_biaya',
     'alasan',
+    'ttd_pemohon',
+    'ttd_pemohon_at',
     'status',
     'catatan_sarpras',
     'tanggal_persetujuan',
+    'verified_by',
+    'ttd_sarpras',
+    'ttd_sarpras_at',
+    'status_kepsek',
+    'kepsek_by',
+    'kepsek_at',
+    'catatan_kepsek',
+    'ttd_kepsek',
+    'ttd_kepsek_at',
 ])]
 class Procurement extends Model
 {
@@ -32,6 +43,10 @@ class Procurement extends Model
         return [
             'perkiraan_biaya' => 'decimal:2',
             'tanggal_persetujuan' => 'date',
+            'ttd_pemohon_at' => 'datetime',
+            'ttd_sarpras_at' => 'datetime',
+            'kepsek_at' => 'datetime',
+            'ttd_kepsek_at' => 'datetime',
         ];
     }
 
@@ -43,6 +58,16 @@ class Procurement extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function verifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    public function approverKepsek(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'kepsek_by');
     }
 
     public function items(): HasMany

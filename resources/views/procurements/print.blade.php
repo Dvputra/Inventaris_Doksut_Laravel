@@ -482,7 +482,9 @@
                         <div class="ttd-heading">Diajukan Oleh,</div>
                         <div class="ttd-role">Kepala Program / Unit Kerja<br>{{ $procurement->jurusan->nama }}</div>
                         <div class="ttd-space">
-                            <!-- Tempat TTD Pemohon -->
+                            @if($procurement->ttd_pemohon)
+                                <img src="{{ Storage::url($procurement->ttd_pemohon) }}" alt="TTD Pemohon" style="max-height: 65px; max-width: 170px; object-fit: contain;">
+                            @endif
                         </div>
                         <div class="ttd-nama">{{ $procurement->jurusan->kepala_bengkel ?? ($procurement->user->name ?? '................................................') }}</div>
                         <div class="ttd-nip">NIP/NPY: .......................................</div>
@@ -492,7 +494,9 @@
                         <div class="ttd-heading">Temanggung, {{ ($procurement->tanggal_persetujuan ?? $procurement->created_at)->translatedFormat('d F Y') }}</div>
                         <div class="ttd-role">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
                         <div class="ttd-space">
-                            @if($procurement->status === 'disetujui')
+                            @if($procurement->ttd_sarpras)
+                                <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 65px; max-width: 170px; object-fit: contain;">
+                            @elseif($procurement->status === 'disetujui')
                                 <div class="ttd-status-stamp">
                                     &#10003; Telah Diverifikasi<br>
                                     <span style="font-size: 7pt; font-weight: normal; text-transform: none;">
@@ -501,8 +505,8 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="ttd-nama">{{ $sarprasUser->name ?? 'Admin Sarpras Pusat' }}</div>
-                        <div class="ttd-nip">NIP/NPY: {{ $sarprasUser->nip ?? '.......................................' }}</div>
+                        <div class="ttd-nama">{{ $procurement->verifier->name ?? ($sarprasUser->name ?? 'Admin Sarpras Pusat') }}</div>
+                        <div class="ttd-nip">NIP/NPY: {{ $procurement->verifier->nip ?? ($sarprasUser->nip ?? '.......................................') }}</div>
                     </td>
                 </tr>
 
@@ -513,10 +517,16 @@
                             <div class="ttd-heading">Mengetahui / Menyetujui,</div>
                             <div class="ttd-role">Kepala SMK Dr. Sutomo Temanggung</div>
                             <div class="ttd-space">
-                                <!-- Tempat TTD Kepala Sekolah -->
+                                @if($procurement->ttd_kepsek)
+                                    <img src="{{ Storage::url($procurement->ttd_kepsek) }}" alt="TTD Kepala Sekolah" style="max-height: 65px; max-width: 170px; object-fit: contain;">
+                                @elseif($procurement->status_kepsek === 'disetujui')
+                                    <div class="ttd-status-stamp">
+                                        &#10003; Disetujui Kepala Sekolah
+                                    </div>
+                                @endif
                             </div>
-                            <div class="ttd-nama">{{ $kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd' }}</div>
-                            <div class="ttd-nip">NIP/NPY: {{ $kepsekUser->nip ?? '.......................................' }}</div>
+                            <div class="ttd-nama">{{ $procurement->approverKepsek->name ?? ($kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd') }}</div>
+                            <div class="ttd-nip">NIP/NPY: {{ $procurement->approverKepsek->nip ?? ($kepsekUser->nip ?? '.......................................') }}</div>
                         </div>
                     </td>
                 </tr>

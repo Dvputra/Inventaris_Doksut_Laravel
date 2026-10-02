@@ -149,12 +149,40 @@
                 </div>
             </div>
 
+            <!-- Section 3: Tanda Tangan Digital Pemohon / Kepala Bengkel -->
+            <div class="border-t border-slate-100 pt-6 mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold">3</span>
+                        Tanda Tangan Pemohon / Pengusul
+                    </h2>
+                    <span class="text-xs text-slate-500">Legalitas Pengusulan</span>
+                </div>
+                <p class="text-xs text-slate-500 mb-3">
+                    Goreskan tanda tangan digital Kepala Program / Pemohon Unit Kerja di bawah ini menggunakan mouse atau layar sentuh HP:
+                </p>
+
+                <div class="max-w-md">
+                    <input type="hidden" name="signature_data" id="pemohonSignatureData">
+                    <div class="border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1 transition-colors">
+                        <canvas id="pemohonCanvas" width="400" height="160" class="cursor-crosshair bg-white rounded-xl shadow-inner w-full max-w-[400px]"></canvas>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <button type="button" onclick="clearPemohonCanvas()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="bi bi-eraser text-xs"></i>
+                            <span>Bersihkan TTD</span>
+                        </button>
+                        <span class="text-[11px] text-slate-400 italic">* TTD akan tercetak otomatis di surat dinas</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Footer Action Buttons -->
             <div class="flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-3 pt-5 border-t border-slate-100">
                 <a href="{{ route('procurements.index') }}" class="w-full sm:w-auto text-center px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors">
                     Batal
                 </a>
-                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-xs transition-colors">
+                <button type="submit" id="btnSubmitUsulan" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm shadow-xs transition-colors">
                     <i class="bi bi-send text-sm"></i>
                     <span>Kirim Usulan ke Sarpras</span>
                 </button>
@@ -308,6 +336,91 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         createRow();
     }
+
+    // Inisialisasi Canvas TTD Pemohon
+    initPemohonCanvas();
 });
+
+let pemohonDrawn = false;
+function initPemohonCanvas() {
+    const canvas = document.getElementById('pemohonCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    let isDrawing = false;
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (e.touches && e.touches[0]) {
+            return {
+                x: (e.touches[0].clientX - rect.left) * scaleX,
+                y: (e.touches[0].clientY - rect.top) * scaleY
+            };
+        }
+        return {
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
+        };
+    }
+
+    function start(e) {
+        e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        pemohonDrawn = true;
+    }
+
+    function move(e) {
+        if (!isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    }
+
+    function stop(e) {
+        if (isDrawing) {
+            ctx.closePath();
+            isDrawing = false;
+        }
+    }
+
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', stop);
+
+    canvas.addEventListener('touchstart', start, { passive: false });
+    canvas.addEventListener('touchmove', move, { passive: false });
+    window.addEventListener('touchend', stop);
+
+    const form = document.getElementById('procurementForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            if (pemohonDrawn) {
+                const dataUrl = canvas.toDataURL('image/png');
+                document.getElementById('pemohonSignatureData').value = dataUrl;
+            }
+        });
+    }
+}
+
+function clearPemohonCanvas() {
+    const canvas = document.getElementById('pemohonCanvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        pemohonDrawn = false;
+        const sigInput = document.getElementById('pemohonSignatureData');
+        if (sigInput) sigInput.value = '';
+    }
+}
 </script>
 @endsection

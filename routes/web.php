@@ -89,16 +89,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/borrowings/{borrowing}', [BorrowingController::class, 'destroy'])->name('borrowings.destroy');
     Route::patch('/borrowings/{borrowing}/return', [BorrowingController::class, 'markAsReturned'])->name('borrowings.return');
 
-    // Usulan Pengadaan Barang (Jurusan -> Sarpras)
+    // Usulan Pengadaan Barang (Jurusan -> Sarpras -> Kepala Sekolah)
     Route::get('/procurements', [ProcurementController::class, 'index'])->name('procurements.index');
     Route::get('/procurements/create', [ProcurementController::class, 'create'])->name('procurements.create');
     Route::post('/procurements', [ProcurementController::class, 'store'])->name('procurements.store');
+    Route::get('/procurements/{procurement}', [ProcurementController::class, 'show'])->name('procurements.show');
     Route::get('/procurements/{procurement}/edit', [ProcurementController::class, 'edit'])->name('procurements.edit');
     Route::put('/procurements/{procurement}', [ProcurementController::class, 'update'])->name('procurements.update');
     Route::delete('/procurements/{procurement}', [ProcurementController::class, 'destroy'])->name('procurements.destroy');
     Route::get('/procurements/{procurement}/print', [ProcurementController::class, 'print'])->name('procurements.print');
+    Route::patch('/procurements/{procurement}/sign-pemohon', [ProcurementController::class, 'signPemohon'])->name('procurements.sign-pemohon');
     Route::patch('/procurements/{procurement}/approve', [ProcurementController::class, 'approve'])->name('procurements.approve')->middleware('role:sarpras');
     Route::patch('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])->name('procurements.reject')->middleware('role:sarpras');
+    Route::patch('/procurements/{procurement}/approve-kepsek', [ProcurementController::class, 'approveKepsek'])->name('procurements.approve-kepsek')->middleware('role:sarpras,kepala_sekolah');
+    Route::patch('/procurements/{procurement}/reject-kepsek', [ProcurementController::class, 'rejectKepsek'])->name('procurements.reject-kepsek')->middleware('role:sarpras,kepala_sekolah');
 
     // Berita Acara Sarpras & Kepala Sekolah (Barang Rusak & Penjualan/Lelang)
     Route::resource('official-reports', OfficialReportController::class)
