@@ -265,7 +265,11 @@
                     @if($officialReport->jenis === 'serah_terima')
                         (Pihak yang Menerima Barang).
                     @elseif($officialReport->jenis === 'penjualan')
-                        (Pihak Pembeli / Penerima Aset).
+                        @if(str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi'))
+                            (Saksi Penjualan / Pelepasan Aset).
+                        @else
+                            (Pihak Pembeli / Penerima Aset).
+                        @endif
                     @else
                         (Saksi / Pihak yang Memeriksa Barang).
                     @endif
@@ -388,7 +392,11 @@
                         @if($officialReport->jenis === 'serah_terima')
                             Yang Menerima (Pihak Kedua),<br>
                         @elseif($officialReport->jenis === 'penjualan')
-                            Pihak Pembeli (Pihak Kedua),<br>
+                            @if(str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi'))
+                                Saksi Penjualan (Pihak Kedua),<br>
+                            @else
+                                Pihak Pembeli (Pihak Kedua),<br>
+                            @endif
                         @else
                             Saksi / Pelapor (Pihak Kedua),<br>
                         @endif

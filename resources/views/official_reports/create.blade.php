@@ -134,10 +134,28 @@
 
                 <!-- Pihak Kedua -->
                 <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
-                    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
-                        <i class="bi bi-person-check"></i>
-                        <span id="labelPihakKedua">Pihak Kedua (Penerima / Kepala Program / Unit)</span>
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
+                            <i class="bi bi-person-check"></i>
+                            <span id="labelPihakKedua">Pihak Kedua (Penerima / Kepala Program / Unit)</span>
+                        </div>
                     </div>
+
+                    <!-- Pilihan Peran Pihak Kedua khusus Penjualan (Pembeli vs Saksi) -->
+                    <div id="rolePihakKeduaPenjualanBox" class="hidden p-2.5 bg-amber-50/80 border border-amber-200 rounded-xl space-y-1.5">
+                        <span class="block text-xs font-bold text-amber-900">Peran Pihak Kedua dalam Penjualan:</span>
+                        <div class="flex items-center gap-4 text-xs font-semibold text-slate-700">
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="pihak_kedua_peran" value="pembeli" checked class="text-blue-600 focus:ring-blue-500 role-pihak-kedua-radio">
+                                <span>Pihak Pembeli</span>
+                            </label>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="pihak_kedua_peran" value="saksi" class="text-blue-600 focus:ring-blue-500 role-pihak-kedua-radio">
+                                <span>Saksi Luar / Terkait</span>
+                            </label>
+                        </div>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
                         <input type="text" name="pihak_kedua_nama" id="pihakKeduaNama" value="{{ old('pihak_kedua_nama', $defaultPihakKeduaNama ?? '') }}" required placeholder="Nama Kepala Program / Unit Kerja" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
@@ -341,6 +359,39 @@ document.addEventListener('DOMContentLoaded', function () {
     const suggestedSerahTerima = "{{ $suggestedNumberSerahTerima }}";
     const suggestedRusak = "{{ $suggestedNumberRusak }}";
     const suggestedJual = "{{ $suggestedNumberJual }}";
+    const rolePihakKeduaPenjualanBox = document.getElementById('rolePihakKeduaPenjualanBox');
+    const rolePihakKeduaRadios = document.querySelectorAll('.role-pihak-kedua-radio');
+
+    function getSelectedPihakKeduaPeran() {
+        let peran = 'pembeli';
+        rolePihakKeduaRadios.forEach(r => {
+            if (r.checked) peran = r.value;
+        });
+        return peran;
+    }
+
+    function applyPeranPihakKeduaPenjualan() {
+        if (jenisSelect.value !== 'penjualan') return;
+        const peran = getSelectedPihakKeduaPeran();
+        if (peran === 'pembeli') {
+            labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Penerima Aset)';
+            pihakKeduaNama.placeholder = 'Nama Pembeli / Rekanan';
+            if (!pihakKeduaJabatan.value || pihakKeduaJabatan.value.includes('Saksi') || pihakKeduaJabatan.value.includes('Kepala')) {
+                pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
+            }
+        } else {
+            labelPihakKedua.textContent = 'Pihak Kedua (Saksi Penjualan / Luar)';
+            pihakKeduaNama.placeholder = 'Nama Saksi / Perwakilan';
+            if (!pihakKeduaJabatan.value || pihakKeduaJabatan.value.includes('Pembeli') || pihakKeduaJabatan.value.includes('Kepala Program')) {
+                pihakKeduaJabatan.value = 'Saksi Penjualan / Pihak Terkait';
+            }
+        }
+    }
+
+    rolePihakKeduaRadios.forEach(radio => {
+        radio.addEventListener('change', applyPeranPihakKeduaPenjualan);
+    });
+
     function getKondisiOptions(mode, selectedValue = '') {
         if (mode === 'serah_terima') {
             return `
@@ -384,7 +435,9 @@ document.addEventListener('DOMContentLoaded', function () {
             judulInput.value = 'Berita Acara Serah Terima Barang Inventaris';
             labelPihakPertama.textContent = 'Pihak Pertama (Pihak yang Menyerahkan / Sarpras)';
             labelPihakKedua.textContent = 'Pihak Kedua (Pihak yang Menerima / Kepala Program / Unit)';
+            pihakKeduaNama.placeholder = 'Nama Kepala Program / Unit Kerja';
             
+            if (rolePihakKeduaPenjualanBox) rolePihakKeduaPenjualanBox.classList.add('hidden');
             headerHarga.classList.add('hidden');
             if (headerSubtotal) headerSubtotal.classList.add('hidden');
             totalPenjualanBox.classList.add('hidden');
@@ -402,10 +455,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             judulInput.value = 'Berita Acara Penjualan / Pelepasan Aset Barang Bekas';
             labelPihakPertama.textContent = 'Pihak Pertama (Penyelenggara / Sarpras)';
-            labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Saksi Luar)';
-            if (pihakKeduaJabatan.value === 'Kepala Bengkel / Laboratorium' || pihakKeduaJabatan.value.includes('Kepala Program')) {
-                pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
-            }
+            if (rolePihakKeduaPenjualanBox) rolePihakKeduaPenjualanBox.classList.remove('hidden');
+            applyPeranPihakKeduaPenjualan();
+
             headerHarga.classList.remove('hidden');
             if (headerSubtotal) headerSubtotal.classList.remove('hidden');
             totalPenjualanBox.classList.remove('hidden');
@@ -423,7 +475,9 @@ document.addEventListener('DOMContentLoaded', function () {
             judulInput.value = 'Berita Acara Barang Rusak';
             labelPihakPertama.textContent = 'Pihak Pertama (Penyelenggara / Sarpras)';
             labelPihakKedua.textContent = 'Pihak Kedua (Saksi / Kepala Bengkel / Laboratorium)';
-            if (pihakKeduaJabatan.value === 'Pembeli / Pihak Ketiga') {
+            pihakKeduaNama.placeholder = 'Nama Kepala Bengkel / Unit Kerja';
+            if (rolePihakKeduaPenjualanBox) rolePihakKeduaPenjualanBox.classList.add('hidden');
+            if (pihakKeduaJabatan.value === 'Pembeli / Pihak Ketiga' || pihakKeduaJabatan.value.includes('Saksi Penjualan')) {
                 pihakKeduaJabatan.value = 'Kepala Bengkel / Laboratorium';
             }
             headerHarga.classList.add('hidden');
@@ -459,7 +513,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (selectedOpt && !selectedOpt.value) {
             // Umum / Pihak Luar terpilih
             if (jenisSelect.value === 'penjualan') {
-                pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
+                applyPeranPihakKeduaPenjualan();
             } else if (jenisSelect.value === 'serah_terima') {
                 pihakKeduaJabatan.value = 'Penerima / Staf Terkait';
             } else {

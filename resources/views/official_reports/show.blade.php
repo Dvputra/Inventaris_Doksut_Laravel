@@ -145,7 +145,11 @@
                                 @if($officialReport->jenis === 'serah_terima')
                                     Pihak Kedua (Penerima Barang)
                                 @elseif($officialReport->jenis === 'penjualan')
-                                    Pihak Kedua (Pembeli / Pihak Ketiga)
+                                    @if(str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi'))
+                                        Pihak Kedua (Saksi Penjualan)
+                                    @else
+                                        Pihak Kedua (Pembeli / Pihak Ketiga)
+                                    @endif
                                 @else
                                     Pihak Kedua (Saksi / Jurusan / Umum)
                                 @endif
@@ -188,7 +192,11 @@
                         if ($officialReport->jenis === 'serah_terima') {
                             $signBtnText = 'Tanda Tangani Penerimaan (Pihak Kedua / Jurusan)';
                         } elseif ($officialReport->jenis === 'penjualan') {
-                            $signBtnText = 'Tanda Tangani Pihak Pembeli / Saksi Luar';
+                            if (str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi')) {
+                                $signBtnText = 'Tanda Tangani Saksi Penjualan';
+                            } else {
+                                $signBtnText = 'Tanda Tangani Pihak Pembeli';
+                            }
                         } else {
                             $signBtnText = 'Tanda Tangani Saksi / Pelapor Unit';
                         }
