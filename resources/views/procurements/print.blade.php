@@ -492,7 +492,7 @@
                         <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             @if($procurement->ttd_pemohon)
                                 <img src="{{ Storage::url($procurement->ttd_pemohon) }}" alt="TTD Pemohon" style="max-height: 55px; max-width: 160px; object-fit: contain;">
-                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                <div style="font-size: 6.5pt; color: #64748b; font-style: italic; margin-top: 2px; line-height: 1.1;">
                                     Ditandatangani elektronik: {{ $procurement->ttd_pemohon_at ? $procurement->ttd_pemohon_at->translatedFormat('d/m/Y H:i') : ($procurement->created_at ? $procurement->created_at->translatedFormat('d/m/Y') : '') }}
                                 </div>
                             @endif
@@ -508,11 +508,11 @@
                         <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             @if($procurement->ttd_sarpras)
                                 <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 55px; max-width: 160px; object-fit: contain;">
-                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                <div style="font-size: 6.5pt; color: #64748b; font-style: italic; margin-top: 2px; line-height: 1.1;">
                                     Diverifikasi elektronik: {{ $procurement->ttd_sarpras_at ? $procurement->ttd_sarpras_at->translatedFormat('d/m/Y H:i') : ($procurement->tanggal_persetujuan ? $procurement->tanggal_persetujuan->translatedFormat('d/m/Y') : '') }}
                                 </div>
                             @elseif($procurement->status === 'disetujui')
-                                <div style="border: 1px solid #10b981; color: #047857; padding: 4px 10px; font-size: 8pt; border-radius: 4px; font-weight: bold;">
+                                <div style="border: 1px solid #10b981; color: #047857; padding: 3px 8px; font-size: 7.5pt; border-radius: 4px; font-weight: bold;">
                                     TELAH DIVERIFIKASI SARPRAS
                                 </div>
                             @endif
@@ -528,11 +528,11 @@
                         <div style="height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 3px;">
                             @if($procurement->ttd_kepsek)
                                 <img src="{{ Storage::url($procurement->ttd_kepsek) }}" alt="TTD Kepsek" style="max-height: 55px; max-width: 160px; object-fit: contain;">
-                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                <div style="font-size: 6.5pt; color: #64748b; font-style: italic; margin-top: 2px; line-height: 1.1;">
                                     Disetujui &amp; TTD elektronik: {{ $procurement->ttd_kepsek_at ? $procurement->ttd_kepsek_at->translatedFormat('d/m/Y H:i') : '' }}
                                 </div>
                             @elseif($procurement->status_kepsek === 'disetujui')
-                                <div style="border: 1px solid #10b981; color: #047857; padding: 4px 10px; font-size: 8pt; border-radius: 4px; font-weight: bold;">
+                                <div style="border: 1px solid #10b981; color: #047857; padding: 3px 8px; font-size: 7.5pt; border-radius: 4px; font-weight: bold;">
                                     DISETUJUI SECARA ELEKTRONIK OLEH KEPALA SEKOLAH
                                 </div>
                             @endif
