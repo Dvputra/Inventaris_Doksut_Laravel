@@ -47,7 +47,7 @@
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Jenis Berita Acara <span class="text-rose-500">*</span>
                     </label>
-                    <select name="jenis" id="jenisSelect" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <select name="jenis" id="jenisSelect" onchange="if(window.updateFormMode) window.updateFormMode();" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                         @if(Auth::user()->isJurusan())
                             <option value="barang_rusak" selected>
                                 ⚠️ Berita Acara Kerusakan / Penghapusan Barang (Afkir)
@@ -334,6 +334,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const latarBelakangInput = document.getElementById('latarBelakangInput');
 
     const suggestedSerahTerima = "{{ $suggestedNumberSerahTerima }}";
+    const suggestedRusak = "{{ $suggestedNumberRusak }}";
+    const suggestedJual = "{{ $suggestedNumberJual }}";
     function getKondisiOptions(mode, selectedValue = '') {
         if (mode === 'serah_terima') {
             return `
@@ -465,6 +467,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    window.updateFormMode = updateFormMode;
     jenisSelect.addEventListener('change', updateFormMode);
 
     // Dynamic Row Add
