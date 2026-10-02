@@ -376,13 +376,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (peran === 'pembeli') {
             labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Penerima Aset)';
             pihakKeduaNama.placeholder = 'Nama Pembeli / Rekanan';
-            if (!pihakKeduaJabatan.value || pihakKeduaJabatan.value.includes('Saksi') || pihakKeduaJabatan.value.includes('Kepala')) {
+            if (!pihakKeduaJabatan.value || pihakKeduaJabatan.value.includes('Saksi') || pihakKeduaJabatan.value.includes('Kepala') || pihakKeduaJabatan.value === 'Kepala Program / Unit Kerja') {
                 pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
             }
         } else {
             labelPihakKedua.textContent = 'Pihak Kedua (Saksi Penjualan / Luar)';
             pihakKeduaNama.placeholder = 'Nama Saksi / Perwakilan';
-            if (!pihakKeduaJabatan.value || pihakKeduaJabatan.value.includes('Pembeli') || pihakKeduaJabatan.value.includes('Kepala Program')) {
+            if (!pihakKeduaJabatan.value || pihakKeduaJabatan.value.includes('Pembeli') || pihakKeduaJabatan.value.includes('Kepala Program') || pihakKeduaJabatan.value === 'Kepala Program / Unit Kerja') {
                 pihakKeduaJabatan.value = 'Saksi Penjualan / Pihak Terkait';
             }
         }

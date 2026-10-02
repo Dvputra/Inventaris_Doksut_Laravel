@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'pihak_pertama_nip',
     'pihak_kedua_nama',
     'pihak_kedua_jabatan',
+    'pihak_kedua_peran',
     'pihak_kedua_nip',
     'pihak_kedua_instansi',
     'pihak_kedua_kontak',

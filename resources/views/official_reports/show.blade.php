@@ -140,12 +140,15 @@
             @if($officialReport->pihak_kedua_nama)
                 <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                     <div>
+                        @php
+                            $isSaksiPenjualan = ($officialReport->pihak_kedua_peran === 'saksi') || str_contains(strtolower($officialReport->pihak_kedua_jabatan ?? ''), 'saksi');
+                        @endphp
                         <div class="flex items-center justify-between gap-2 mb-2">
                             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">
                                 @if($officialReport->jenis === 'serah_terima')
                                     Pihak Kedua (Penerima Barang)
                                 @elseif($officialReport->jenis === 'penjualan')
-                                    @if(str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi'))
+                                    @if($isSaksiPenjualan)
                                         Pihak Kedua (Saksi Penjualan)
                                     @else
                                         Pihak Kedua (Pembeli / Pihak Ketiga)
@@ -192,7 +195,7 @@
                         if ($officialReport->jenis === 'serah_terima') {
                             $signBtnText = 'Tanda Tangani Penerimaan (Pihak Kedua / Jurusan)';
                         } elseif ($officialReport->jenis === 'penjualan') {
-                            if (str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi')) {
+                            if ($isSaksiPenjualan) {
                                 $signBtnText = 'Tanda Tangani Saksi Penjualan';
                             } else {
                                 $signBtnText = 'Tanda Tangani Pihak Pembeli';

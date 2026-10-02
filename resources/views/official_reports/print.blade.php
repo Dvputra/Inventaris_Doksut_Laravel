@@ -187,6 +187,9 @@
         </p>
 
         <!-- Identitas Pihak-Pihak -->
+        @php
+            $isSaksiPenjualan = ($officialReport->pihak_kedua_peran === 'saksi') || str_contains(strtolower($officialReport->pihak_kedua_jabatan ?? ''), 'saksi');
+        @endphp
         <table class="parties-table">
             <tr>
                 <td style="width: 4%;">1.</td>
@@ -265,7 +268,7 @@
                     @if($officialReport->jenis === 'serah_terima')
                         (Pihak yang Menerima Barang).
                     @elseif($officialReport->jenis === 'penjualan')
-                        @if(str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi'))
+                        @if($isSaksiPenjualan)
                             (Saksi Penjualan / Pelepasan Aset).
                         @else
                             (Pihak Pembeli / Penerima Aset).
@@ -292,7 +295,11 @@
                 @if($officialReport->latar_belakang && !$isDamagedBoilerplate)
                     {{ $officialReport->latar_belakang }}
                 @else
-                    Menyatakan bahwa sehubungan dengan pelepasan aset/inventaris sekolah yang telah melalui prosedur verifikasi dan disetujui untuk dilepas/dijual guna optimalisasi ruang gudang dan kas sekolah, bersama ini PIHAK PERTAMA menyerahkan/menjual barang kepada PIHAK KEDUA dengan rincian sebagai berikut:
+                    @if($isSaksiPenjualan)
+                        Menyatakan bahwa sehubungan dengan pelepasan aset/inventaris sekolah yang telah melalui prosedur verifikasi dan disetujui untuk dilepas/dijual guna optimalisasi ruang gudang dan kas sekolah, bersama ini PIHAK PERTAMA dengan disaksikan oleh PIHAK KEDUA melaksanakan pelepasan dan penjualan barang inventaris dengan rincian sebagai berikut:
+                    @else
+                        Menyatakan bahwa sehubungan dengan pelepasan aset/inventaris sekolah yang telah melalui prosedur verifikasi dan disetujui untuk dilepas/dijual guna optimalisasi ruang gudang dan kas sekolah, bersama ini PIHAK PERTAMA menyerahkan/menjual barang kepada PIHAK KEDUA dengan rincian sebagai berikut:
+                    @endif
                 @endif
             @else
                 {{ $officialReport->latar_belakang ?? 'Menyatakan bahwa dengan mempertimbangkan kondisi fisik aset sarana dan prasarana yang ada pada lingkungan sekolah, bersama ini telah dilakukan pemeriksaan fisik bersama terhadap barang-barang inventaris yang telah rusak berat dan tidak dapat dipergunakan kembali dengan rincian sebagai berikut:' }}
@@ -392,7 +399,7 @@
                         @if($officialReport->jenis === 'serah_terima')
                             Yang Menerima (Pihak Kedua),<br>
                         @elseif($officialReport->jenis === 'penjualan')
-                            @if(str_contains(strtolower($officialReport->pihak_kedua_jabatan), 'saksi'))
+                            @if($isSaksiPenjualan)
                                 Saksi Penjualan (Pihak Kedua),<br>
                             @else
                                 Pihak Pembeli (Pihak Kedua),<br>
