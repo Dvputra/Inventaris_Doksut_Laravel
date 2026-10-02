@@ -208,24 +208,15 @@
             margin-left: 6px;
         }
 
-        /* Lembar Tanda Tangan Resmi (Format Surat Dinas Rapi) */
-        .ttd-container {
-            margin-top: 36px;
-            width: 100%;
+        /* Lembar Tanda Tangan Resmi (Format Surat Dinas Rapi - Persis Berita Acara) */
+        .ttd-wrapper {
+            margin-top: 28px;
             page-break-inside: avoid !important;
             break-inside: avoid !important;
-        }
-
-        .ttd-table {
-            width: 100%;
-            border-collapse: collapse;
             font-size: 10.5pt;
-            text-align: center;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
         }
 
-        .ttd-table tr, .ttd-table td {
+        .ttd-wrapper table, .ttd-wrapper tr, .ttd-wrapper td {
             page-break-inside: avoid !important;
             break-inside: avoid !important;
         }
@@ -491,69 +482,63 @@
             Demikian usulan pengadaan barang dan bahan ini kami sampaikan untuk dapat ditindaklanjuti sebagaimana mestinya. Atas perhatian dan persetujuan yang diberikan, kami ucapkan terima kasih.
         </p>
 
-        <!-- LEMBAR TANDA TANGAN / PENGESAHAN RESMI (FORMAT DINAS) -->
-        <div class="ttd-container">
-            <table class="ttd-table">
-                <!-- Baris 1: Diajukan Oleh (Kiri) dan Diverifikasi Waka Sarpras (Kanan) -->
+        <!-- Tanda Tangan Resmi 3 Pihak (Sama seperti Berita Acara) -->
+        <div class="ttd-wrapper">
+            <table style="width: 100%; border-collapse: collapse; text-align: center;">
                 <tr>
-                    <td style="width: 45%;">
-                        <div class="ttd-heading">Diajukan Oleh,</div>
-                        <div class="ttd-role">Kepala Program / Unit Kerja<br>{{ $procurement->jurusan->nama }}</div>
-                        <div class="ttd-space">
+                    <td style="width: 45%; vertical-align: top;">
+                        Diajukan Oleh,<br>
+                        <strong>Kepala {{ $procurement->jurusan->nama }}</strong>
+                        <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             @if($procurement->ttd_pemohon)
-                                <img src="{{ Storage::url($procurement->ttd_pemohon) }}" alt="TTD Pemohon" style="max-height: 60px; max-width: 170px; object-fit: contain;">
-                                <div style="font-size: 7pt; color: #64748b; font-style: italic; margin-top: 1px;">
-                                    Ditandatangani: {{ $procurement->ttd_pemohon_at ? $procurement->ttd_pemohon_at->translatedFormat('d F Y, H:i') : $procurement->created_at->translatedFormat('d F Y') }}
+                                <img src="{{ Storage::url($procurement->ttd_pemohon) }}" alt="TTD Pemohon" style="max-height: 55px; max-width: 160px; object-fit: contain;">
+                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                    Ditandatangani elektronik: {{ $procurement->ttd_pemohon_at ? $procurement->ttd_pemohon_at->translatedFormat('d/m/Y H:i') : ($procurement->created_at ? $procurement->created_at->translatedFormat('d/m/Y') : '') }}
                                 </div>
                             @endif
                         </div>
-                        <div class="ttd-nama">{{ $procurement->jurusan->kepala_bengkel ?? ($procurement->user->name ?? '................................................') }}</div>
-                        <div class="ttd-nip">NIP/NIY: {{ $procurement->jurusan->nip ?? ($procurement->user->nip ?? '.......................................') }}</div>
+                        <strong><u>{{ $procurement->jurusan->kepala_bengkel ?? ($procurement->user->name ?? '................................................') }}</u></strong>
+                        <div style="font-size: 9.5pt;">NIP/NIY: {{ $procurement->jurusan->nip ?? ($procurement->user->nip ?? '.......................................') }}</div>
                     </td>
                     <td style="width: 10%;"></td>
-                        <div class="ttd-heading">Temanggung, {{ ($procurement->tanggal_persetujuan ?? $procurement->created_at)->translatedFormat('d F Y') }}</div>
-                        <div class="ttd-role">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
-                        <div class="ttd-space">
+                    <td style="width: 45%; vertical-align: top;">
+                        Temanggung, {{ ($procurement->tanggal_persetujuan ?? $procurement->created_at)->translatedFormat('d F Y') }}<br>
+                        Diverifikasi Oleh,<br>
+                        <strong>Waka Bidang Sarana &amp; Prasarana</strong>
+                        <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             @if($procurement->ttd_sarpras)
-                                <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 60px; max-width: 170px; object-fit: contain;">
-                                <div style="font-size: 7pt; color: #64748b; font-style: italic; margin-top: 1px;">
-                                    Diverifikasi: {{ $procurement->ttd_sarpras_at ? $procurement->ttd_sarpras_at->translatedFormat('d F Y, H:i') : ($procurement->tanggal_persetujuan ? $procurement->tanggal_persetujuan->translatedFormat('d F Y') : '') }}
+                                <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 55px; max-width: 160px; object-fit: contain;">
+                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                    Diverifikasi elektronik: {{ $procurement->ttd_sarpras_at ? $procurement->ttd_sarpras_at->translatedFormat('d/m/Y H:i') : ($procurement->tanggal_persetujuan ? $procurement->tanggal_persetujuan->translatedFormat('d/m/Y') : '') }}
                                 </div>
                             @elseif($procurement->status === 'disetujui')
-                                <div class="ttd-status-stamp">
-                                    &#10003; Telah Diverifikasi<br>
-                                    <span style="font-size: 7pt; font-weight: normal; text-transform: none;">
-                                        {{ $procurement->tanggal_persetujuan ? $procurement->tanggal_persetujuan->translatedFormat('d/m/Y') : 'Sarpras' }}
-                                    </span>
+                                <div style="border: 1px solid #10b981; color: #047857; padding: 4px 10px; font-size: 8pt; border-radius: 4px; font-weight: bold;">
+                                    TELAH DIVERIFIKASI SARPRAS
                                 </div>
                             @endif
                         </div>
-                        <div class="ttd-nama">{{ $sarprasUnit->kepala_bengkel ?? ($procurement->verifier->name ?? ($sarprasUser->name ?? 'Waka Bidang Sarana & Prasarana')) }}</div>
-                        <div class="ttd-nip">NIP/NPY: {{ $sarprasUnit->nip ?? ($procurement->verifier->nip ?? ($sarprasUser->nip ?? '.......................................')) }}</div>
+                        <strong><u>{{ $sarprasUnit->kepala_bengkel ?? ($procurement->verifier->name ?? ($sarprasUser->name ?? 'Waka Bidang Sarana & Prasarana')) }}</u></strong>
+                        <div style="font-size: 9.5pt;">NIP/NPY: {{ $sarprasUnit->nip ?? ($procurement->verifier->nip ?? ($sarprasUser->nip ?? '.......................................')) }}</div>
                     </td>
                 </tr>
-
-                <!-- Baris 2: Mengetahui Kepala Sekolah (Tengah, sedikit ke bawah) -->
                 <tr>
-                    <td colspan="3" style="width: 100%; padding-top: 24px;">
-                        <div style="width: 50%; margin: 0 auto;">
-                            <div class="ttd-heading">Mengetahui / Menyetujui,</div>
-                            <div class="ttd-role">Kepala SMK Dr. Sutomo Temanggung</div>
-                            <div class="ttd-space">
-                                @if($procurement->ttd_kepsek)
-                                    <img src="{{ Storage::url($procurement->ttd_kepsek) }}" alt="TTD Kepala Sekolah" style="max-height: 60px; max-width: 170px; object-fit: contain;">
-                                    <div style="font-size: 7pt; color: #64748b; font-style: italic; margin-top: 1px;">
-                                        Disahkan: {{ $procurement->ttd_kepsek_at ? $procurement->ttd_kepsek_at->translatedFormat('d F Y, H:i') : '' }}
-                                    </div>
-                                @elseif($procurement->status_kepsek === 'disetujui')
-                                    <div class="ttd-status-stamp">
-                                        &#10003; Disetujui Kepala Sekolah
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="ttd-nama">{{ $kepsekUser->name ?? ($procurement->approverKepsek->name ?? 'Bpk. Kepala Sekolah, M.Pd') }}</div>
-                            <div class="ttd-nip">NIP/NPY: {{ $kepsekUser->nip ?? ($procurement->approverKepsek->nip ?? '.......................................') }}</div>
+                    <td colspan="3" style="text-align: center; padding-top: 20px; vertical-align: top;">
+                        Mengetahui / Menyetujui,<br>
+                        <strong>Kepala SMK Dr. Sutomo Temanggung</strong>
+                        <div style="height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 3px;">
+                            @if($procurement->ttd_kepsek)
+                                <img src="{{ Storage::url($procurement->ttd_kepsek) }}" alt="TTD Kepsek" style="max-height: 55px; max-width: 160px; object-fit: contain;">
+                                <div style="font-size: 7.5pt; color: #475569; font-style: italic; margin-top: 2px;">
+                                    Disetujui &amp; TTD elektronik: {{ $procurement->ttd_kepsek_at ? $procurement->ttd_kepsek_at->translatedFormat('d/m/Y H:i') : '' }}
+                                </div>
+                            @elseif($procurement->status_kepsek === 'disetujui')
+                                <div style="border: 1px solid #10b981; color: #047857; padding: 4px 10px; font-size: 8pt; border-radius: 4px; font-weight: bold;">
+                                    DISETUJUI SECARA ELEKTRONIK OLEH KEPALA SEKOLAH
+                                </div>
+                            @endif
                         </div>
+                        <strong><u>{{ $kepsekUser->name ?? ($procurement->approverKepsek->name ?? 'Bpk. Kepala Sekolah, M.Pd') }}</u></strong>
+                        <div style="font-size: 9.5pt;">NIP/NPY: {{ $kepsekUser->nip ?? ($procurement->approverKepsek->nip ?? '.......................................') }}</div>
                     </td>
                 </tr>
             </table>
