@@ -110,6 +110,11 @@
                                                 <i class="bi bi-person-fill text-slate-400"></i> {{ $u->username }}
                                             </div>
                                         @endif
+                                        @if($u->nip)
+                                            <div class="text-[11px] font-mono text-slate-500 mt-0.5">
+                                                <span class="text-slate-400">NIP/NIY:</span> {{ $u->nip }}
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
@@ -217,6 +222,11 @@
                                     @if($u->username)
                                         <span class="text-[10px] font-mono bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded border border-slate-200">
                                             @{{ $u->username }}
+                                        </span>
+                                    @endif
+                                    @if($u->nip)
+                                        <span class="text-[10px] font-mono bg-amber-50 text-amber-800 px-1.5 py-0.2 rounded border border-amber-200">
+                                            NIP: {{ $u->nip }}
                                         </span>
                                     @endif
                                 </div>

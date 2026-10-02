@@ -25,33 +25,47 @@
             @csrf
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-5">
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-6">
                     <label for="name" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Nama Lengkap / Nama Akun <span class="text-rose-500">*</span>
+                        Nama Lengkap / Nama Pejabat / Nama Akun <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" name="name" id="name" 
                            class="w-full px-3.5 py-2.5 bg-slate-50 border @error('name') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                           placeholder="Contoh: Budi Santoso, S.Pd atau Akun TKR" 
+                           placeholder="Contoh: Bpk. Kepala Sekolah, M.Pd" 
                            value="{{ old('name') }}" required>
                     @error('name')
                         <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-6">
+                    <label for="nip" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                        NIP / NIY / NPY (Khusus Kepala Sekolah / Pejabat)
+                    </label>
+                    <input type="text" name="nip" id="nip" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border @error('nip') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                           placeholder="Contoh: 19740520..." 
+                           value="{{ old('nip') }}" maxlength="50">
+                    <span class="block text-[11px] text-slate-400 mt-1">Tercetak otomatis di lembar pengesahan &amp; tanda tangan PDF.</span>
+                    @error('nip')
+                        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="sm:col-span-6">
                     <label for="username" class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Username Login (Opsional)
                     </label>
                     <input type="text" name="username" id="username" 
                            class="w-full px-3.5 py-2.5 bg-slate-50 border @error('username') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                           placeholder="Contoh: sarpras / tkr (otomatis dari email jika kosong)" 
+                           placeholder="Contoh: kepsek / sarpras (otomatis dari email jika kosong)" 
                            value="{{ old('username') }}">
                     @error('username')
                         <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-6">
                     <label for="email" class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Alamat Email <span class="text-rose-500">*</span>
                     </label>

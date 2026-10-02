@@ -26,9 +26,9 @@
             @method('PUT')
 
             <div class="grid grid-cols-1 sm:grid-cols-12 gap-5">
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-6">
                     <label for="name" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Nama Lengkap / Nama Akun <span class="text-rose-500">*</span>
+                        Nama Lengkap / Nama Pejabat / Nama Akun <span class="text-rose-500">*</span>
                     </label>
                     <input type="text" name="name" id="name" 
                            class="w-full px-3.5 py-2.5 bg-slate-50 border @error('name') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
@@ -38,7 +38,21 @@
                     @enderror
                 </div>
 
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-6">
+                    <label for="nip" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                        NIP / NIY / NPY (Khusus Kepala Sekolah / Pejabat)
+                    </label>
+                    <input type="text" name="nip" id="nip" 
+                           class="w-full px-3.5 py-2.5 bg-slate-50 border @error('nip') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                           placeholder="Contoh: 19740520..." 
+                           value="{{ old('nip', $user->nip) }}" maxlength="50">
+                    <span class="block text-[11px] text-slate-400 mt-1">Tercetak otomatis di dokumen &amp; lembar pengesahan tanda tangan PDF.</span>
+                    @error('nip')
+                        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="sm:col-span-6">
                     <label for="username" class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Username Login
                     </label>
@@ -52,7 +66,7 @@
                     @enderror
                 </div>
 
-                <div class="sm:col-span-4">
+                <div class="sm:col-span-6">
                     <label for="email" class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Alamat Email <span class="text-rose-500">*</span>
                     </label>
