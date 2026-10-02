@@ -211,7 +211,14 @@
             <tr>
                 <td></td>
                 <td colspan="3" style="padding-top: 2px; padding-bottom: 8px;">
-                    Selanjutnya disebut sebagai <strong>PIHAK PERTAMA</strong>.
+                    Selanjutnya disebut sebagai <strong>PIHAK PERTAMA</strong>
+                    @if($officialReport->jenis === 'serah_terima')
+                        (Pihak yang Menyerahkan Barang).
+                    @elseif($officialReport->jenis === 'penjualan')
+                        (Pihak Penjual / Penyelenggara Pelepasan Aset).
+                    @else
+                        (Pihak Pengelola / Pengaju Pemeriksaan Barang).
+                    @endif
                 </td>
             </tr>
 
@@ -238,7 +245,7 @@
             @if($officialReport->pihak_kedua_instansi)
             <tr>
                 <td></td>
-                <td>Instansi / Alamat</td>
+                <td>Instansi / Unit</td>
                 <td>:</td>
                 <td>{{ $officialReport->pihak_kedua_instansi }}</td>
             </tr>
@@ -254,14 +261,29 @@
             <tr>
                 <td></td>
                 <td colspan="3" style="padding-top: 2px; padding-bottom: 8px;">
-                    Selanjutnya disebut sebagai <strong>PIHAK KEDUA</strong>.
+                    Selanjutnya disebut sebagai <strong>PIHAK KEDUA</strong>
+                    @if($officialReport->jenis === 'serah_terima')
+                        (Pihak yang Menerima Barang).
+                    @elseif($officialReport->jenis === 'penjualan')
+                        (Pihak Pembeli / Penerima Aset).
+                    @else
+                        (Saksi / Pihak yang Memeriksa Barang).
+                    @endif
                 </td>
             </tr>
         </table>
 
         <!-- Kronologi / Dasar Berita Acara -->
         <p class="text-justify">
-            {{ $officialReport->latar_belakang ?? 'Menyatakan bahwa dengan mempertimbangkan kondisi fisik aset sarana dan prasarana yang ada pada lingkungan sekolah, bersama ini telah dilakukan pemeriksaan fisik bersama terhadap barang-barang inventaris dengan rincian sebagai berikut:' }}
+            @if($officialReport->latar_belakang)
+                {{ $officialReport->latar_belakang }}
+            @elseif($officialReport->jenis === 'serah_terima')
+                Menyatakan bahwa PIHAK PERTAMA telah menyerahkan barang inventaris sarana dan prasarana dalam keadaan baik dan lengkap kepada PIHAK KEDUA, dan PIHAK KEDUA telah menerima barang tersebut dengan rincian sebagai berikut:
+            @elseif($officialReport->jenis === 'penjualan')
+                Menyatakan bahwa sehubungan dengan pelepasan aset/inventaris sekolah yang telah melalui prosedur verifikasi, bersama ini PIHAK PERTAMA melepaskan/menjual barang kepada PIHAK KEDUA dengan rincian sebagai berikut:
+            @else
+                Menyatakan bahwa dengan mempertimbangkan kondisi fisik aset sarana dan prasarana yang ada pada lingkungan sekolah, bersama ini telah dilakukan pemeriksaan fisik bersama terhadap barang-barang inventaris dengan rincian sebagai berikut:
+            @endif
         </p>
 
         <!-- Tabel Rincian Barang -->
@@ -271,12 +293,16 @@
                     <th style="width: 6%;">No</th>
                     <th style="width: 32%;">Nama Barang / Identitas Aset</th>
                     <th style="width: 18%;">Kode / No. Seri</th>
-                    <th style="width: 12%;">Jumlah</th>
-                    <th style="width: 16%;">Kondisi</th>
-                    @if($officialReport->jenis === 'penjualan')
-                        <th style="width: 16%;">Nilai (Rp)</th>
+                    <th style="width: 10%;">Jumlah</th>
+                    @if($officialReport->jenis === 'serah_terima')
+                        <th style="width: 16%;">Kondisi Serah</th>
+                        <th style="width: 18%;">Keterangan / Lokasi</th>
+                    @elseif($officialReport->jenis === 'penjualan')
+                        <th style="width: 14%;">Kondisi</th>
+                        <th style="width: 20%;">Harga Satuan &amp; Total (Rp)</th>
                     @else
-                        <th style="width: 16%;">Keterangan</th>
+                        <th style="width: 16%;">Kondisi Kerusakan</th>
+                        <th style="width: 18%;">Keterangan</th>
                     @endif
                 </tr>
             </thead>
@@ -301,7 +327,10 @@
                         </td>
                         @if($officialReport->jenis === 'penjualan')
                             <td style="text-align: right;">
-                                {{ number_format($item->subtotal, 0, ',', '.') }}
+                                @if($item->harga_satuan > 0)
+                                    <div style="font-size: 8pt; color: #555;">@ Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</div>
+                                @endif
+                                <strong>Rp {{ number_format($item->subtotal, 0, ',', '.') }}</strong>
                             </td>
                         @else
                             <td>
@@ -314,7 +343,7 @@
             @if($officialReport->jenis === 'penjualan')
                 <tfoot>
                     <tr style="font-weight: bold; background-color: #f9f9f9;">
-                        <td colspan="5" style="text-align: right; text-transform: uppercase;">Total Hasil Penjualan :</td>
+                        <td colspan="5" style="text-align: right; text-transform: uppercase;">Total Nilai Penjualan / Lelang :</td>
                         <td style="text-align: right;">Rp {{ number_format($officialReport->total_nominal, 0, ',', '.') }}</td>
                     </tr>
                 </tfoot>
@@ -323,7 +352,16 @@
 
         <!-- Penutup Berita Acara -->
         <p class="text-justify">
-            Demikian Berita Acara ini dibuat dengan sebenarnya dalam rangkap secukupnya untuk dapat dipergunakan sebagaimana mestinya dan sebagai bukti pertanggungjawaban pengelolaan aset sarana dan prasarana di lingkungan SMK Dr. Sutomo Temanggung.
+            @if($officialReport->catatan)
+                <span style="font-style: italic;">Catatan: {{ $officialReport->catatan }}</span><br>
+            @endif
+            @if($officialReport->jenis === 'serah_terima')
+                Demikian Berita Acara Serah Terima Barang ini dibuat dengan sebenarnya dalam rangkap secukupnya, untuk dijadikan bukti sah serah terima dan pemanfaatan barang inventaris di lingkungan SMK Dr. Sutomo Temanggung.
+            @elseif($officialReport->jenis === 'penjualan')
+                Demikian Berita Acara Penjualan / Pelepasan Aset ini dibuat dengan sebenarnya dalam rangkap secukupnya, sebagai bukti pertanggungjawaban pelepasan aset inventaris dan penerimaan kas di SMK Dr. Sutomo Temanggung.
+            @else
+                Demikian Berita Acara ini dibuat dengan sebenarnya dalam rangkap secukupnya untuk dapat dipergunakan sebagaimana mestinya dan sebagai bukti pertanggungjawaban pengelolaan serta penghapusan aset sarana dan prasarana di lingkungan SMK Dr. Sutomo Temanggung.
+            @endif
         </p>
 
         <!-- Tanda Tangan Resmi 3 Pihak -->
@@ -331,7 +369,13 @@
             <table style="width: 100%; border-collapse: collapse; text-align: center;">
                 <tr>
                     <td style="width: 45%; vertical-align: top;">
-                        Pihak Kedua,<br>
+                        @if($officialReport->jenis === 'serah_terima')
+                            Yang Menerima (Pihak Kedua),<br>
+                        @elseif($officialReport->jenis === 'penjualan')
+                            Pihak Pembeli (Pihak Kedua),<br>
+                        @else
+                            Saksi / Pelapor (Pihak Kedua),<br>
+                        @endif
                         <strong>{{ $officialReport->pihak_kedua_jabatan }}</strong>
                         <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             @if($officialReport->ttd_pihak_kedua)
@@ -351,7 +395,13 @@
                     <td style="width: 10%;"></td>
                     <td style="width: 45%; vertical-align: top;">
                         Temanggung, {{ $officialReport->tanggal->translatedFormat('d F Y') }}<br>
-                        Pihak Pertama,<br>
+                        @if($officialReport->jenis === 'serah_terima')
+                            Yang Menyerahkan (Pihak Pertama),<br>
+                        @elseif($officialReport->jenis === 'penjualan')
+                            Pihak Penjual / Sarpras (Pihak Pertama),<br>
+                        @else
+                            Penyelenggara / Sarpras (Pihak Pertama),<br>
+                        @endif
                         <strong>{{ $officialReport->pihak_pertama_jabatan }}</strong>
                         <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                             @if($officialReport->ttd_pihak_pertama)
