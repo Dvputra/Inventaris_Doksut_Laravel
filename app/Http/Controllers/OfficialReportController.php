@@ -89,6 +89,14 @@ class OfficialReportController extends Controller
         $defaultMengetahuiJabatan = 'Kepala SMK Dr. Sutomo Temanggung';
         $defaultMengetahuiNip = $kepsekUser->nip ?? null;
 
+        // Jika user adalah jurusan, sesuaikan Pihak Pertama atau Pihak Kedua
+        if ($user->isJurusan()) {
+            $userJurusan = $user->jurusan;
+            if ($userJurusan) {
+                $jurusans = Jurusan::where('id', $user->jurusan_id)->get();
+            }
+        }
+
         // Rekomendasi nomor surat otomatis
         $tahun = date('Y');
         $bulanRomawi = [
@@ -122,9 +130,18 @@ class OfficialReportController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        // Jika user adalah jurusan, batasi hanya boleh membuat berita acara barang rusak
+        $allowedJenis = 'in:serah_terima,barang_rusak,penjualan';
+        if ($request->user()->isJurusan()) {
+            $allowedJenis = 'in:barang_rusak';
+            if ($request->jenis !== 'barang_rusak') {
+                return back()->withInput()->with('error', 'Akun Unit Kerja / Jurusan hanya berwenang membuat Berita Acara Barang Rusak.');
+            }
+        }
+
         $validated = $request->validate([
             'nomor_surat' => 'required|string|max:100|unique:official_reports,nomor_surat',
-            'jenis' => 'required|in:serah_terima,barang_rusak,penjualan',
+            'jenis' => ['required', $allowedJenis],
             'judul' => 'required|string|max:255',
             'tanggal' => 'required|date',
             'jurusan_id' => 'nullable|exists:jurusans,id',
@@ -232,8 +249,9 @@ class OfficialReportController extends Controller
         $kepsekUser = User::where('role', 'kepala_sekolah')->first();
         $sarprasUser = User::where('role', 'sarpras')->first();
         $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
+        $jurusanUser = $officialReport->jurusan_id ? User::where('role', 'jurusan')->where('jurusan_id', $officialReport->jurusan_id)->first() : null;
 
-        return view('official_reports.show', compact('officialReport', 'kepsekUser', 'sarprasUser', 'sarprasUnit'));
+        return view('official_reports.show', compact('officialReport', 'kepsekUser', 'sarprasUser', 'sarprasUnit', 'jurusanUser'));
     }
 
     /**
@@ -326,18 +344,19 @@ class OfficialReportController extends Controller
             'save_signature_profile' => ['nullable', 'boolean'],
         ]);
 
-        $kepsekUser = User::where('role', 'kepala_sekolah')->first() ?: $user;
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first();
 
         $signaturePath = $officialReport->ttd_mengetahui;
         if ($request->boolean('use_saved_signature')) {
-            $signaturePath = $user->signature ?: ($kepsekUser->signature ?: $signaturePath);
+            $signaturePath = ($kepsekUser?->signature) ?: ($user->signature ?: $signaturePath);
         } elseif ($request->filled('signature_data')) {
             $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/kepsek');
             if ($request->boolean('save_signature_profile')) {
+                if ($kepsekUser) {
+                    $kepsekUser->update(['signature' => $signaturePath]);
+                }
                 if ($user->isKepalaSekolah()) {
                     $user->update(['signature' => $signaturePath]);
-                } elseif ($kepsekUser) {
-                    $kepsekUser->update(['signature' => $signaturePath]);
                 }
             }
         }
@@ -441,13 +460,20 @@ class OfficialReportController extends Controller
             'save_signature_profile' => ['nullable', 'boolean'],
         ]);
 
+        $jurusanUser = $officialReport->jurusan_id ? User::where('role', 'jurusan')->where('jurusan_id', $officialReport->jurusan_id)->first() : null;
+
         $signaturePath = null;
-        if ($request->boolean('use_saved_signature') && $user->signature) {
-            $signaturePath = $user->signature;
+        if ($request->boolean('use_saved_signature')) {
+            $signaturePath = ($jurusanUser?->signature) ?: ($user->signature ?: null);
         } elseif ($request->filled('signature_data')) {
             $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/jurusan');
             if ($request->boolean('save_signature_profile')) {
-                $user->update(['signature' => $signaturePath]);
+                if ($jurusanUser) {
+                    $jurusanUser->update(['signature' => $signaturePath]);
+                }
+                if ($user->isJurusan()) {
+                    $user->update(['signature' => $signaturePath]);
+                }
             }
         }
 

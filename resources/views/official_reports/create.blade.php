@@ -48,15 +48,21 @@
                         Jenis Berita Acara <span class="text-rose-500">*</span>
                     </label>
                     <select name="jenis" id="jenisSelect" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                        <option value="serah_terima" {{ old('jenis', 'serah_terima') == 'serah_terima' ? 'selected' : '' }}>
-                            📦 Berita Acara Serah Terima Barang ke Jurusan (BAST)
-                        </option>
-                        <option value="barang_rusak" {{ old('jenis') == 'barang_rusak' ? 'selected' : '' }}>
-                            ⚠️ Berita Acara Kerusakan / Penghapusan Barang (Afkir)
-                        </option>
-                        <option value="penjualan" {{ old('jenis') == 'penjualan' ? 'selected' : '' }}>
-                            💰 Berita Acara Penjualan / Lelang Barang Bekas
-                        </option>
+                        @if(Auth::user()->isJurusan())
+                            <option value="barang_rusak" selected>
+                                ⚠️ Berita Acara Kerusakan / Penghapusan Barang (Afkir)
+                            </option>
+                        @else
+                            <option value="serah_terima" {{ old('jenis', 'serah_terima') == 'serah_terima' ? 'selected' : '' }}>
+                                📦 Berita Acara Serah Terima Barang ke Jurusan (BAST)
+                            </option>
+                            <option value="barang_rusak" {{ old('jenis') == 'barang_rusak' ? 'selected' : '' }}>
+                                ⚠️ Berita Acara Kerusakan / Penghapusan Barang (Afkir)
+                            </option>
+                            <option value="penjualan" {{ old('jenis') == 'penjualan' ? 'selected' : '' }}>
+                                💰 Berita Acara Penjualan / Lelang Barang Bekas
+                            </option>
+                        @endif
                     </select>
                 </div>
 
@@ -228,11 +234,12 @@
                                 <input type="text" name="items[0][satuan]" value="unit" required class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
                             </td>
                             <td class="py-2 px-3 col-kondisi">
-                                <select name="items[0][kondisi_saat_lapor]" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                    <option value="rusak_berat">Rusak Berat</option>
-                                    <option value="rusak_total">Rusak Total / Afkir</option>
-                                    <option value="hilang">Hilang</option>
-                                    <option value="bekas_layak">Bekas Masih Layak</option>
+                                <select name="items[0][kondisi_saat_lapor]" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 item-kondisi-select">
+                                    <!-- Option diisi dinamis oleh JS updateFormMode -->
+                                    <option value="baik">Kondisi Baik (Baru / Normal)</option>
+                                    <option value="rusak_ringan">Rusak Ringan (Perlu Servis)</option>
+                                    <option value="bekas_layak">Bekas Masih Layak Pakai</option>
+                                    <option value="lengkap">Lengkap &amp; Siap Digunakan</option>
                                 </select>
                             </td>
                             <td class="py-2 px-3 col-harga hidden">
@@ -322,11 +329,41 @@ document.addEventListener('DOMContentLoaded', function () {
     const latarBelakangInput = document.getElementById('latarBelakangInput');
 
     const suggestedSerahTerima = "{{ $suggestedNumberSerahTerima }}";
-    const suggestedRusak = "{{ $suggestedNumberRusak }}";
-    const suggestedJual = "{{ $suggestedNumberJual }}";
+    function getKondisiOptions(mode, selectedValue = '') {
+        if (mode === 'serah_terima') {
+            return `
+                <option value="baik" ${selectedValue === 'baik' ? 'selected' : ''}>Kondisi Baik (Baru / Normal)</option>
+                <option value="rusak_ringan" ${selectedValue === 'rusak_ringan' ? 'selected' : ''}>Rusak Ringan (Perlu Servis)</option>
+                <option value="bekas_layak" ${selectedValue === 'bekas_layak' ? 'selected' : ''}>Bekas Masih Layak Pakai</option>
+                <option value="lengkap" ${selectedValue === 'lengkap' ? 'selected' : ''}>Lengkap &amp; Siap Digunakan</option>
+            `;
+        } else if (mode === 'penjualan') {
+            return `
+                <option value="bekas_layak" ${selectedValue === 'bekas_layak' ? 'selected' : ''}>Bekas Layak Jual</option>
+                <option value="rusak_berat" ${selectedValue === 'rusak_berat' ? 'selected' : ''}>Rusak Berat / Scrap</option>
+                <option value="rusak_total" ${selectedValue === 'rusak_total' ? 'selected' : ''}>Rusak Total / Afkir</option>
+            `;
+        } else {
+            return `
+                <option value="rusak_berat" ${selectedValue === 'rusak_berat' ? 'selected' : ''}>Rusak Berat</option>
+                <option value="rusak_total" ${selectedValue === 'rusak_total' ? 'selected' : ''}>Rusak Total / Afkir</option>
+                <option value="hilang" ${selectedValue === 'hilang' ? 'selected' : ''}>Hilang</option>
+                <option value="bekas_layak" ${selectedValue === 'bekas_layak' ? 'selected' : ''}>Bekas Masih Layak</option>
+            `;
+        }
+    }
+
+    function syncKondisiDropdowns() {
+        const mode = jenisSelect.value;
+        document.querySelectorAll('.item-kondisi-select').forEach(select => {
+            const currentVal = select.value;
+            select.innerHTML = getKondisiOptions(mode, currentVal);
+        });
+    }
 
     function updateFormMode() {
         const mode = jenisSelect.value;
+        syncKondisiDropdowns();
 
         if (mode === 'serah_terima') {
             if (nomorSuratInput.value === suggestedRusak || nomorSuratInput.value === suggestedJual || !nomorSuratInput.value) {
@@ -425,6 +462,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     addItemRowBtn.addEventListener('click', function () {
         const isJual = jenisSelect.value === 'penjualan';
+        const kondisiOpts = getKondisiOptions(jenisSelect.value);
         const tr = document.createElement('tr');
         tr.className = 'item-row hover:bg-slate-50/50';
         tr.innerHTML = `
@@ -442,11 +480,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 <input type="text" name="items[${rowIdx}][satuan]" value="unit" required class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
             </td>
             <td class="py-2 px-3 col-kondisi">
-                <select name="items[${rowIdx}][kondisi_saat_lapor]" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <option value="rusak_berat">Rusak Berat</option>
-                    <option value="rusak_total">Rusak Total / Afkir</option>
-                    <option value="hilang">Hilang</option>
-                    <option value="bekas_layak">Bekas Masih Layak</option>
+                <select name="items[${rowIdx}][kondisi_saat_lapor]" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 item-kondisi-select">
+                    ${kondisiOpts}
                 </select>
             </td>
             <td class="py-2 px-3 col-harga ${isJual ? '' : 'hidden'}">

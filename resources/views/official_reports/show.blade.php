@@ -383,8 +383,19 @@
                                 {{ $item->jumlah }} {{ $item->satuan }}
                             </td>
                             <td class="py-3 px-4">
-                                <span class="inline-block px-2 py-0.5 rounded-full text-xs font-semibold {{ in_array($item->kondisi_saat_lapor, ['rusak_berat', 'rusak_total', 'hilang']) ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-700' }}">
-                                    {{ ucwords(str_replace('_', ' ', $item->kondisi_saat_lapor)) }}
+                                @php
+                                    $kondisi = $item->kondisi_saat_lapor;
+                                    $kondisiClass = 'bg-slate-100 text-slate-700';
+                                    if (in_array($kondisi, ['rusak_berat', 'rusak_total', 'hilang'])) {
+                                        $kondisiClass = 'bg-rose-50 text-rose-700 border border-rose-200';
+                                    } elseif (in_array($kondisi, ['baik', 'lengkap'])) {
+                                        $kondisiClass = 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                                    } elseif (in_array($kondisi, ['rusak_ringan', 'bekas_layak'])) {
+                                        $kondisiClass = 'bg-amber-50 text-amber-700 border border-amber-200';
+                                    }
+                                @endphp
+                                <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $kondisiClass }}">
+                                    {{ ucwords(str_replace('_', ' ', $kondisi)) }}
                                 </span>
                             </td>
                             @if($officialReport->jenis === 'penjualan')
@@ -518,7 +529,8 @@
                 <input type="hidden" name="signature_data" id="jurusanSignatureData">
 
                 @php
-                    $availableJurusanSig = Auth::user()->signature;
+                    $availableJurusanSig = Auth::user()->isJurusan() ? Auth::user()->signature : ($jurusanUser?->signature ?: Auth::user()->signature);
+                    $jurusanAccountName = $jurusanUser ? $jurusanUser->name : ($officialReport->jurusan ? $officialReport->jurusan->nama : 'Pihak Jurusan');
                 @endphp
 
                 @if($availableJurusanSig)
@@ -527,7 +539,7 @@
                         <div class="flex flex-col gap-2">
                             <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
                                 <input type="radio" name="jurusan_sig_choice" value="saved" checked onchange="toggleReportSigMode('jurusan')" class="text-emerald-600 focus:ring-emerald-500">
-                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan</span>
+                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan ({{ $jurusanAccountName }})</span>
                             </label>
                             <div id="jurusanSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-emerald-200 inline-block w-fit">
                                 <img src="{{ Storage::url($availableJurusanSig) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
@@ -554,7 +566,7 @@
                         </button>
                         <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
                             <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                            <span>Simpan ke profil akun</span>
+                            <span>Simpan ke profil akun ({{ $jurusanAccountName }})</span>
                         </label>
                     </div>
                 </div>
