@@ -184,12 +184,20 @@
                     <!-- Tombol Aksi Jurusan atau Sarpras (Sarpras bisa mewakili) -->
                     @php
                         $canSignJurusan = Auth::user()->isStaffSarpras() || (Auth::user()->isJurusan() && $officialReport->jurusan_id && Auth::user()->jurusan_id === $officialReport->jurusan_id);
+                        $signBtnText = 'Verifikasi & Tanda Tangani';
+                        if ($officialReport->jenis === 'serah_terima') {
+                            $signBtnText = 'Tanda Tangani Penerimaan (Pihak Kedua / Jurusan)';
+                        } elseif ($officialReport->jenis === 'penjualan') {
+                            $signBtnText = 'Tanda Tangani Pihak Pembeli / Saksi Luar';
+                        } else {
+                            $signBtnText = 'Tanda Tangani Saksi / Pelapor Unit';
+                        }
                     @endphp
                     @if($canSignJurusan)
                         @if(! $officialReport->ttd_pihak_kedua)
                             <button type="button" onclick="openSignatureModal('jurusan')" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
                                 <i class="bi bi-pen"></i>
-                                <span>Verifikasi &amp; Tanda Tangani (Pihak Kedua)</span>
+                                <span>{{ $signBtnText }}</span>
                             </button>
                         @else
                             <button type="button" onclick="confirmCancelReportSignature('pihak_kedua')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
