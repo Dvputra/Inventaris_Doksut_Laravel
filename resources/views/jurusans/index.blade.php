@@ -141,10 +141,10 @@
                                         <i class="bi bi-pencil-square text-xs"></i>
                                     </a>
 
-                                    @if($j->kode !== 'SAR' && $j->items_count === 0 && $j->users_count === 0)
+                                    @if($j->kode !== 'SAR')
                                         <!-- Tombol Hapus (Rose / Merah) -->
                                         <form action="{{ route('jurusans.destroy', $j) }}" method="POST" class="inline"
-                                              data-confirm="Apakah Anda yakin ingin menghapus unit kerja {{ addslashes($j->nama) }} ({{ $j->kode }})?"
+                                              data-confirm="Apakah Anda yakin ingin menghapus unit kerja {{ addslashes($j->nama) }} ({{ $j->kode }})?{{ ($j->items_count > 0 || $j->users_count > 0) ? ' Perhatian: Unit ini masih memiliki ' . ($j->items_count > 0 ? $j->items_count . ' barang ' : '') . ($j->users_count > 0 ? $j->users_count . ' akun terhubung.' : '') : '' }}"
                                               data-confirm-title="Hapus Unit Kerja"
                                               data-confirm-type="danger"
                                               data-confirm-btn="Ya, Hapus Unit">
@@ -199,9 +199,9 @@
                             <a href="{{ route('jurusans.edit', $j) }}" class="p-2 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 transition-colors shadow-xs active:scale-95" title="Ubah Nama Unit">
                                 <i class="bi bi-pencil-square text-xs"></i>
                             </a>
-                            @if($j->kode !== 'SAR' && $j->items_count === 0 && $j->users_count === 0)
+                            @if($j->kode !== 'SAR')
                                 <form action="{{ route('jurusans.destroy', $j) }}" method="POST" class="inline"
-                                      data-confirm="Apakah Anda yakin ingin menghapus unit kerja {{ addslashes($j->nama) }} ({{ $j->kode }})?"
+                                      data-confirm="Apakah Anda yakin ingin menghapus unit kerja {{ addslashes($j->nama) }} ({{ $j->kode }})?{{ ($j->items_count > 0 || $j->users_count > 0) ? ' Perhatian: Unit ini masih memiliki ' . ($j->items_count > 0 ? $j->items_count . ' barang ' : '') . ($j->users_count > 0 ? $j->users_count . ' akun terhubung.' : '') : '' }}"
                                       data-confirm-title="Hapus Unit Kerja"
                                       data-confirm-type="danger"
                                       data-confirm-btn="Ya, Hapus Unit">

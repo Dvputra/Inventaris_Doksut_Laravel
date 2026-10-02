@@ -155,14 +155,28 @@ class JurusanController extends Controller
         if ($jurusan->items()->exists()) {
             $itemCount = $jurusan->items()->count();
 
-            return back()->with('error', "Unit '{$jurusan->nama}' tidak dapat dihapus karena masih memiliki {$itemCount} barang inventaris.");
+            return back()->with('error', "Gagal menghapus unit '{$jurusan->nama}': Unit ini masih memiliki {$itemCount} barang inventaris. Silakan hapus atau pindahkan barang terlebih dahulu di menu Data Barang.");
         }
 
         // Proteksi jika masih memiliki akun pengguna
         if ($jurusan->users()->exists()) {
             $userCount = $jurusan->users()->count();
 
-            return back()->with('error', "Unit '{$jurusan->nama}' tidak dapat dihapus karena masih terhubung dengan {$userCount} akun pengguna.");
+            return back()->with('error', "Gagal menghapus unit '{$jurusan->nama}': Unit ini masih terhubung dengan {$userCount} akun login. Silakan hapus atau ubah penempatan unit akun tersebut terlebih dahulu di menu Kelola Akun.");
+        }
+
+        // Proteksi jika masih memiliki riwayat peminjaman
+        if ($jurusan->borrowings()->exists()) {
+            $borrowCount = $jurusan->borrowings()->count();
+
+            return back()->with('error', "Gagal menghapus unit '{$jurusan->nama}': Masih terdapat {$borrowCount} riwayat peminjaman terkait unit ini.");
+        }
+
+        // Proteksi jika masih memiliki usulan pengadaan
+        if ($jurusan->procurements()->exists()) {
+            $procurementCount = $jurusan->procurements()->count();
+
+            return back()->with('error', "Gagal menghapus unit '{$jurusan->nama}': Masih terdapat {$procurementCount} berkas usulan pengadaan terkait unit ini.");
         }
 
         $namaJurusan = $jurusan->nama;
