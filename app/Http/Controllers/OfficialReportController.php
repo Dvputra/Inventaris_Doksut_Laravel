@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
+use App\Models\User;
+
 class OfficialReportController extends Controller
 {
     /**
@@ -63,6 +65,19 @@ class OfficialReportController extends Controller
         $items = Item::with('category')->orderBy('nama_barang')->get();
         $units = ItemUnit::with('item')->where('kondisi', '!=', 'baik')->orWhere('status', '!=', 'tersedia')->get();
 
+        // Data default Pihak Pertama (Sarpras) & Mengetahui (Kepala Sekolah)
+        $sarprasUser = User::where('role', 'sarpras')->first();
+        $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first();
+
+        $defaultPihakPertamaNama = $sarprasUnit->kepala_bengkel ?? ($sarprasUser->name ?? ($user->name ?? 'Waka Bidang Sarana & Prasarana'));
+        $defaultPihakPertamaJabatan = 'Waka Bidang Sarana & Prasarana';
+        $defaultPihakPertamaNip = $sarprasUnit->nip ?? ($sarprasUser->nip ?? null);
+
+        $defaultMengetahuiNama = $kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd';
+        $defaultMengetahuiJabatan = 'Kepala SMK Dr. Sutomo Temanggung';
+        $defaultMengetahuiNip = $kepsekUser->nip ?? null;
+
         // Rekomendasi nomor surat otomatis
         $tahun = date('Y');
         $bulanRomawi = [
@@ -74,7 +89,19 @@ class OfficialReportController extends Controller
         $suggestedNumberRusak = "{$nextNumber}/BA-RUSAK/SMK-DS/{$bulanRomawi}/{$tahun}";
         $suggestedNumberJual = "{$nextNumber}/BA-LELANG/SMK-DS/{$bulanRomawi}/{$tahun}";
 
-        return view('official_reports.create', compact('user', 'jurusans', 'items', 'suggestedNumberRusak', 'suggestedNumberJual'));
+        return view('official_reports.create', compact(
+            'user',
+            'jurusans',
+            'items',
+            'suggestedNumberRusak',
+            'suggestedNumberJual',
+            'defaultPihakPertamaNama',
+            'defaultPihakPertamaJabatan',
+            'defaultPihakPertamaNip',
+            'defaultMengetahuiNama',
+            'defaultMengetahuiJabatan',
+            'defaultMengetahuiNip'
+        ));
     }
 
     /**
@@ -186,9 +213,12 @@ class OfficialReportController extends Controller
      */
     public function show(OfficialReport $officialReport): View
     {
-        $officialReport->load(['user', 'jurusan', 'items']);
+        $officialReport->load(['user', 'jurusan', 'items', 'approver']);
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first();
+        $sarprasUser = User::where('role', 'sarpras')->first();
+        $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
 
-        return view('official_reports.show', compact('officialReport'));
+        return view('official_reports.show', compact('officialReport', 'kepsekUser', 'sarprasUser', 'sarprasUnit'));
     }
 
     /**
@@ -206,6 +236,47 @@ class OfficialReportController extends Controller
     }
 
     /**
+     * Batalkan tanda tangan Berita Acara (Pihak Pertama / Sarpras atau Kepala Sekolah).
+     */
+    public function cancelSignature(OfficialReport $officialReport, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $type = $request->query('type', 'pihak_pertama');
+
+        if ($type === 'pihak_pertama') {
+            if (! $user->isStaffSarpras()) {
+                abort(403, 'Hanya Sarpras yang berwenang membatalkan tanda tangan Pihak Pertama.');
+            }
+
+            $officialReport->update([
+                'ttd_pihak_pertama' => null,
+                'ttd_pihak_pertama_at' => null,
+            ]);
+
+            return back()->with('success', 'Tanda tangan Pihak Pertama (Sarpras) berhasil dibatalkan.');
+        }
+
+        if ($type === 'kepsek') {
+            if (! $user->isKepalaSekolah() && ! $user->isSarpras()) {
+                abort(403, 'Hanya Kepala Sekolah atau Sarpras yang berwenang membatalkan pengesahan Kepala Sekolah.');
+            }
+
+            $officialReport->update([
+                'status_approval' => 'menunggu',
+                'approved_by' => null,
+                'approved_at' => null,
+                'catatan_approval' => null,
+                'ttd_mengetahui' => null,
+                'ttd_mengetahui_at' => null,
+            ]);
+
+            return back()->with('success', 'Pengesahan dan tanda tangan Kepala Sekolah berhasil dibatalkan. Status Berita Acara kembali Menunggu ACC.');
+        }
+
+        return back()->with('error', 'Tipe pembatalan tanda tangan tidak valid.');
+    }
+
+    /**
      * Setujui (ACC) Berita Acara oleh Kepala Sekolah beserta Tanda Tangan Digital.
      */
     public function approve(Request $request, OfficialReport $officialReport): RedirectResponse
@@ -217,18 +288,31 @@ class OfficialReportController extends Controller
         }
 
         $request->validate([
-            'catatan_approval' => 'nullable|string|max:500',
-            'signature_data' => 'nullable|string', // Base64 data URL from signature pad
+            'catatan_approval' => ['nullable', 'string', 'max:500'],
+            'signature_data' => ['nullable', 'string'], // Base64 data URL from signature pad
+            'use_saved_signature' => ['nullable', 'boolean'],
+            'save_signature_profile' => ['nullable', 'boolean'],
         ]);
 
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first() ?: $user;
+
         $signaturePath = $officialReport->ttd_mengetahui;
-        if ($request->filled('signature_data')) {
+        if ($request->boolean('use_saved_signature')) {
+            $signaturePath = $user->signature ?: ($kepsekUser->signature ?: $signaturePath);
+        } elseif ($request->filled('signature_data')) {
             $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/kepsek');
+            if ($request->boolean('save_signature_profile')) {
+                if ($user->isKepalaSekolah()) {
+                    $user->update(['signature' => $signaturePath]);
+                } elseif ($kepsekUser) {
+                    $kepsekUser->update(['signature' => $signaturePath]);
+                }
+            }
         }
 
         $officialReport->update([
             'status_approval' => 'disetujui',
-            'approved_by' => $user->id,
+            'approved_by' => $kepsekUser->id,
             'approved_at' => now(),
             'catatan_approval' => $request->catatan_approval,
             'ttd_mengetahui' => $signaturePath,
@@ -250,12 +334,14 @@ class OfficialReportController extends Controller
         }
 
         $request->validate([
-            'catatan_approval' => 'required|string|max:500',
+            'catatan_approval' => ['required', 'string', 'max:500'],
         ]);
+
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first() ?: $user;
 
         $officialReport->update([
             'status_approval' => 'ditolak',
-            'approved_by' => $user->id,
+            'approved_by' => $kepsekUser->id,
             'approved_at' => now(),
             'catatan_approval' => $request->catatan_approval,
         ]);
@@ -275,10 +361,24 @@ class OfficialReportController extends Controller
         }
 
         $request->validate([
-            'signature_data' => 'required|string',
+            'signature_data' => ['nullable', 'string'],
+            'use_saved_signature' => ['nullable', 'boolean'],
+            'save_signature_profile' => ['nullable', 'boolean'],
         ]);
 
-        $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/sarpras');
+        $signaturePath = null;
+        if ($request->boolean('use_saved_signature') && $user->signature) {
+            $signaturePath = $user->signature;
+        } elseif ($request->filled('signature_data')) {
+            $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/sarpras');
+            if ($request->boolean('save_signature_profile')) {
+                $user->update(['signature' => $signaturePath]);
+            }
+        }
+
+        if (! $signaturePath) {
+            return back()->with('error', 'Silakan goreskan tanda tangan atau pilih tanda tangan tersimpan.');
+        }
 
         $officialReport->update([
             'ttd_pihak_pertama' => $signaturePath,

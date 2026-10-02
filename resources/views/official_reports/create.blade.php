@@ -111,15 +111,15 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                        <input type="text" name="pihak_pertama_nama" value="{{ old('pihak_pertama_nama', $user->name ?? Auth::user()->name ?? '') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_pertama_nama" value="{{ old('pihak_pertama_nama', $defaultPihakPertamaNama) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jabatan <span class="text-rose-500">*</span></label>
-                        <input type="text" name="pihak_pertama_jabatan" value="{{ old('pihak_pertama_jabatan', 'Pengelola Sarana & Prasarana') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_pertama_jabatan" value="{{ old('pihak_pertama_jabatan', $defaultPihakPertamaJabatan) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">NIP / NUPTK / NIK (Opsional)</label>
-                        <input type="text" name="pihak_pertama_nip" value="{{ old('pihak_pertama_nip') }}" placeholder="Contoh: 1985..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">NIP / NIY / NPY (Opsional)</label>
+                        <input type="text" name="pihak_pertama_nip" value="{{ old('pihak_pertama_nip', $defaultPihakPertamaNip) }}" placeholder="Contoh: 1985... atau nomor NIY" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                 </div>
 
@@ -159,15 +159,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pejabat</label>
-                        <input type="text" name="mengetahui_nama" value="{{ old('mengetahui_nama', 'Kepala SMK Dr. Sutomo Temanggung') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="mengetahui_nama" value="{{ old('mengetahui_nama', $defaultMengetahuiNama) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jabatan</label>
-                        <input type="text" name="mengetahui_jabatan" value="{{ old('mengetahui_jabatan', 'Kepala Sekolah') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="mengetahui_jabatan" value="{{ old('mengetahui_jabatan', $defaultMengetahuiJabatan) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold text-slate-600 mb-1">NIP (Jika Ada)</label>
-                        <input type="text" name="mengetahui_nip" value="{{ old('mengetahui_nip') }}" placeholder="-" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">NIP / NIY / NPY (Jika Ada)</label>
+                        <input type="text" name="mengetahui_nip" value="{{ old('mengetahui_nip', $defaultMengetahuiNip) }}" placeholder="-" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                 </div>
             </div>

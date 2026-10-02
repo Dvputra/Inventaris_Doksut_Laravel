@@ -483,7 +483,10 @@
                         <div class="ttd-role">Kepala Program / Unit Kerja<br>{{ $procurement->jurusan->nama }}</div>
                         <div class="ttd-space">
                             @if($procurement->ttd_pemohon)
-                                <img src="{{ Storage::url($procurement->ttd_pemohon) }}" alt="TTD Pemohon" style="max-height: 65px; max-width: 170px; object-fit: contain;">
+                                <img src="{{ Storage::url($procurement->ttd_pemohon) }}" alt="TTD Pemohon" style="max-height: 60px; max-width: 170px; object-fit: contain;">
+                                <div style="font-size: 7pt; color: #64748b; font-style: italic; margin-top: 1px;">
+                                    Ditandatangani: {{ $procurement->ttd_pemohon_at ? $procurement->ttd_pemohon_at->translatedFormat('d F Y, H:i') : $procurement->created_at->translatedFormat('d F Y') }}
+                                </div>
                             @endif
                         </div>
                         <div class="ttd-nama">{{ $procurement->jurusan->kepala_bengkel ?? ($procurement->user->name ?? '................................................') }}</div>
@@ -495,7 +498,10 @@
                         <div class="ttd-role">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
                         <div class="ttd-space">
                             @if($procurement->ttd_sarpras)
-                                <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 65px; max-width: 170px; object-fit: contain;">
+                                <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 60px; max-width: 170px; object-fit: contain;">
+                                <div style="font-size: 7pt; color: #64748b; font-style: italic; margin-top: 1px;">
+                                    Diverifikasi: {{ $procurement->ttd_sarpras_at ? $procurement->ttd_sarpras_at->translatedFormat('d F Y, H:i') : ($procurement->tanggal_persetujuan ? $procurement->tanggal_persetujuan->translatedFormat('d F Y') : '') }}
+                                </div>
                             @elseif($procurement->status === 'disetujui')
                                 <div class="ttd-status-stamp">
                                     &#10003; Telah Diverifikasi<br>
@@ -518,7 +524,10 @@
                             <div class="ttd-role">Kepala SMK Dr. Sutomo Temanggung</div>
                             <div class="ttd-space">
                                 @if($procurement->ttd_kepsek)
-                                    <img src="{{ Storage::url($procurement->ttd_kepsek) }}" alt="TTD Kepala Sekolah" style="max-height: 65px; max-width: 170px; object-fit: contain;">
+                                    <img src="{{ Storage::url($procurement->ttd_kepsek) }}" alt="TTD Kepala Sekolah" style="max-height: 60px; max-width: 170px; object-fit: contain;">
+                                    <div style="font-size: 7pt; color: #64748b; font-style: italic; margin-top: 1px;">
+                                        Disahkan: {{ $procurement->ttd_kepsek_at ? $procurement->ttd_kepsek_at->translatedFormat('d F Y, H:i') : '' }}
+                                    </div>
                                 @elseif($procurement->status_kepsek === 'disetujui')
                                     <div class="ttd-status-stamp">
                                         &#10003; Disetujui Kepala Sekolah

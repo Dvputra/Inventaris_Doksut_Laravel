@@ -118,11 +118,18 @@
                     @endif
                 </div>
 
-                @if(Auth::user()->isStaffSarpras() && ! $officialReport->ttd_pihak_pertama)
-                    <button type="button" onclick="openSignatureModal('sarpras')" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
-                        <i class="bi bi-pen"></i>
-                        <span>Bubuhkan Tanda Tangan Sarpras Sekarang</span>
-                    </button>
+                @if(Auth::user()->isStaffSarpras())
+                    @if(! $officialReport->ttd_pihak_pertama)
+                        <button type="button" onclick="openSignatureModal('sarpras')" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="bi bi-pen"></i>
+                            <span>Bubuhkan Tanda Tangan Sarpras Sekarang</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="confirmCancelReportSignature('pihak_pertama')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>Batalkan TTD Sarpras</span>
+                        </button>
+                    @endif
                 @endif
             </div>
 
@@ -130,7 +137,7 @@
             <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Mengetahui (Kepala Sekolah)</span>
+                        <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Mengetahui (Kepala Sekolah)</span>
                         @if($officialReport->status_approval === 'disetujui')
                             <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                                 <i class="bi bi-check-circle-fill"></i> Di-ACC &amp; TTD
@@ -155,6 +162,11 @@
                             <img src="{{ Storage::url($officialReport->ttd_mengetahui) }}" alt="TTD Kepsek" class="h-24 max-w-[200px] object-contain mx-auto">
                         </div>
                         <p class="text-[10px] text-slate-400 mt-1">Ditandatangani: {{ $officialReport->ttd_mengetahui_at ? $officialReport->ttd_mengetahui_at->translatedFormat('d M Y, H:i') : '-' }}</p>
+                    @elseif($officialReport->status_approval === 'disetujui')
+                        <div class="h-24 flex flex-col items-center justify-center border border-purple-200 bg-purple-50/50 rounded-xl text-purple-700 text-xs">
+                            <i class="bi bi-patch-check-fill text-2xl mb-1 text-purple-600"></i>
+                            <span class="font-bold">Disetujui Kepala Sekolah</span>
+                        </div>
                     @else
                         <div class="h-24 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl text-slate-400 text-xs">
                             <i class="bi bi-shield-check text-xl mb-1"></i>
@@ -163,17 +175,24 @@
                     @endif
                 </div>
 
-                <!-- Tombol Aksi Kepala Sekolah -->
-                @if(Auth::user()->isKepalaSekolah() && $officialReport->status_approval !== 'disetujui')
-                    <div class="flex gap-2">
-                        <button type="button" onclick="openKepsekApprovalModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
-                            <i class="bi bi-check2-circle"></i>
-                            <span>ACC &amp; Tanda Tangan</span>
+                <!-- Tombol Aksi Kepala Sekolah / Sarpras -->
+                @if(Auth::user()->isKepalaSekolah() || Auth::user()->isSarpras())
+                    @if($officialReport->status_approval !== 'disetujui')
+                        <div class="flex gap-2">
+                            <button type="button" onclick="openKepsekApprovalModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-check2-circle"></i>
+                                <span>ACC &amp; Tanda Tangan</span>
+                            </button>
+                            <button type="button" onclick="openKepsekRejectModal()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors" title="Tolak / Minta Revisi">
+                                Tolak
+                            </button>
+                        </div>
+                    @else
+                        <button type="button" onclick="confirmCancelReportSignature('kepsek')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>Batalkan Pengesahan Kepsek</span>
                         </button>
-                        <button type="button" onclick="openKepsekRejectModal()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors" title="Tolak / Minta Revisi">
-                            Tolak
-                        </button>
-                    </div>
+                    @endif
                 @endif
             </div>
         </div>
@@ -335,8 +354,7 @@
 
 <!-- MODAL TTD SARPRAS -->
 <div id="sarprasSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
-    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left">
-        <!-- Top accent stripe -->
+    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-left">
         <div class="h-1.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-amber-400"></div>
 
         <div class="p-6 space-y-4">
@@ -354,30 +372,57 @@
                     <i class="bi bi-x-lg text-xs"></i>
                 </button>
             </div>
-            
-            <p class="text-xs text-slate-500 leading-relaxed">
-                Gunakan jari (pada layar sentuh HP) atau kursor mouse/touchpad untuk menandatangani di dalam kotak berikut:
-            </p>
-            
-            <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
-                <canvas id="sarprasCanvas" width="380" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
-            </div>
 
-            <div class="flex items-center justify-between pt-2">
-                <button type="button" onclick="clearCanvas('sarpras')" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                    <i class="bi bi-eraser text-xs"></i>
-                    <span>Bersihkan</span>
-                </button>
-                <form action="{{ route('official-reports.sign-pihak-pertama', $officialReport) }}" method="POST" id="sarprasSignForm">
-                    @csrf
-                    @method('PATCH')
-                    <input type="hidden" name="signature_data" id="sarprasSignatureData">
-                    <button type="submit" onclick="submitSignature('sarpras', event)" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center gap-1.5 active:scale-95">
+            <form action="{{ route('official-reports.sign-pihak-pertama', $officialReport) }}" method="POST" id="sarprasSignForm" class="space-y-4">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="signature_data" id="sarprasSignatureData">
+
+                @if(Auth::user()->signature)
+                    <div class="p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-2">
+                        <span class="block text-xs font-bold text-blue-900">Pilihan Tanda Tangan:</span>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
+                                <input type="radio" name="sarpras_sig_choice" value="saved" checked onchange="toggleReportSigMode('sarpras')" class="text-blue-600 focus:ring-blue-500">
+                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan</span>
+                            </label>
+                            <div id="sarprasSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-blue-200 inline-block w-fit">
+                                <img src="{{ Storage::url(Auth::user()->signature) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
+                            </div>
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
+                                <input type="radio" name="sarpras_sig_choice" value="draw" onchange="toggleReportSigMode('sarpras')" class="text-blue-600 focus:ring-blue-500">
+                                <span>Goreskan Tanda Tangan Baru</span>
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
+                <div id="sarprasDrawSection" class="{{ Auth::user()->signature ? 'hidden' : '' }} space-y-2">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Gunakan jari (pada layar sentuh HP) atau kursor mouse/touchpad untuk menandatangani di dalam kotak berikut:
+                    </p>
+                    <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
+                        <canvas id="sarprasCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="clearCanvas('sarpras')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="bi bi-eraser text-xs"></i>
+                            <span>Bersihkan</span>
+                        </button>
+                        <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                            <span>Simpan ke profil akun</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" onclick="submitSignature('sarpras', event)" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
                         <i class="bi bi-check2"></i>
-                        <span>Simpan Tanda Tangan</span>
+                        <span>Simpan &amp; Bubuhkan Tanda Tangan</span>
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -386,12 +431,12 @@
 <div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-left">
         <!-- Top accent stripe -->
-        <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-400"></div>
+        <div class="h-1.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-amber-400"></div>
 
         <div class="p-6 space-y-4">
             <div class="flex items-center justify-between pb-3 border-b border-slate-100">
                 <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                    <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
                         <i class="bi bi-shield-check text-lg"></i>
                     </div>
                     <div>
@@ -411,22 +456,51 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catatan Persetujuan (Opsional)</label>
-                    <textarea name="catatan_approval" rows="2" placeholder="Contoh: Disetujui untuk dihapuskan dari daftar inventaris aktif..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"></textarea>
+                    <textarea name="catatan_approval" rows="2" placeholder="Contoh: Disetujui untuk dihapuskan dari daftar inventaris aktif..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"></textarea>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
-                    <div class="border-2 border-dashed border-emerald-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
+                @php
+                    $availableKepsekSig = Auth::user()->isKepalaSekolah() ? Auth::user()->signature : ($kepsekUser?->signature ?: Auth::user()->signature);
+                @endphp
+
+                @if($availableKepsekSig)
+                    <div class="p-3 bg-purple-50/70 border border-purple-200/80 rounded-2xl space-y-2">
+                        <span class="block text-xs font-bold text-purple-900">Pilihan Tanda Tangan:</span>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
+                                <input type="radio" name="kepsek_sig_choice" value="saved" checked onchange="toggleReportSigMode('kepsek')" class="text-purple-600 focus:ring-purple-500">
+                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan ({{ $kepsekUser->name ?? 'Kepala Sekolah' }})</span>
+                            </label>
+                            <div id="kepsekSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-purple-200 inline-block w-fit">
+                                <img src="{{ Storage::url($availableKepsekSig) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
+                            </div>
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
+                                <input type="radio" name="kepsek_sig_choice" value="draw" onchange="toggleReportSigMode('kepsek')" class="text-purple-600 focus:ring-purple-500">
+                                <span>Goreskan Tanda Tangan Baru</span>
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
+                <div id="kepsekDrawSection" class="{{ $availableKepsekSig ? 'hidden' : '' }} space-y-2">
+                    <label class="block text-xs font-semibold text-slate-700">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
+                    <div class="border-2 border-dashed border-purple-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
                         <canvas id="kepsekCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="clearCanvas('kepsek')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="bi bi-eraser text-xs"></i>
+                            <span>Bersihkan</span>
+                        </button>
+                        <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500">
+                            <span>Simpan ke profil Kepala Sekolah</span>
+                        </label>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2">
-                    <button type="button" onclick="clearCanvas('kepsek')" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                        <i class="bi bi-eraser text-xs"></i>
-                        <span>Bersihkan</span>
-                    </button>
-                    <button type="submit" onclick="submitSignature('kepsek', event)" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-200 transition-all flex items-center gap-1.5 active:scale-95">
+                <div class="pt-2">
+                    <button type="submit" onclick="submitSignature('kepsek', event)" class="w-full py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
                         <i class="bi bi-check2-circle"></i>
                         <span>ACC &amp; Sahkan Dokumen</span>
                     </button>
@@ -480,6 +554,53 @@
     </div>
 </div>
 
+<!-- MODAL KONFIRMASI PEMBATALAN TANDA TANGAN BERITA ACARA -->
+<div id="cancelReportSignatureModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left animate-in fade-in zoom-in-95 duration-150">
+        <div class="h-1.5 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600"></div>
+
+        <div class="p-6 space-y-4">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="bi bi-exclamation-triangle-fill text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="cancelReportModalTitle" class="text-sm font-bold text-slate-900 leading-snug">Batalkan Tanda Tangan</h3>
+                        <p class="text-[11px] text-slate-400">Konfirmasi pembatalan persetujuan dokumen</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeCancelReportSignatureModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+
+            <div class="p-3.5 bg-rose-50/70 border border-rose-100 rounded-2xl text-xs text-slate-700 leading-relaxed space-y-1">
+                <p id="cancelReportModalDescription" class="font-medium text-rose-950">
+                    Apakah Anda yakin ingin membatalkan tanda tangan ini?
+                </p>
+                <p id="cancelReportModalSubtext" class="text-[11px] text-rose-600">
+                    Tindakan ini akan menghapus stempel tanda tangan dari Berita Acara resmi.
+                </p>
+            </div>
+
+            <form id="cancelReportSignatureForm" method="POST" action="" class="pt-2">
+                @csrf
+                @method('DELETE')
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="closeCancelReportSignatureModal()" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-95">
+                        Tutup
+                    </button>
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        <span id="cancelReportModalBtnText">Ya, Batalkan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 // Logic Canvas Signature Pad
@@ -498,15 +619,17 @@ function setupCanvas(canvasId, isSarpras) {
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
         if (e.touches && e.touches[0]) {
             return {
-                x: e.touches[0].clientX - rect.left,
-                y: e.touches[0].clientY - rect.top
+                x: (e.touches[0].clientX - rect.left) * scaleX,
+                y: (e.touches[0].clientY - rect.top) * scaleY
             };
         }
         return {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
+            x: (e.clientX - rect.left) * scaleX,
+            y: (e.clientY - rect.top) * scaleY
         };
     }
 
@@ -600,7 +723,39 @@ function closeKepsekRejectModal() {
     modal.classList.remove('flex');
 }
 
+function toggleReportSigMode(type) {
+    const radio = document.querySelector(`input[name="${type}_sig_choice"]:checked`);
+    const drawSection = document.getElementById(`${type}DrawSection`);
+    const isSaved = radio && radio.value === 'saved';
+
+    if (drawSection) {
+        if (isSaved) {
+            drawSection.classList.add('hidden');
+        } else {
+            drawSection.classList.remove('hidden');
+        }
+    }
+}
+
 function submitSignature(type, event) {
+    const radio = document.querySelector(`input[name="${type}_sig_choice"]:checked`);
+    const useSaved = radio ? (radio.value === 'saved') : false;
+
+    const formId = type === 'sarpras' ? 'sarprasSignForm' : 'kepsekApproveForm';
+    const form = document.getElementById(formId);
+    let useSavedInput = form.querySelector('input[name="use_saved_signature"]');
+    if (!useSavedInput) {
+        useSavedInput = document.createElement('input');
+        useSavedInput.type = 'hidden';
+        useSavedInput.name = 'use_saved_signature';
+        form.appendChild(useSavedInput);
+    }
+    useSavedInput.value = useSaved ? '1' : '0';
+
+    if (useSaved) {
+        return; // langsung submit form menggunakan ttd tersimpan
+    }
+
     if (type === 'sarpras') {
         if (!sarprasDrawn) {
             event.preventDefault();
@@ -617,6 +772,43 @@ function submitSignature(type, event) {
         }
         const dataUrl = document.getElementById('kepsekCanvas').toDataURL('image/png');
         document.getElementById('kepsekSignatureData').value = dataUrl;
+    }
+}
+
+function confirmCancelReportSignature(type) {
+    const modal = document.getElementById('cancelReportSignatureModal');
+    const form = document.getElementById('cancelReportSignatureForm');
+    const title = document.getElementById('cancelReportModalTitle');
+    const desc = document.getElementById('cancelReportModalDescription');
+    const subtext = document.getElementById('cancelReportModalSubtext');
+    const btnText = document.getElementById('cancelReportModalBtnText');
+
+    const baseUrl = "{{ route('official-reports.cancel-signature', $officialReport) }}";
+    form.action = `${baseUrl}?type=${type}`;
+
+    if (type === 'pihak_pertama') {
+        title.textContent = 'Batalkan Tanda Tangan Pihak Pertama';
+        desc.textContent = 'Apakah Anda yakin ingin membatalkan tanda tangan Pihak Pertama (Sarpras) pada Berita Acara ini?';
+        subtext.textContent = 'Tanda tangan akan dihapus dari Berita Acara ini. Anda dapat membubuhkan tanda tangan kembali sewaktu-waktu.';
+        btnText.textContent = 'Ya, Batalkan TTD Sarpras';
+    } else if (type === 'kepsek') {
+        title.textContent = 'Batalkan Pengesahan Kepala Sekolah';
+        desc.textContent = 'Apakah Anda yakin ingin membatalkan pengesahan & tanda tangan Kepala Sekolah pada Berita Acara ini?';
+        subtext.textContent = 'Status Berita Acara akan dikembalikan menjadi "Menunggu ACC" dan tanda tangan Kepala Sekolah akan dihapus.';
+        btnText.textContent = 'Ya, Batalkan Pengesahan';
+    }
+
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeCancelReportSignatureModal() {
+    const modal = document.getElementById('cancelReportSignatureModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 }
 </script>

@@ -121,6 +121,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/official-reports/{officialReport}/sign-pihak-pertama', [OfficialReportController::class, 'signPihakPertama'])
         ->name('official-reports.sign-pihak-pertama')
         ->middleware('role:sarpras,pembantu_sarpras');
+    Route::delete('/official-reports/{officialReport}/cancel-signature', [OfficialReportController::class, 'cancelSignature'])
+        ->name('official-reports.cancel-signature')
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
 
     // Kelola Akun Pengguna (Hanya Admin Sarpras)
     Route::resource('users', UserController::class)->middleware('role:sarpras');
