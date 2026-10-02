@@ -158,21 +158,46 @@
                     </h2>
                     <span class="text-xs text-slate-500">Legalitas Pengusulan</span>
                 </div>
-                <p class="text-xs text-slate-500 mb-3">
-                    Goreskan tanda tangan digital Kepala Program / Pemohon Unit Kerja di bawah ini menggunakan mouse atau layar sentuh HP:
-                </p>
 
-                <div class="max-w-md">
+                <div class="max-w-md space-y-3">
                     <input type="hidden" name="signature_data" id="pemohonSignatureData">
-                    <div class="border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1 transition-colors">
-                        <canvas id="pemohonCanvas" width="400" height="160" class="cursor-crosshair bg-white rounded-xl shadow-inner w-full max-w-[400px]"></canvas>
-                    </div>
-                    <div class="flex items-center justify-between mt-2">
-                        <button type="button" onclick="clearPemohonCanvas()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                            <i class="bi bi-eraser text-xs"></i>
-                            <span>Bersihkan TTD</span>
-                        </button>
-                        <span class="text-[11px] text-slate-400 italic">* TTD akan tercetak otomatis di surat dinas</span>
+
+                    @if(Auth::user()->signature)
+                        <div class="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-2.5">
+                            <span class="block text-xs font-bold text-blue-900">Pilihan Tanda Tangan Pemohon:</span>
+                            <div class="flex flex-col gap-2">
+                                <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
+                                    <input type="radio" name="pemohon_sig_choice" value="saved" checked onchange="toggleCreateSigMode()" class="text-blue-600 focus:ring-blue-500">
+                                    <span class="font-semibold">Gunakan Tanda Tangan Tersimpan Saya</span>
+                                </label>
+                                <div id="createSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-blue-200 inline-block w-fit">
+                                    <img src="{{ Storage::url(Auth::user()->signature) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
+                                </div>
+                                <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
+                                    <input type="radio" name="pemohon_sig_choice" value="draw" onchange="toggleCreateSigMode()" class="text-blue-600 focus:ring-blue-500">
+                                    <span>Goreskan Tanda Tangan Baru</span>
+                                </label>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div id="createDrawSection" class="{{ Auth::user()->signature ? 'hidden' : '' }} space-y-2">
+                        <p class="text-xs text-slate-500">
+                            Goreskan tanda tangan digital Kepala Program / Pemohon Unit Kerja di bawah ini:
+                        </p>
+                        <div class="border-2 border-dashed border-slate-300 hover:border-blue-400 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1 transition-colors">
+                            <canvas id="pemohonCanvas" width="400" height="160" class="cursor-crosshair bg-white rounded-xl shadow-inner w-full max-w-[400px]"></canvas>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <button type="button" onclick="clearPemohonCanvas()" class="px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                                <i class="bi bi-eraser text-xs"></i>
+                                <span>Bersihkan TTD</span>
+                            </button>
+                            <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                                <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                                <span>Simpan ke profil untuk usulan berikutnya</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -404,11 +429,37 @@ function initPemohonCanvas() {
     const form = document.getElementById('procurementForm');
     if (form) {
         form.addEventListener('submit', function() {
-            if (pemohonDrawn) {
+            const radio = document.querySelector('input[name="pemohon_sig_choice"]:checked');
+            const useSaved = radio ? (radio.value === 'saved') : false;
+
+            let useSavedInput = form.querySelector('input[name="use_saved_signature"]');
+            if (!useSavedInput) {
+                useSavedInput = document.createElement('input');
+                useSavedInput.type = 'hidden';
+                useSavedInput.name = 'use_saved_signature';
+                form.appendChild(useSavedInput);
+            }
+            useSavedInput.value = useSaved ? '1' : '0';
+
+            if (!useSaved && pemohonDrawn) {
                 const dataUrl = canvas.toDataURL('image/png');
                 document.getElementById('pemohonSignatureData').value = dataUrl;
             }
         });
+    }
+}
+
+function toggleCreateSigMode() {
+    const radio = document.querySelector('input[name="pemohon_sig_choice"]:checked');
+    const drawSection = document.getElementById('createDrawSection');
+    const isSaved = radio && radio.value === 'saved';
+
+    if (drawSection) {
+        if (isSaved) {
+            drawSection.classList.add('hidden');
+        } else {
+            drawSection.classList.remove('hidden');
+        }
     }
 }
 

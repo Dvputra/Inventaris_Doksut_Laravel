@@ -148,6 +148,15 @@
                             <i class="bi bi-pen"></i>
                             <span>Bubuhkan TTD Pemohon</span>
                         </button>
+                    @elseif($procurement->status !== 'disetujui')
+                        <form action="{{ route('procurements.cancel-signature', ['procurement' => $procurement, 'type' => 'pemohon']) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan tanda tangan pemohon ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span>Batalkan TTD Pemohon</span>
+                            </button>
+                        </form>
                     @endif
                 @endif
             </div>
@@ -171,7 +180,7 @@
                             </span>
                         @endif
                     </div>
-                    <p class="text-sm font-bold text-slate-900">{{ $procurement->verifier->name ?? ($sarprasUser->name ?? 'Admin Sarpras Pusat') }}</p>
+                    <p class="text-sm font-bold text-slate-900">{{ $sarprasUnit->kepala_bengkel ?? ($procurement->verifier->name ?? ($sarprasUser->name ?? 'Waka Bidang Sarana & Prasarana')) }}</p>
                     <p class="text-xs text-slate-600">Waka Bidang Sarana &amp; Prasarana</p>
                 </div>
 
@@ -194,17 +203,28 @@
                     @endif
                 </div>
 
-                <!-- Tombol Aksi Verifikasi Sarpras -->
-                @if(Auth::user()->isSarpras() && $procurement->status !== 'disetujui')
-                    <div class="flex gap-2">
-                        <button type="button" onclick="openSignatureModal('sarpras')" class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
-                            <i class="bi bi-check2-circle"></i>
-                            <span>Verifikasi &amp; TTD</span>
-                        </button>
-                        <button type="button" onclick="openSarprasRejectModal()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors" title="Tolak Usulan">
-                            Tolak
-                        </button>
-                    </div>
+                <!-- Tombol Aksi Verifikasi / Pembatalan Sarpras -->
+                @if(Auth::user()->isSarpras())
+                    @if($procurement->status !== 'disetujui')
+                        <div class="flex gap-2">
+                            <button type="button" onclick="openSignatureModal('sarpras')" class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-check2-circle"></i>
+                                <span>Verifikasi &amp; TTD</span>
+                            </button>
+                            <button type="button" onclick="openSarprasRejectModal()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors" title="Tolak Usulan">
+                                Tolak
+                            </button>
+                        </div>
+                    @else
+                        <form action="{{ route('procurements.cancel-signature', ['procurement' => $procurement, 'type' => 'sarpras']) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan verifikasi & tanda tangan Sarpras? Status usulan akan dikembalikan ke Menunggu.')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span>Batalkan Verifikasi &amp; TTD Sarpras</span>
+                            </button>
+                        </form>
+                    @endif
                 @endif
             </div>
 
@@ -227,7 +247,7 @@
                             </span>
                         @endif
                     </div>
-                    <p class="text-sm font-bold text-slate-900">{{ $procurement->approverKepsek->name ?? ($kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd') }}</p>
+                    <p class="text-sm font-bold text-slate-900">{{ $kepsekUser->name ?? ($procurement->approverKepsek->name ?? 'Bpk. Kepala Sekolah, M.Pd') }}</p>
                     <p class="text-xs text-slate-600">Kepala SMK Dr. Sutomo Temanggung</p>
                 </div>
 
@@ -250,17 +270,28 @@
                     @endif
                 </div>
 
-                <!-- Tombol Aksi Kepala Sekolah -->
-                @if((Auth::user()->isKepalaSekolah() || Auth::user()->isSarpras()) && $procurement->status_kepsek !== 'disetujui')
-                    <div class="flex gap-2">
-                        <button type="button" onclick="openKepsekApprovalModal()" class="flex-1 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
-                            <i class="bi bi-check2-circle"></i>
-                            <span>ACC &amp; Tanda Tangan</span>
-                        </button>
-                        <button type="button" onclick="openKepsekRejectModal()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors" title="Tolak / Revisi">
-                            Tolak
-                        </button>
-                    </div>
+                <!-- Tombol Aksi Kepala Sekolah / Pembatalan -->
+                @if(Auth::user()->isKepalaSekolah() || Auth::user()->isSarpras())
+                    @if($procurement->status_kepsek !== 'disetujui')
+                        <div class="flex gap-2">
+                            <button type="button" onclick="openKepsekApprovalModal()" class="flex-1 py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-check2-circle"></i>
+                                <span>ACC &amp; Tanda Tangan</span>
+                            </button>
+                            <button type="button" onclick="openKepsekRejectModal()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors" title="Tolak / Revisi">
+                                Tolak
+                            </button>
+                        </div>
+                    @else
+                        <form action="{{ route('procurements.cancel-signature', ['procurement' => $procurement, 'type' => 'kepsek']) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengesahan & tanda tangan Kepala Sekolah?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span>Batalkan Pengesahan Kepsek</span>
+                            </button>
+                        </form>
+                    @endif
                 @endif
             </div>
         </div>
@@ -390,30 +421,57 @@
                     <i class="bi bi-x-lg text-xs"></i>
                 </button>
             </div>
-            
-            <p class="text-xs text-slate-500 leading-relaxed">
-                Goreskan tanda tangan digital di dalam kotak berikut menggunakan mouse atau sentuhan jari:
-            </p>
-            
-            <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
-                <canvas id="pemohonModalCanvas" width="380" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
-            </div>
 
-            <div class="flex items-center justify-between pt-2">
-                <button type="button" onclick="clearModalCanvas('pemohon')" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                    <i class="bi bi-eraser text-xs"></i>
-                    <span>Bersihkan</span>
-                </button>
-                <form action="{{ route('procurements.sign-pemohon', $procurement) }}" method="POST" id="pemohonSignForm">
-                    @csrf
-                    @method('PATCH')
-                    <input type="hidden" name="signature_data" id="pemohonModalSignatureData">
-                    <button type="submit" onclick="submitModalSignature('pemohon', event)" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center gap-1.5 active:scale-95">
+            <form action="{{ route('procurements.sign-pemohon', $procurement) }}" method="POST" id="pemohonSignForm" class="space-y-4">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="signature_data" id="pemohonModalSignatureData">
+
+                @if(Auth::user()->signature)
+                    <div class="p-3 bg-blue-50/70 border border-blue-200/80 rounded-2xl space-y-2">
+                        <span class="block text-xs font-bold text-blue-900">Pilihan Tanda Tangan:</span>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
+                                <input type="radio" name="pemohon_sig_choice" value="saved" checked onchange="toggleSigMode('pemohon')" class="text-blue-600 focus:ring-blue-500">
+                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan</span>
+                            </label>
+                            <div id="pemohonSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-blue-200 inline-block w-fit">
+                                <img src="{{ Storage::url(Auth::user()->signature) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
+                            </div>
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
+                                <input type="radio" name="pemohon_sig_choice" value="draw" onchange="toggleSigMode('pemohon')" class="text-blue-600 focus:ring-blue-500">
+                                <span>Goreskan Tanda Tangan Baru</span>
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
+                <div id="pemohonDrawSection" class="{{ Auth::user()->signature ? 'hidden' : '' }} space-y-2">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Goreskan tanda tangan digital di dalam kotak berikut menggunakan mouse atau sentuhan jari:
+                    </p>
+                    <div class="border-2 border-dashed border-slate-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
+                        <canvas id="pemohonModalCanvas" width="380" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button type="button" onclick="clearModalCanvas('pemohon')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="bi bi-eraser text-xs"></i>
+                            <span>Bersihkan</span>
+                        </button>
+                        <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                            <span>Simpan ke profil akun</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" onclick="submitModalSignature('pemohon', event)" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
                         <i class="bi bi-check2"></i>
-                        <span>Simpan Tanda Tangan</span>
+                        <span>Simpan &amp; Bubuhkan Tanda Tangan</span>
                     </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -449,19 +507,44 @@
                     <textarea name="catatan_sarpras" rows="2" placeholder="Contoh: Disetujui untuk diproses realisasi anggarannya..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all">{{ old('catatan_sarpras', $procurement->catatan_sarpras) }}</textarea>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Goreskan Tanda Tangan Digital Waka Sarpras:</label>
+                @if(Auth::user()->signature)
+                    <div class="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl space-y-2">
+                        <span class="block text-xs font-bold text-emerald-900">Pilihan Tanda Tangan:</span>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
+                                <input type="radio" name="sarpras_sig_choice" value="saved" checked onchange="toggleSigMode('sarpras')" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan</span>
+                            </label>
+                            <div id="sarprasSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-emerald-200 inline-block w-fit">
+                                <img src="{{ Storage::url(Auth::user()->signature) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
+                            </div>
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
+                                <input type="radio" name="sarpras_sig_choice" value="draw" onchange="toggleSigMode('sarpras')" class="text-emerald-600 focus:ring-emerald-500">
+                                <span>Goreskan Tanda Tangan Baru</span>
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
+                <div id="sarprasDrawSection" class="{{ Auth::user()->signature ? 'hidden' : '' }} space-y-2">
+                    <label class="block text-xs font-semibold text-slate-700">Goreskan Tanda Tangan Digital Waka Sarpras:</label>
                     <div class="border-2 border-dashed border-emerald-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
                         <canvas id="sarprasModalCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
                     </div>
+                    <div class="flex items-center justify-between">
+                        <button type="button" onclick="clearModalCanvas('sarpras')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="bi bi-eraser text-xs"></i>
+                            <span>Bersihkan</span>
+                        </button>
+                        <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                            <span>Simpan ke profil akun</span>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2">
-                    <button type="button" onclick="clearModalCanvas('sarpras')" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                        <i class="bi bi-eraser text-xs"></i>
-                        <span>Bersihkan</span>
-                    </button>
-                    <button type="submit" onclick="submitModalSignature('sarpras', event)" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-200 transition-all flex items-center gap-1.5 active:scale-95">
+                <div class="pt-2">
+                    <button type="submit" onclick="submitModalSignature('sarpras', event)" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
                         <i class="bi bi-check2-circle"></i>
                         <span>Verifikasi &amp; Sahkan</span>
                     </button>
@@ -545,19 +628,48 @@
                     <textarea name="catatan_kepsek" rows="2" placeholder="Contoh: Disetujui sesuai pagu anggaran sekolah..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all">{{ old('catatan_kepsek', $procurement->catatan_kepsek) }}</textarea>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
+                @php
+                    $availableKepsekSig = Auth::user()->isKepalaSekolah() ? Auth::user()->signature : ($kepsekUser?->signature ?: Auth::user()->signature);
+                @endphp
+
+                @if($availableKepsekSig)
+                    <div class="p-3 bg-purple-50/70 border border-purple-200/80 rounded-2xl space-y-2">
+                        <span class="block text-xs font-bold text-purple-900">Pilihan Tanda Tangan:</span>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
+                                <input type="radio" name="kepsek_sig_choice" value="saved" checked onchange="toggleSigMode('kepsek')" class="text-purple-600 focus:ring-purple-500">
+                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan ({{ $kepsekUser->name ?? 'Kepala Sekolah' }})</span>
+                            </label>
+                            <div id="kepsekSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-purple-200 inline-block w-fit">
+                                <img src="{{ Storage::url($availableKepsekSig) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
+                            </div>
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
+                                <input type="radio" name="kepsek_sig_choice" value="draw" onchange="toggleSigMode('kepsek')" class="text-purple-600 focus:ring-purple-500">
+                                <span>Goreskan Tanda Tangan Baru</span>
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
+                <div id="kepsekDrawSection" class="{{ $availableKepsekSig ? 'hidden' : '' }} space-y-2">
+                    <label class="block text-xs font-semibold text-slate-700">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
                     <div class="border-2 border-dashed border-purple-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
                         <canvas id="kepsekModalCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
                     </div>
+                    <div class="flex items-center justify-between">
+                        <button type="button" onclick="clearModalCanvas('kepsek')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="bi bi-eraser text-xs"></i>
+                            <span>Bersihkan</span>
+                        </button>
+                        <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500">
+                            <span>Simpan ke profil Kepala Sekolah</span>
+                        </label>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-between pt-2">
-                    <button type="button" onclick="clearModalCanvas('kepsek')" class="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                        <i class="bi bi-eraser text-xs"></i>
-                        <span>Bersihkan</span>
-                    </button>
-                    <button type="submit" onclick="submitModalSignature('kepsek', event)" class="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-200 transition-all flex items-center gap-1.5 active:scale-95">
+                <div class="pt-2">
+                    <button type="submit" onclick="submitModalSignature('kepsek', event)" class="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
                         <i class="bi bi-check2-circle"></i>
                         <span>ACC &amp; Sahkan Pengadaan</span>
                     </button>
@@ -763,7 +875,41 @@ function closeKepsekRejectModal() {
     }
 }
 
+function toggleSigMode(type) {
+    const radio = document.querySelector(`input[name="${type}_sig_choice"]:checked`);
+    const drawSection = document.getElementById(`${type}DrawSection`);
+    const isSaved = radio && radio.value === 'saved';
+
+    if (drawSection) {
+        if (isSaved) {
+            drawSection.classList.add('hidden');
+        } else {
+            drawSection.classList.remove('hidden');
+        }
+    }
+}
+
 function submitModalSignature(type, event) {
+    const radio = document.querySelector(`input[name="${type}_sig_choice"]:checked`);
+    const useSaved = radio ? (radio.value === 'saved') : false;
+
+    // Tambah hidden input use_saved_signature ke form jika belum ada
+    const formId = type === 'pemohon' ? 'pemohonSignForm' : (type === 'sarpras' ? 'sarprasApproveForm' : 'kepsekApproveForm');
+    const form = document.getElementById(formId);
+    let useSavedInput = form.querySelector('input[name="use_saved_signature"]');
+    if (!useSavedInput) {
+        useSavedInput = document.createElement('input');
+        useSavedInput.type = 'hidden';
+        useSavedInput.name = 'use_saved_signature';
+        form.appendChild(useSavedInput);
+    }
+    useSavedInput.value = useSaved ? '1' : '0';
+
+    if (useSaved) {
+        // Mode tanda tangan tersimpan
+        return;
+    }
+
     if (type === 'pemohon') {
         if (!pemohonModalDrawn) {
             event.preventDefault();

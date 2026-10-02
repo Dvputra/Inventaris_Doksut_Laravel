@@ -50,8 +50,9 @@ class ProcurementController extends Controller
         $procurement->load(['jurusan', 'user', 'items', 'verifier', 'approverKepsek']);
         $kepsekUser = User::where('role', 'kepala_sekolah')->first();
         $sarprasUser = User::where('role', 'sarpras')->first();
+        $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
 
-        return view('procurements.show', compact('procurement', 'kepsekUser', 'sarprasUser'));
+        return view('procurements.show', compact('procurement', 'kepsekUser', 'sarprasUser', 'sarprasUnit'));
     }
 
     /**
@@ -92,6 +93,8 @@ class ProcurementController extends Controller
             'judul_pengadaan' => ['nullable', 'string', 'max:255'],
             'alasan' => ['required', 'string'],
             'signature_data' => ['nullable', 'string'],
+            'use_saved_signature' => ['nullable', 'boolean'],
+            'save_signature_profile' => ['nullable', 'boolean'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.nama_barang' => ['required', 'string', 'max:255'],
             'items.*.spesifikasi' => ['nullable', 'string'],
@@ -117,8 +120,13 @@ class ProcurementController extends Controller
         $jurusanId = ($user->isJurusan() && $user->jurusan_id) ? $user->jurusan_id : $validated['jurusan_id'];
 
         $ttdPemohonPath = null;
-        if (! empty($validated['signature_data'])) {
+        if ($request->boolean('use_saved_signature') && $user->signature) {
+            $ttdPemohonPath = $user->signature;
+        } elseif (! empty($validated['signature_data'])) {
             $ttdPemohonPath = $this->saveBase64Signature($validated['signature_data'], 'signatures/pemohon');
+            if ($request->boolean('save_signature_profile')) {
+                $user->update(['signature' => $ttdPemohonPath]);
+            }
         }
 
         $procurement = DB::transaction(function () use ($validated, $user, $jurusanId, $ttdPemohonPath) {
@@ -203,10 +211,24 @@ class ProcurementController extends Controller
         }
 
         $request->validate([
-            'signature_data' => ['required', 'string'],
+            'signature_data' => ['nullable', 'string'],
+            'use_saved_signature' => ['nullable', 'boolean'],
+            'save_signature_profile' => ['nullable', 'boolean'],
         ]);
 
-        $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/pemohon');
+        $signaturePath = null;
+        if ($request->boolean('use_saved_signature') && $user->signature) {
+            $signaturePath = $user->signature;
+        } elseif ($request->filled('signature_data')) {
+            $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/pemohon');
+            if ($request->boolean('save_signature_profile')) {
+                $user->update(['signature' => $signaturePath]);
+            }
+        }
+
+        if (! $signaturePath) {
+            return back()->with('error', 'Silakan goreskan tanda tangan atau pilih tanda tangan tersimpan.');
+        }
 
         $procurement->update([
             'ttd_pemohon' => $signaturePath,
@@ -214,6 +236,67 @@ class ProcurementController extends Controller
         ]);
 
         return back()->with('success', 'Tanda tangan pemohon berhasil dibubuhkan.');
+    }
+
+    /**
+     * Batalkan tanda tangan (Pemohon, Sarpras, atau Kepala Sekolah).
+     */
+    public function cancelSignature(Procurement $procurement, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $type = $request->query('type', 'pemohon');
+
+        if ($type === 'pemohon') {
+            if ($user->isJurusan() && $procurement->jurusan_id !== $user->jurusan_id) {
+                abort(403, 'Anda tidak berwenang membatalkan tanda tangan pemohon usulan ini.');
+            }
+            if ($procurement->status === 'disetujui') {
+                return back()->with('error', 'Tanda tangan tidak dapat dibatalkan karena usulan telah diverifikasi/disetujui oleh Sarpras.');
+            }
+            $procurement->update([
+                'ttd_pemohon' => null,
+                'ttd_pemohon_at' => null,
+            ]);
+
+            return back()->with('success', 'Tanda tangan pemohon berhasil dibatalkan.');
+        }
+
+        if ($type === 'sarpras') {
+            if (! $user->isSarpras()) {
+                abort(403, 'Hanya Sarpras yang dapat membatalkan verifikasi & tanda tangan Sarpras.');
+            }
+            $procurement->update([
+                'status' => 'menunggu',
+                'verified_by' => null,
+                'ttd_sarpras' => null,
+                'ttd_sarpras_at' => null,
+                'status_kepsek' => 'menunggu',
+                'kepsek_by' => null,
+                'kepsek_at' => null,
+                'ttd_kepsek' => null,
+                'ttd_kepsek_at' => null,
+            ]);
+
+            return back()->with('success', 'Verifikasi dan tanda tangan Sarpras berhasil dibatalkan. Status usulan kembali Menunggu.');
+        }
+
+        if ($type === 'kepsek') {
+            if (! $user->isKepalaSekolah() && ! $user->isSarpras()) {
+                abort(403, 'Hanya Kepala Sekolah atau Sarpras yang dapat membatalkan pengesahan Kepala Sekolah.');
+            }
+            $procurement->update([
+                'status_kepsek' => 'menunggu',
+                'kepsek_by' => null,
+                'kepsek_at' => null,
+                'catatan_kepsek' => null,
+                'ttd_kepsek' => null,
+                'ttd_kepsek_at' => null,
+            ]);
+
+            return back()->with('success', 'Pengesahan dan tanda tangan Kepala Sekolah berhasil dibatalkan.');
+        }
+
+        return back();
     }
 
     /**
@@ -382,8 +465,9 @@ class ProcurementController extends Controller
         $procurement->load(['jurusan', 'user', 'items', 'verifier', 'approverKepsek']);
         $kepsekUser = User::where('role', 'kepala_sekolah')->first();
         $sarprasUser = User::where('role', 'sarpras')->first();
+        $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
 
-        return view('procurements.print', compact('procurement', 'kepsekUser', 'sarprasUser'));
+        return view('procurements.print', compact('procurement', 'kepsekUser', 'sarprasUser', 'sarprasUnit'));
     }
 
     /**
@@ -399,11 +483,18 @@ class ProcurementController extends Controller
         $request->validate([
             'catatan_sarpras' => ['nullable', 'string'],
             'signature_data' => ['nullable', 'string'],
+            'use_saved_signature' => ['nullable', 'boolean'],
+            'save_signature_profile' => ['nullable', 'boolean'],
         ]);
 
         $signaturePath = $procurement->ttd_sarpras;
-        if ($request->filled('signature_data')) {
+        if ($request->boolean('use_saved_signature') && $user->signature) {
+            $signaturePath = $user->signature;
+        } elseif ($request->filled('signature_data')) {
             $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/sarpras');
+            if ($request->boolean('save_signature_profile')) {
+                $user->update(['signature' => $signaturePath]);
+            }
         }
 
         $procurement->update([
@@ -457,16 +548,31 @@ class ProcurementController extends Controller
         $request->validate([
             'catatan_kepsek' => ['nullable', 'string', 'max:500'],
             'signature_data' => ['nullable', 'string'],
+            'use_saved_signature' => ['nullable', 'boolean'],
+            'save_signature_profile' => ['nullable', 'boolean'],
         ]);
 
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first() ?: $user;
+
         $signaturePath = $procurement->ttd_kepsek;
-        if ($request->filled('signature_data')) {
+        if ($request->boolean('use_saved_signature')) {
+            // Jika akun login punya signature tersimpan, gunakan itu, atau jika sarpras mewakili kepsek, cek signature user kepsek
+            $signaturePath = $user->signature ?: ($kepsekUser->signature ?: $signaturePath);
+        } elseif ($request->filled('signature_data')) {
             $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/kepsek');
+            if ($request->boolean('save_signature_profile')) {
+                // Simpan ke akun yang relevan
+                if ($user->isKepalaSekolah()) {
+                    $user->update(['signature' => $signaturePath]);
+                } elseif ($kepsekUser) {
+                    $kepsekUser->update(['signature' => $signaturePath]);
+                }
+            }
         }
 
         $procurement->update([
             'status_kepsek' => 'disetujui',
-            'kepsek_by' => $user->id,
+            'kepsek_by' => $kepsekUser->id,
             'kepsek_at' => now(),
             'catatan_kepsek' => $request->catatan_kepsek,
             'ttd_kepsek' => $signaturePath,
@@ -492,9 +598,11 @@ class ProcurementController extends Controller
             'catatan_kepsek.required' => 'Catatan penolakan/revisi wajib diisi.',
         ]);
 
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first() ?: $user;
+
         $procurement->update([
             'status_kepsek' => 'ditolak',
-            'kepsek_by' => $user->id,
+            'kepsek_by' => $kepsekUser->id,
             'kepsek_at' => now(),
             'catatan_kepsek' => $request->catatan_kepsek,
         ]);

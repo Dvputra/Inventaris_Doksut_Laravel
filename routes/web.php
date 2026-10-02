@@ -103,6 +103,7 @@ Route::middleware('auth')->group(function () {
     Route::patch('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])->name('procurements.reject')->middleware('role:sarpras');
     Route::patch('/procurements/{procurement}/approve-kepsek', [ProcurementController::class, 'approveKepsek'])->name('procurements.approve-kepsek')->middleware('role:sarpras,kepala_sekolah');
     Route::patch('/procurements/{procurement}/reject-kepsek', [ProcurementController::class, 'rejectKepsek'])->name('procurements.reject-kepsek')->middleware('role:sarpras,kepala_sekolah');
+    Route::delete('/procurements/{procurement}/cancel-signature', [ProcurementController::class, 'cancelSignature'])->name('procurements.cancel-signature');
 
     // Berita Acara Sarpras & Kepala Sekolah (Barang Rusak & Penjualan/Lelang)
     Route::resource('official-reports', OfficialReportController::class)

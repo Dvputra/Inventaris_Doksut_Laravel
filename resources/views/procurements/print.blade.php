@@ -505,8 +505,8 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="ttd-nama">{{ $procurement->verifier->name ?? ($sarprasUser->name ?? 'Admin Sarpras Pusat') }}</div>
-                        <div class="ttd-nip">NIP/NPY: {{ $procurement->verifier->nip ?? ($sarprasUser->nip ?? '.......................................') }}</div>
+                        <div class="ttd-nama">{{ $sarprasUnit->kepala_bengkel ?? ($procurement->verifier->name ?? ($sarprasUser->name ?? 'Waka Bidang Sarana & Prasarana')) }}</div>
+                        <div class="ttd-nip">NIP/NPY: {{ $sarprasUnit->nip ?? ($procurement->verifier->nip ?? ($sarprasUser->nip ?? '.......................................')) }}</div>
                     </td>
                 </tr>
 
@@ -525,8 +525,8 @@
                                     </div>
                                 @endif
                             </div>
-                            <div class="ttd-nama">{{ $procurement->approverKepsek->name ?? ($kepsekUser->name ?? 'Bpk. Kepala Sekolah, M.Pd') }}</div>
-                            <div class="ttd-nip">NIP/NPY: {{ $procurement->approverKepsek->nip ?? ($kepsekUser->nip ?? '.......................................') }}</div>
+                            <div class="ttd-nama">{{ $kepsekUser->name ?? ($procurement->approverKepsek->name ?? 'Bpk. Kepala Sekolah, M.Pd') }}</div>
+                            <div class="ttd-nip">NIP/NPY: {{ $kepsekUser->nip ?? ($procurement->approverKepsek->nip ?? '.......................................') }}</div>
                         </div>
                     </td>
                 </tr>
