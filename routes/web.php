@@ -101,7 +101,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/procurements/{procurement}/reject', [ProcurementController::class, 'reject'])->name('procurements.reject')->middleware('role:sarpras');
 
     // Berita Acara Sarpras & Kepala Sekolah (Barang Rusak & Penjualan/Lelang)
-    Route::resource('official-reports', OfficialReportController::class)->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+    Route::resource('official-reports', OfficialReportController::class)
+        ->parameters(['official-reports' => 'officialReport'])
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
     Route::get('/official-reports/{officialReport}/print', [OfficialReportController::class, 'print'])
         ->name('official-reports.print')
         ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');

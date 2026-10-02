@@ -192,7 +192,7 @@
             </div>
             <div>
                 <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Dibuat Oleh</span>
-                <span class="text-sm font-bold text-slate-800 mt-0.5 block">{{ $officialReport->user->name }}</span>
+                <span class="text-sm font-bold text-slate-800 mt-0.5 block">{{ $officialReport->user?->name ?? 'Admin' }}</span>
             </div>
             <div>
                 <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Hasil</span>

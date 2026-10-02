@@ -58,7 +58,7 @@ class OfficialReportController extends Controller
      */
     public function create(Request $request): View
     {
-        $user = $request->user();
+        $user = $request->user() ?? auth()->user();
         $jurusans = Jurusan::orderBy('nama')->get();
         $items = Item::with('category')->orderBy('nama_barang')->get();
         $units = ItemUnit::with('item')->where('kondisi', '!=', 'baik')->orWhere('status', '!=', 'tersedia')->get();

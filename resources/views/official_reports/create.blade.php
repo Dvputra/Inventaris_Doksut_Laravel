@@ -111,7 +111,7 @@
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                        <input type="text" name="pihak_pertama_nama" value="{{ old('pihak_pertama_nama', $user->name) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_pertama_nama" value="{{ old('pihak_pertama_nama', $user->name ?? Auth::user()->name ?? '') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jabatan <span class="text-rose-500">*</span></label>
