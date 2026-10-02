@@ -26,7 +26,7 @@
     </div>
 
     <!-- Statistik Ringkas -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Dokumen</p>
@@ -34,6 +34,15 @@
             </div>
             <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
                 <i class="bi bi-files"></i>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Serah Terima (BAST)</p>
+                <p class="text-2xl font-bold text-blue-600 mt-1">{{ number_format($stats['serah_terima'] ?? 0) }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                <i class="bi bi-box-seam-fill"></i>
             </div>
         </div>
         <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
@@ -56,8 +65,8 @@
         </div>
         <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Nilai Penjualan</p>
-                <p class="text-lg font-bold text-slate-900 mt-1">Rp {{ number_format($stats['total_penjualan'], 0, ',', '.') }}</p>
+                <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Hasil Lelang</p>
+                <p class="text-base font-bold text-slate-900 mt-1">Rp {{ number_format($stats['total_penjualan'], 0, ',', '.') }}</p>
             </div>
             <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
                 <i class="bi bi-wallet2"></i>
@@ -82,6 +91,7 @@
                 <label class="block text-xs font-semibold text-slate-600 mb-1.5">Jenis Berita Acara</label>
                 <select name="jenis" class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                     <option value="">Semua Jenis</option>
+                    <option value="serah_terima" {{ request('jenis') == 'serah_terima' ? 'selected' : '' }}>Serah Terima (BAST)</option>
                     <option value="barang_rusak" {{ request('jenis') == 'barang_rusak' ? 'selected' : '' }}>Barang Rusak / Afkir</option>
                     <option value="penjualan" {{ request('jenis') == 'penjualan' ? 'selected' : '' }}>Penjualan / Lelang</option>
                 </select>
@@ -142,7 +152,12 @@
                                 </div>
                             </td>
                             <td class="py-3.5 px-4">
-                                @if($rep->jenis === 'barang_rusak')
+                                @if($rep->jenis === 'serah_terima')
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                                        <i class="bi bi-box-seam text-xs"></i>
+                                        <span>Serah Terima</span>
+                                    </span>
+                                @elseif($rep->jenis === 'barang_rusak')
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60">
                                         <i class="bi bi-trash3 text-xs"></i>
                                         <span>Barang Rusak</span>
@@ -249,9 +264,19 @@
                 <div class="p-4 space-y-3">
                     <div class="flex items-start justify-between gap-2">
                         <div>
-                            <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $rep->jenis === 'barang_rusak' ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700' }}">
-                                {{ $rep->jenis === 'barang_rusak' ? 'Barang Rusak' : 'Penjualan' }}
-                            </span>
+                            @if($rep->jenis === 'serah_terima')
+                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700">
+                                    Serah Terima
+                                </span>
+                            @elseif($rep->jenis === 'barang_rusak')
+                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
+                                    Barang Rusak
+                                </span>
+                            @else
+                                <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">
+                                    Penjualan
+                                </span>
+                            @endif
                             <h3 class="text-sm font-bold text-slate-900 mt-1">
                                 <a href="{{ route('official-reports.show', $rep) }}">{{ $rep->nomor_surat }}</a>
                             </h3>

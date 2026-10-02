@@ -48,6 +48,9 @@
                         Jenis Berita Acara <span class="text-rose-500">*</span>
                     </label>
                     <select name="jenis" id="jenisSelect" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                        <option value="serah_terima" {{ old('jenis', 'serah_terima') == 'serah_terima' ? 'selected' : '' }}>
+                            📦 Berita Acara Serah Terima Barang ke Jurusan (BAST)
+                        </option>
                         <option value="barang_rusak" {{ old('jenis') == 'barang_rusak' ? 'selected' : '' }}>
                             ⚠️ Berita Acara Kerusakan / Penghapusan Barang (Afkir)
                         </option>
@@ -81,12 +84,12 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Jurusan / Lokasi Terkait
+                        Jurusan / Unit Kerja Terkait <span class="text-rose-500" id="jurusanRequiredStar">*</span>
                     </label>
-                    <select name="jurusan_id" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                        <option value="">Sarpras Pusat / Fasilitas Umum</option>
+                    <select name="jurusan_id" id="jurusanSelect" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                        <option value="" data-kepala="" data-nip="">-- Pilih Jurusan / Unit Kerja --</option>
                         @foreach($jurusans as $j)
-                            <option value="{{ $j->id }}" {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
+                            <option value="{{ $j->id }}" data-nama="{{ $j->nama }}" data-kepala="{{ $j->kepala_bengkel ?? '' }}" data-nip="{{ $j->nip ?? '' }}" {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
                                 {{ $j->kode }} - {{ $j->nama }}
                             </option>
                         @endforeach
@@ -107,19 +110,19 @@
                 <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
                     <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-800">
                         <i class="bi bi-person-badge"></i>
-                        <span>Pihak Pertama (Penyelenggara / Sarpras)</span>
+                        <span id="labelPihakPertama">Pihak Pertama (Pemberi / Sarpras)</span>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                        <input type="text" name="pihak_pertama_nama" value="{{ old('pihak_pertama_nama', $defaultPihakPertamaNama) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_pertama_nama" id="pihakPertamaNama" value="{{ old('pihak_pertama_nama', $defaultPihakPertamaNama) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jabatan <span class="text-rose-500">*</span></label>
-                        <input type="text" name="pihak_pertama_jabatan" value="{{ old('pihak_pertama_jabatan', $defaultPihakPertamaJabatan) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_pertama_jabatan" id="pihakPertamaJabatan" value="{{ old('pihak_pertama_jabatan', $defaultPihakPertamaJabatan) }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">NIP / NIY / NPY (Opsional)</label>
-                        <input type="text" name="pihak_pertama_nip" value="{{ old('pihak_pertama_nip', $defaultPihakPertamaNip) }}" placeholder="Contoh: 1985... atau nomor NIY" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_pertama_nip" id="pihakPertamaNip" value="{{ old('pihak_pertama_nip', $defaultPihakPertamaNip) }}" placeholder="Contoh: 1985... atau nomor NIY" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                 </div>
 
@@ -127,24 +130,28 @@
                 <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
                     <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-800">
                         <i class="bi bi-person-check"></i>
-                        <span id="labelPihakKedua">Pihak Kedua (Saksi / Kepala Bengkel / Pembeli)</span>
+                        <span id="labelPihakKedua">Pihak Kedua (Penerima / Kepala Program / Unit)</span>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                        <input type="text" name="pihak_kedua_nama" id="pihakKeduaNama" value="{{ old('pihak_kedua_nama') }}" required placeholder="Nama Kepala Bengkel / Pembeli" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_kedua_nama" id="pihakKeduaNama" value="{{ old('pihak_kedua_nama') }}" required placeholder="Nama Kepala Program / Unit Kerja" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Jabatan / Status <span class="text-rose-500">*</span></label>
-                        <input type="text" name="pihak_kedua_jabatan" id="pihakKeduaJabatan" value="{{ old('pihak_kedua_jabatan', 'Kepala Bengkel / Laboratorium') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                        <input type="text" name="pihak_kedua_jabatan" id="pihakKeduaJabatan" value="{{ old('pihak_kedua_jabatan', 'Kepala Program / Unit Kerja') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">NIP / NIY / NPY (Jika Ada)</label>
+                        <input type="text" name="pihak_kedua_nip" id="pihakKeduaNip" value="{{ old('pihak_kedua_nip') }}" placeholder="NIP/NIY Kepala Bengkel / Jurusan" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Instansi / Unit</label>
-                            <input type="text" name="pihak_kedua_instansi" value="{{ old('pihak_kedua_instansi', 'SMK Dr. Sutomo Temanggung') }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <input type="text" name="pihak_kedua_instansi" id="pihakKeduaInstansi" value="{{ old('pihak_kedua_instansi', 'SMK Dr. Sutomo Temanggung') }}" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">No. Kontak / HP</label>
-                            <input type="text" name="pihak_kedua_kontak" value="{{ old('pihak_kedua_kontak') }}" placeholder="08..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                            <input type="text" name="pihak_kedua_kontak" id="pihakKeduaKontak" value="{{ old('pihak_kedua_kontak') }}" placeholder="08..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
                     </div>
                 </div>
@@ -304,40 +311,70 @@ document.addEventListener('DOMContentLoaded', function () {
     const jenisSelect = document.getElementById('jenisSelect');
     const nomorSuratInput = document.getElementById('nomorSuratInput');
     const judulInput = document.getElementById('judulInput');
+    const jurusanSelect = document.getElementById('jurusanSelect');
+    const labelPihakPertama = document.getElementById('labelPihakPertama');
     const labelPihakKedua = document.getElementById('labelPihakKedua');
+    const pihakKeduaNama = document.getElementById('pihakKeduaNama');
     const pihakKeduaJabatan = document.getElementById('pihakKeduaJabatan');
+    const pihakKeduaNip = document.getElementById('pihakKeduaNip');
     const headerHarga = document.getElementById('headerHarga');
     const totalPenjualanBox = document.getElementById('totalPenjualanBox');
     const latarBelakangInput = document.getElementById('latarBelakangInput');
 
+    const suggestedSerahTerima = "{{ $suggestedNumberSerahTerima }}";
     const suggestedRusak = "{{ $suggestedNumberRusak }}";
     const suggestedJual = "{{ $suggestedNumberJual }}";
 
     function updateFormMode() {
-        const isJual = jenisSelect.value === 'penjualan';
+        const mode = jenisSelect.value;
 
-        // Update nomor & judul default jika masih default
-        if (isJual) {
-            if (nomorSuratInput.value === suggestedRusak) nomorSuratInput.value = suggestedJual;
-            if (judulInput.value.includes('Barang Rusak') || judulInput.value.includes('Pemeriksaan dan Penghapusan')) {
+        if (mode === 'serah_terima') {
+            if (nomorSuratInput.value === suggestedRusak || nomorSuratInput.value === suggestedJual || !nomorSuratInput.value) {
+                nomorSuratInput.value = suggestedSerahTerima;
+            }
+            if (judulInput.value.includes('Barang Rusak') || judulInput.value.includes('Penjualan') || !judulInput.value) {
+                judulInput.value = 'Berita Acara Serah Terima Barang Inventaris';
+            }
+            labelPihakPertama.textContent = 'Pihak Pertama (Pihak yang Menyerahkan / Sarpras)';
+            labelPihakKedua.textContent = 'Pihak Kedua (Pihak yang Menerima / Kepala Program / Unit)';
+            
+            headerHarga.classList.add('hidden');
+            totalPenjualanBox.classList.add('hidden');
+            document.querySelectorAll('.col-harga').forEach(el => el.classList.add('hidden'));
+
+            if (!latarBelakangInput.value || latarBelakangInput.value.includes('rusak berat') || latarBelakangInput.value.includes('pelepasan aset')) {
+                latarBelakangInput.value = 'Menyatakan bahwa Pihak Pertama telah menyerahkan barang/aset sarana dan prasarana dalam keadaan baik dan lengkap kepada Pihak Kedua untuk dimanfaatkan serta dipelihara sesuai peruntukannya di unit kerja.';
+            }
+
+            syncJurusanToPihakKedua();
+        } else if (mode === 'penjualan') {
+            if (nomorSuratInput.value === suggestedRusak || nomorSuratInput.value === suggestedSerahTerima) {
+                nomorSuratInput.value = suggestedJual;
+            }
+            if (judulInput.value.includes('Barang Rusak') || judulInput.value.includes('Serah Terima')) {
                 judulInput.value = 'Berita Acara Penjualan / Pelepasan Aset Barang Bekas';
             }
-            labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Penerima Barang)';
-            if (pihakKeduaJabatan.value === 'Kepala Bengkel / Laboratorium') {
+            labelPihakPertama.textContent = 'Pihak Pertama (Penyelenggara / Sarpras)';
+            labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Pihak Ketiga)';
+            if (pihakKeduaJabatan.value === 'Kepala Bengkel / Laboratorium' || pihakKeduaJabatan.value.includes('Kepala Program')) {
                 pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
             }
             headerHarga.classList.remove('hidden');
             totalPenjualanBox.classList.remove('hidden');
             document.querySelectorAll('.col-harga').forEach(el => el.classList.remove('hidden'));
             
-            if (latarBelakangInput.value.includes('rusak berat dan dinilai')) {
+            if (latarBelakangInput.value.includes('rusak berat dan dinilai') || latarBelakangInput.value.includes('Pihak Pertama telah menyerahkan')) {
                 latarBelakangInput.value = 'Berdasarkan keputusan pelepasan aset inventaris yang telah habis masa pakai/scrap dan disetujui untuk dijual/dilelang guna optimalisasi ruang gudang dan kas sekolah.';
             }
         } else {
-            if (nomorSuratInput.value === suggestedJual) nomorSuratInput.value = suggestedRusak;
-            if (judulInput.value.includes('Pelepasan Aset') || judulInput.value.includes('Penjualan')) {
+            // barang_rusak
+            if (nomorSuratInput.value === suggestedJual || nomorSuratInput.value === suggestedSerahTerima) {
+                nomorSuratInput.value = suggestedRusak;
+            }
+            if (judulInput.value.includes('Pelepasan Aset') || judulInput.value.includes('Penjualan') || judulInput.value.includes('Serah Terima')) {
                 judulInput.value = 'Berita Acara Barang Rusak';
             }
+            labelPihakPertama.textContent = 'Pihak Pertama (Penyelenggara / Sarpras)';
             labelPihakKedua.textContent = 'Pihak Kedua (Saksi / Kepala Bengkel / Laboratorium)';
             if (pihakKeduaJabatan.value === 'Pembeli / Pihak Ketiga') {
                 pihakKeduaJabatan.value = 'Kepala Bengkel / Laboratorium';
@@ -345,9 +382,39 @@ document.addEventListener('DOMContentLoaded', function () {
             headerHarga.classList.add('hidden');
             totalPenjualanBox.classList.add('hidden');
             document.querySelectorAll('.col-harga').forEach(el => el.classList.add('hidden'));
+
+            if (latarBelakangInput.value.includes('dijual/dilelang') || latarBelakangInput.value.includes('Pihak Pertama telah menyerahkan')) {
+                latarBelakangInput.value = 'Menyatakan bahwa dengan mempertimbangkan kondisi fisik aset sarana dan prasarana yang ada pada lingkungan sekolah, bersama ini telah dilakukan pemeriksaan fisik bersama terhadap barang-barang inventaris yang telah rusak berat dan tidak dapat dipergunakan kembali.';
+            }
         }
         calculateTotal();
     }
+
+    function syncJurusanToPihakKedua() {
+        if (!jurusanSelect) return;
+        const selectedOpt = jurusanSelect.options[jurusanSelect.selectedIndex];
+        if (selectedOpt && selectedOpt.value) {
+            const kepala = selectedOpt.dataset.kepala;
+            const nip = selectedOpt.dataset.nip;
+            const namaJurusan = selectedOpt.dataset.nama;
+
+            if (kepala && (!pihakKeduaNama.value || jenisSelect.value === 'serah_terima')) {
+                pihakKeduaNama.value = kepala;
+            }
+            if (namaJurusan && (!pihakKeduaJabatan.value || jenisSelect.value === 'serah_terima' || pihakKeduaJabatan.value === 'Kepala Program / Unit Kerja')) {
+                pihakKeduaJabatan.value = 'Kepala ' + namaJurusan;
+            }
+            if (nip && (!pihakKeduaNip.value || jenisSelect.value === 'serah_terima')) {
+                pihakKeduaNip.value = nip;
+            }
+        }
+    }
+
+    jurusanSelect.addEventListener('change', function () {
+        if (jenisSelect.value === 'serah_terima' || !pihakKeduaNama.value) {
+            syncJurusanToPihakKedua();
+        }
+    });
 
     jenisSelect.addEventListener('change', updateFormMode);
 

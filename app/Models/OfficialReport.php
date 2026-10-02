@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'pihak_pertama_nip',
     'pihak_kedua_nama',
     'pihak_kedua_jabatan',
+    'pihak_kedua_nip',
     'pihak_kedua_instansi',
     'pihak_kedua_kontak',
     'mengetahui_nama',
@@ -33,6 +34,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'catatan_approval',
     'ttd_pihak_pertama',
     'ttd_pihak_pertama_at',
+    'ttd_pihak_kedua',
+    'ttd_pihak_kedua_at',
     'ttd_mengetahui',
     'ttd_mengetahui_at',
     'file_lampiran',
@@ -50,6 +53,7 @@ class OfficialReport extends Model
             'total_nominal' => 'decimal:2',
             'approved_at' => 'datetime',
             'ttd_pihak_pertama_at' => 'datetime',
+            'ttd_pihak_kedua_at' => 'datetime',
             'ttd_mengetahui_at' => 'datetime',
         ];
     }
@@ -77,6 +81,7 @@ class OfficialReport extends Model
     public function getJenisLabelAttribute(): string
     {
         return match ($this->jenis) {
+            'serah_terima' => 'Berita Acara Serah Terima Barang',
             'barang_rusak' => 'Berita Acara Barang Rusak / Afkir',
             'penjualan' => 'Berita Acara Penjualan / Lelang Barang',
             default => ucfirst(str_replace('_', ' ', $this->jenis)),

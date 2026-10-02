@@ -105,13 +105,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/procurements/{procurement}/reject-kepsek', [ProcurementController::class, 'rejectKepsek'])->name('procurements.reject-kepsek')->middleware('role:sarpras,kepala_sekolah');
     Route::delete('/procurements/{procurement}/cancel-signature', [ProcurementController::class, 'cancelSignature'])->name('procurements.cancel-signature');
 
-    // Berita Acara Sarpras & Kepala Sekolah (Barang Rusak & Penjualan/Lelang)
+    // Berita Acara Sarpras, Kepala Sekolah, & Jurusan (Serah Terima, Barang Rusak, & Penjualan/Lelang)
     Route::resource('official-reports', OfficialReportController::class)
         ->parameters(['official-reports' => 'officialReport'])
-        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah,jurusan');
     Route::get('/official-reports/{officialReport}/print', [OfficialReportController::class, 'print'])
         ->name('official-reports.print')
-        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah,jurusan');
     Route::patch('/official-reports/{officialReport}/approve', [OfficialReportController::class, 'approve'])
         ->name('official-reports.approve')
         ->middleware('role:sarpras,kepala_sekolah');
@@ -121,9 +121,12 @@ Route::middleware('auth')->group(function () {
     Route::patch('/official-reports/{officialReport}/sign-pihak-pertama', [OfficialReportController::class, 'signPihakPertama'])
         ->name('official-reports.sign-pihak-pertama')
         ->middleware('role:sarpras,pembantu_sarpras');
+    Route::patch('/official-reports/{officialReport}/sign-pihak-kedua', [OfficialReportController::class, 'signPihakKedua'])
+        ->name('official-reports.sign-pihak-kedua')
+        ->middleware('role:sarpras,pembantu_sarpras,jurusan');
     Route::delete('/official-reports/{officialReport}/cancel-signature', [OfficialReportController::class, 'cancelSignature'])
         ->name('official-reports.cancel-signature')
-        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah,jurusan');
 
     // Kelola Akun Pengguna (Hanya Admin Sarpras)
     Route::resource('users', UserController::class)->middleware('role:sarpras');

@@ -22,14 +22,18 @@ class OfficialReportController extends Controller
      */
     public function index(Request $request): View
     {
+        $user = $request->user();
         $query = OfficialReport::with(['user', 'jurusan', 'items'])->latest('tanggal');
+
+        // Jika user adalah jurusan, filter dokumen yang terkait dengan jurusannya
+        if ($user->isJurusan()) {
+            $query->where('jurusan_id', $user->jurusan_id);
+        } elseif ($request->filled('jurusan_id')) {
+            $query->where('jurusan_id', $request->jurusan_id);
+        }
 
         if ($request->filled('jenis')) {
             $query->where('jenis', $request->jenis);
-        }
-
-        if ($request->filled('jurusan_id')) {
-            $query->where('jurusan_id', $request->jurusan_id);
         }
 
         if ($request->filled('search')) {
@@ -45,11 +49,18 @@ class OfficialReportController extends Controller
         $reports = $query->paginate(10)->withQueryString();
         $jurusans = Jurusan::all();
 
+        // Scope statistik
+        $baseStatQuery = OfficialReport::query();
+        if ($user->isJurusan()) {
+            $baseStatQuery->where('jurusan_id', $user->jurusan_id);
+        }
+
         $stats = [
-            'total' => OfficialReport::count(),
-            'barang_rusak' => OfficialReport::where('jenis', 'barang_rusak')->count(),
-            'penjualan' => OfficialReport::where('jenis', 'penjualan')->count(),
-            'total_penjualan' => OfficialReport::where('jenis', 'penjualan')->sum('total_nominal'),
+            'total' => (clone $baseStatQuery)->count(),
+            'serah_terima' => (clone $baseStatQuery)->where('jenis', 'serah_terima')->count(),
+            'barang_rusak' => (clone $baseStatQuery)->where('jenis', 'barang_rusak')->count(),
+            'penjualan' => (clone $baseStatQuery)->where('jenis', 'penjualan')->count(),
+            'total_penjualan' => (clone $baseStatQuery)->where('jenis', 'penjualan')->sum('total_nominal'),
         ];
 
         return view('official_reports.index', compact('reports', 'jurusans', 'stats'));
@@ -86,6 +97,7 @@ class OfficialReportController extends Controller
         ][(int) date('n')];
 
         $nextNumber = str_pad(OfficialReport::whereYear('tanggal', $tahun)->count() + 1, 3, '0', STR_PAD_LEFT);
+        $suggestedNumberSerahTerima = "{$nextNumber}/BAST/SMK-DS/{$bulanRomawi}/{$tahun}";
         $suggestedNumberRusak = "{$nextNumber}/BA-RUSAK/SMK-DS/{$bulanRomawi}/{$tahun}";
         $suggestedNumberJual = "{$nextNumber}/BA-LELANG/SMK-DS/{$bulanRomawi}/{$tahun}";
 
@@ -93,6 +105,7 @@ class OfficialReportController extends Controller
             'user',
             'jurusans',
             'items',
+            'suggestedNumberSerahTerima',
             'suggestedNumberRusak',
             'suggestedNumberJual',
             'defaultPihakPertamaNama',
@@ -111,7 +124,7 @@ class OfficialReportController extends Controller
     {
         $validated = $request->validate([
             'nomor_surat' => 'required|string|max:100|unique:official_reports,nomor_surat',
-            'jenis' => 'required|in:barang_rusak,penjualan',
+            'jenis' => 'required|in:serah_terima,barang_rusak,penjualan',
             'judul' => 'required|string|max:255',
             'tanggal' => 'required|date',
             'jurusan_id' => 'nullable|exists:jurusans,id',
@@ -120,6 +133,7 @@ class OfficialReportController extends Controller
             'pihak_pertama_nip' => 'nullable|string|max:50',
             'pihak_kedua_nama' => 'required|string|max:150',
             'pihak_kedua_jabatan' => 'required|string|max:150',
+            'pihak_kedua_nip' => 'nullable|string|max:50',
             'pihak_kedua_instansi' => 'nullable|string|max:150',
             'pihak_kedua_kontak' => 'nullable|string|max:50',
             'mengetahui_nama' => 'required|string|max:150',
@@ -170,6 +184,7 @@ class OfficialReportController extends Controller
                 'pihak_pertama_nip' => $validated['pihak_pertama_nip'] ?? null,
                 'pihak_kedua_nama' => $validated['pihak_kedua_nama'],
                 'pihak_kedua_jabatan' => $validated['pihak_kedua_jabatan'],
+                'pihak_kedua_nip' => $validated['pihak_kedua_nip'] ?? null,
                 'pihak_kedua_instansi' => $validated['pihak_kedua_instansi'] ?? null,
                 'pihak_kedua_kontak' => $validated['pihak_kedua_kontak'] ?? null,
                 'mengetahui_nama' => $validated['mengetahui_nama'],
@@ -254,6 +269,23 @@ class OfficialReportController extends Controller
             ]);
 
             return back()->with('success', 'Tanda tangan Pihak Pertama (Sarpras) berhasil dibatalkan.');
+        }
+
+        if ($type === 'pihak_kedua') {
+            if ($user->isJurusan() && $officialReport->jurusan_id && $user->jurusan_id !== $officialReport->jurusan_id) {
+                abort(403, 'Anda tidak berwenang membatalkan tanda tangan Berita Acara jurusan lain.');
+            }
+
+            if (! $user->isJurusan() && ! $user->isStaffSarpras()) {
+                abort(403, 'Hanya Jurusan atau Sarpras yang berwenang membatalkan tanda tangan Pihak Kedua.');
+            }
+
+            $officialReport->update([
+                'ttd_pihak_kedua' => null,
+                'ttd_pihak_kedua_at' => null,
+            ]);
+
+            return back()->with('success', 'Tanda tangan Pihak Kedua (Jurusan / Penerima) berhasil dibatalkan.');
         }
 
         if ($type === 'kepsek') {
@@ -386,6 +418,49 @@ class OfficialReportController extends Controller
         ]);
 
         return back()->with('success', 'Tanda tangan Pihak Pertama (Sarpras) berhasil disimpan.');
+    }
+
+    /**
+     * Tanda Tangan Digital oleh Pihak Kedua (Jurusan / Penerima Barang).
+     */
+    public function signPihakKedua(Request $request, OfficialReport $officialReport): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->isJurusan() && $officialReport->jurusan_id && $user->jurusan_id !== $officialReport->jurusan_id) {
+            abort(403, 'Anda tidak berwenang menandatangani Berita Acara jurusan lain.');
+        }
+
+        if (! $user->isJurusan() && ! $user->isStaffSarpras()) {
+            abort(403, 'Hanya Jurusan terkait atau Sarpras yang dapat menandatangani sebagai Pihak Kedua.');
+        }
+
+        $request->validate([
+            'signature_data' => ['nullable', 'string'],
+            'use_saved_signature' => ['nullable', 'boolean'],
+            'save_signature_profile' => ['nullable', 'boolean'],
+        ]);
+
+        $signaturePath = null;
+        if ($request->boolean('use_saved_signature') && $user->signature) {
+            $signaturePath = $user->signature;
+        } elseif ($request->filled('signature_data')) {
+            $signaturePath = $this->saveBase64Signature($request->signature_data, 'signatures/jurusan');
+            if ($request->boolean('save_signature_profile')) {
+                $user->update(['signature' => $signaturePath]);
+            }
+        }
+
+        if (! $signaturePath) {
+            return back()->with('error', 'Silakan goreskan tanda tangan atau pilih tanda tangan tersimpan.');
+        }
+
+        $officialReport->update([
+            'ttd_pihak_kedua' => $signaturePath,
+            'ttd_pihak_kedua_at' => now(),
+        ]);
+
+        return back()->with('success', 'Tanda tangan Pihak Kedua (Jurusan) berhasil disimpan.');
     }
 
     /**

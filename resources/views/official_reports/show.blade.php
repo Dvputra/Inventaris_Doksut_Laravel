@@ -84,8 +84,8 @@
             <span class="text-xs text-slate-500">Legalitas Dokumen Digital</span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- 1. Tanda Tangan Pihak Pertama (Sarpras) -->
+        <div class="grid grid-cols-1 {{ $officialReport->jenis === 'serah_terima' ? 'lg:grid-cols-3' : 'md:grid-cols-2' }} gap-6">
+            <!-- 1. Tanda Tangan Pihak Pertama (Sarpras / Penyerah) -->
             <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-2">
@@ -102,6 +102,9 @@
                     </div>
                     <p class="text-sm font-bold text-slate-900">{{ $officialReport->pihak_pertama_nama }}</p>
                     <p class="text-xs text-slate-600">{{ $officialReport->pihak_pertama_jabatan }}</p>
+                    @if($officialReport->pihak_pertama_nip)
+                        <p class="text-[11px] text-slate-400 mt-0.5">NIP/NIY: {{ $officialReport->pihak_pertama_nip }}</p>
+                    @endif
                 </div>
 
                 <div class="my-4 text-center">
@@ -122,7 +125,7 @@
                     @if(! $officialReport->ttd_pihak_pertama)
                         <button type="button" onclick="openSignatureModal('sarpras')" class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
                             <i class="bi bi-pen"></i>
-                            <span>Bubuhkan Tanda Tangan Sarpras Sekarang</span>
+                            <span>Tanda Tangani Berita Acara (Sarpras)</span>
                         </button>
                     @else
                         <button type="button" onclick="confirmCancelReportSignature('pihak_pertama')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
@@ -133,7 +136,64 @@
                 @endif
             </div>
 
-            <!-- 2. Tanda Tangan & ACC Mengetahui (Kepala Sekolah) -->
+            <!-- 2. Tanda Tangan Pihak Kedua (Jurusan / Penerima) jika Serah Terima Barang -->
+            @if($officialReport->jenis === 'serah_terima')
+                <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Pihak Kedua (Penerima Jurusan)</span>
+                            @if($officialReport->ttd_pihak_kedua)
+                                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    <i class="bi bi-check-circle-fill"></i> Tertanda Tangan
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                                    Menunggu TTD Jurusan
+                                </span>
+                            @endif
+                        </div>
+                        <p class="text-sm font-bold text-slate-900">{{ $officialReport->pihak_kedua_nama }}</p>
+                        <p class="text-xs text-slate-600">{{ $officialReport->pihak_kedua_jabatan }}</p>
+                        @if($officialReport->pihak_kedua_nip)
+                            <p class="text-[11px] text-slate-400 mt-0.5">NIP/NIY: {{ $officialReport->pihak_kedua_nip }}</p>
+                        @endif
+                    </div>
+
+                    <div class="my-4 text-center">
+                        @if($officialReport->ttd_pihak_kedua)
+                            <div class="inline-block p-2 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                                <img src="{{ Storage::url($officialReport->ttd_pihak_kedua) }}" alt="TTD Jurusan" class="h-24 max-w-[200px] object-contain mx-auto">
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">Ditandatangani: {{ $officialReport->ttd_pihak_kedua_at ? $officialReport->ttd_pihak_kedua_at->translatedFormat('d M Y, H:i') : '-' }}</p>
+                        @else
+                            <div class="h-24 flex flex-col items-center justify-center border-2 border-dashed border-emerald-300 bg-emerald-50/30 rounded-xl text-emerald-700/70 text-xs">
+                                <i class="bi bi-pen text-xl mb-1"></i>
+                                <span>Menunggu verifikasi &amp; tanda tangan pihak jurusan</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Tombol Aksi Jurusan atau Sarpras -->
+                    @php
+                        $canSignJurusan = (Auth::user()->isJurusan() && Auth::user()->jurusan_id === $officialReport->jurusan_id) || Auth::user()->isStaffSarpras();
+                    @endphp
+                    @if($canSignJurusan)
+                        @if(! $officialReport->ttd_pihak_kedua)
+                            <button type="button" onclick="openSignatureModal('jurusan')" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-pen"></i>
+                                <span>Verifikasi &amp; Tanda Tangani (Jurusan)</span>
+                            </button>
+                        @else
+                            <button type="button" onclick="confirmCancelReportSignature('pihak_kedua')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                                <span>Batalkan TTD Jurusan</span>
+                            </button>
+                        @endif
+                    @endif
+                </div>
+            @endif
+
+            <!-- 3. Tanda Tangan & ACC Mengetahui (Kepala Sekolah) -->
             <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                 <div>
                     <div class="flex items-center justify-between gap-2 mb-2">
@@ -154,6 +214,9 @@
                     </div>
                     <p class="text-sm font-bold text-slate-900">{{ $officialReport->mengetahui_nama }}</p>
                     <p class="text-xs text-slate-600">{{ $officialReport->mengetahui_jabatan }}</p>
+                    @if($officialReport->mengetahui_nip)
+                        <p class="text-[11px] text-slate-400 mt-0.5">NIP/NIY: {{ $officialReport->mengetahui_nip }}</p>
+                    @endif
                 </div>
 
                 <div class="my-4 text-center">
@@ -427,6 +490,87 @@
     </div>
 </div>
 
+<!-- MODAL TTD JURUSAN / PIHAK KEDUA -->
+@if($officialReport->jenis === 'serah_terima')
+<div id="jurusanSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-left">
+        <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-400"></div>
+
+        <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i class="bi bi-pen-fill text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900">Tanda Tangan Pihak Kedua</h3>
+                        <p class="text-[11px] text-slate-400">Penerima Barang ({{ $officialReport->jurusan ? $officialReport->jurusan->nama : 'Jurusan' }})</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeSignatureModal('jurusan')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+
+            <form action="{{ route('official-reports.sign-pihak-kedua', $officialReport) }}" method="POST" id="jurusanSignForm" class="space-y-4">
+                @csrf
+                @method('PATCH')
+                <input type="hidden" name="signature_data" id="jurusanSignatureData">
+
+                @php
+                    $availableJurusanSig = Auth::user()->signature;
+                @endphp
+
+                @if($availableJurusanSig)
+                    <div class="p-3 bg-emerald-50/70 border border-emerald-200/80 rounded-2xl space-y-2">
+                        <span class="block text-xs font-bold text-emerald-900">Pilihan Tanda Tangan:</span>
+                        <div class="flex flex-col gap-2">
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
+                                <input type="radio" name="jurusan_sig_choice" value="saved" checked onchange="toggleReportSigMode('jurusan')" class="text-emerald-600 focus:ring-emerald-500">
+                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan</span>
+                            </label>
+                            <div id="jurusanSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-emerald-200 inline-block w-fit">
+                                <img src="{{ Storage::url($availableJurusanSig) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
+                            </div>
+                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
+                                <input type="radio" name="jurusan_sig_choice" value="draw" onchange="toggleReportSigMode('jurusan')" class="text-emerald-600 focus:ring-emerald-500">
+                                <span>Goreskan Tanda Tangan Baru</span>
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
+                <div id="jurusanDrawSection" class="{{ $availableJurusanSig ? 'hidden' : '' }} space-y-2">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Gunakan jari (pada layar sentuh HP) atau kursor mouse/touchpad untuk menandatangani di dalam kotak berikut:
+                    </p>
+                    <div class="border-2 border-dashed border-emerald-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
+                        <canvas id="jurusanCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner"></canvas>
+                    </div>
+                    <div class="flex items-center justify-between pt-1">
+                        <button type="button" onclick="clearCanvas('jurusan')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                            <i class="bi bi-eraser text-xs"></i>
+                            <span>Bersihkan</span>
+                        </button>
+                        <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                            <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                            <span>Simpan ke profil akun</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" onclick="submitSignature('jurusan', event)" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-check2"></i>
+                        <span>Simpan &amp; Verifikasi Tanda Tangan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- MODAL ACC & TTD KEPALA SEKOLAH -->
 <div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
     <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden text-left">
@@ -607,8 +751,9 @@
 let isDrawing = false;
 let sarprasDrawn = false;
 let kepsekDrawn = false;
+let jurusanDrawn = false;
 
-function setupCanvas(canvasId, isSarpras) {
+function setupCanvas(canvasId, type) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -639,7 +784,8 @@ function setupCanvas(canvasId, isSarpras) {
         const pos = getPos(e);
         ctx.beginPath();
         ctx.moveTo(pos.x, pos.y);
-        if (isSarpras) sarprasDrawn = true;
+        if (type === 'sarpras') sarprasDrawn = true;
+        else if (type === 'jurusan') jurusanDrawn = true;
         else kepsekDrawn = true;
     }
 
@@ -668,17 +814,19 @@ function setupCanvas(canvasId, isSarpras) {
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    setupCanvas('sarprasCanvas', true);
-    setupCanvas('kepsekCanvas', false);
+    setupCanvas('sarprasCanvas', 'sarpras');
+    setupCanvas('kepsekCanvas', 'kepsek');
+    setupCanvas('jurusanCanvas', 'jurusan');
 });
 
 function clearCanvas(type) {
-    const canvasId = type === 'sarpras' ? 'sarprasCanvas' : 'kepsekCanvas';
+    const canvasId = type === 'sarpras' ? 'sarprasCanvas' : (type === 'jurusan' ? 'jurusanCanvas' : 'kepsekCanvas');
     const canvas = document.getElementById(canvasId);
     if (canvas) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (type === 'sarpras') sarprasDrawn = false;
+        else if (type === 'jurusan') jurusanDrawn = false;
         else kepsekDrawn = false;
     }
 }
@@ -686,16 +834,32 @@ function clearCanvas(type) {
 function openSignatureModal(type) {
     if (type === 'sarpras') {
         const modal = document.getElementById('sarprasSignModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    } else if (type === 'jurusan') {
+        const modal = document.getElementById('jurusanSignModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
     }
 }
 
 function closeSignatureModal(type) {
     if (type === 'sarpras') {
         const modal = document.getElementById('sarprasSignModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    } else if (type === 'jurusan') {
+        const modal = document.getElementById('jurusanSignModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
     }
 }
 
@@ -741,7 +905,10 @@ function submitSignature(type, event) {
     const radio = document.querySelector(`input[name="${type}_sig_choice"]:checked`);
     const useSaved = radio ? (radio.value === 'saved') : false;
 
-    const formId = type === 'sarpras' ? 'sarprasSignForm' : 'kepsekApproveForm';
+    let formId = 'sarprasSignForm';
+    if (type === 'jurusan') formId = 'jurusanSignForm';
+    else if (type === 'kepsek') formId = 'kepsekApproveForm';
+
     const form = document.getElementById(formId);
     let useSavedInput = form.querySelector('input[name="use_saved_signature"]');
     if (!useSavedInput) {
@@ -764,6 +931,14 @@ function submitSignature(type, event) {
         }
         const dataUrl = document.getElementById('sarprasCanvas').toDataURL('image/png');
         document.getElementById('sarprasSignatureData').value = dataUrl;
+    } else if (type === 'jurusan') {
+        if (!jurusanDrawn) {
+            event.preventDefault();
+            alert('Silakan goreskan tanda tangan pihak Jurusan pada canvas terlebih dahulu.');
+            return;
+        }
+        const dataUrl = document.getElementById('jurusanCanvas').toDataURL('image/png');
+        document.getElementById('jurusanSignatureData').value = dataUrl;
     } else {
         if (!kepsekDrawn) {
             event.preventDefault();
@@ -791,6 +966,11 @@ function confirmCancelReportSignature(type) {
         desc.textContent = 'Apakah Anda yakin ingin membatalkan tanda tangan Pihak Pertama (Sarpras) pada Berita Acara ini?';
         subtext.textContent = 'Tanda tangan akan dihapus dari Berita Acara ini. Anda dapat membubuhkan tanda tangan kembali sewaktu-waktu.';
         btnText.textContent = 'Ya, Batalkan TTD Sarpras';
+    } else if (type === 'pihak_kedua') {
+        title.textContent = 'Batalkan Tanda Tangan Pihak Kedua';
+        desc.textContent = 'Apakah Anda yakin ingin membatalkan tanda tangan Pihak Kedua (Jurusan) pada Berita Acara ini?';
+        subtext.textContent = 'Tanda tangan jurusan akan dihapus dari Berita Acara ini. Pihak jurusan dapat membubuhkan tanda tangan kembali sewaktu-waktu.';
+        btnText.textContent = 'Ya, Batalkan TTD Jurusan';
     } else if (type === 'kepsek') {
         title.textContent = 'Batalkan Pengesahan Kepala Sekolah';
         desc.textContent = 'Apakah Anda yakin ingin membatalkan pengesahan & tanda tangan Kepala Sekolah pada Berita Acara ini?';

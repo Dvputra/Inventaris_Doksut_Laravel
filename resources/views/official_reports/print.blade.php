@@ -221,6 +221,14 @@
                 <td>:</td>
                 <td><strong>{{ $officialReport->pihak_kedua_nama }}</strong></td>
             </tr>
+            @if($officialReport->pihak_kedua_nip)
+            <tr>
+                <td></td>
+                <td>NIP / NIY</td>
+                <td>:</td>
+                <td>{{ $officialReport->pihak_kedua_nip }}</td>
+            </tr>
+            @endif
             <tr>
                 <td></td>
                 <td>Jabatan / Status</td>
@@ -325,11 +333,18 @@
                     <td style="width: 45%; vertical-align: top;">
                         Pihak Kedua,<br>
                         <strong>{{ $officialReport->pihak_kedua_jabatan }}</strong>
-                        <div style="height: 70px; display: flex; align-items: center; justify-content: center;">
-                            <!-- Kolom TTD Basah Pihak Kedua -->
+                        <div style="height: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                            @if($officialReport->ttd_pihak_kedua)
+                                <img src="{{ Storage::url($officialReport->ttd_pihak_kedua) }}" alt="TTD Pihak Kedua" style="max-height: 55px; max-width: 160px; object-contain: contain;">
+                                <div style="font-size: 6.5pt; color: #64748b; font-style: italic; margin-top: 2px; line-height: 1.1;">
+                                    Ditandatangani elektronik: {{ $officialReport->ttd_pihak_kedua_at ? $officialReport->ttd_pihak_kedua_at->translatedFormat('d/m/Y H:i') : '' }}
+                                </div>
+                            @endif
                         </div>
                         <strong><u>{{ $officialReport->pihak_kedua_nama }}</u></strong>
-                        @if($officialReport->pihak_kedua_instansi)
+                        @if($officialReport->pihak_kedua_nip)
+                            <div style="font-size: 9.5pt;">NIP/NIY: {{ $officialReport->pihak_kedua_nip }}</div>
+                        @elseif($officialReport->pihak_kedua_instansi)
                             <div style="font-size: 9.5pt;">{{ $officialReport->pihak_kedua_instansi }}</div>
                         @endif
                     </td>

@@ -194,6 +194,13 @@
                             <i class="bi bi-clipboard2-check text-base {{ request()->routeIs('procurements.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
                             <span>Usulan Pengadaan</span>
                         </a>
+                        @if(Auth::user()->isJurusan())
+                            <a href="{{ route('official-reports.index') }}" 
+                               class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('official-reports.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                                <i class="bi bi-file-earmark-ruled-fill text-base {{ request()->routeIs('official-reports.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
+                                <span>Berita Acara</span>
+                            </a>
+                        @endif
                         @if(Auth::user()->isSarpras())
                             <a href="{{ route('complaints.index') }}" 
                                class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('complaints.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
