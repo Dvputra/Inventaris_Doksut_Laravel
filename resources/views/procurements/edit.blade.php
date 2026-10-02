@@ -178,7 +178,10 @@
                         <i class="bi bi-printer text-slate-500"></i>
                         <span>Cetak Usulan</span>
                     </a>
-                    @if(Auth::user()->isSarpras() || $procurement->status !== 'disetujui')
+                    @php
+                        $pEditApproved = ($procurement->status === 'disetujui' || $procurement->ttd_sarpras !== null || $procurement->status_kepsek === 'disetujui' || $procurement->ttd_kepsek !== null);
+                    @endphp
+                    @if(Auth::user()->isSarpras() || ! $pEditApproved)
                         <button type="button" 
                                 onclick="showConfirmDialog({
                                     title: 'Hapus Usulan Pengadaan',

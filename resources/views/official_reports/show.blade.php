@@ -43,7 +43,12 @@
                 <i class="bi bi-printer text-base"></i>
                 <span>Cetak Surat Dinas</span>
             </a>
-            @if(Auth::user()->isSarpras())
+            @php
+                $repAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
+                $repAccKepsek = ($officialReport->status_approval === 'disetujui' || $officialReport->ttd_mengetahui !== null);
+                $repCanDelete = Auth::user()->isSarpras() || ($officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras && ! $repAccKepsek);
+            @endphp
+            @if($repCanDelete)
                 <form action="{{ route('official-reports.destroy', $officialReport) }}" method="POST" class="inline-block shrink-0"
                       data-confirm="Apakah Anda yakin ingin menghapus arsip Berita Acara {{ addslashes($officialReport->nomor_surat) }}?"
                       data-confirm-title="Hapus Berita Acara"
@@ -813,46 +818,49 @@
     </div>
 </div>
 
-<!-- MODAL KONFIRMASI PEMBATALAN TANDA TANGAN BERITA ACARA -->
-<div id="cancelReportSignatureModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto animate-in fade-in zoom-in-95 duration-150">
-        <div class="h-1.5 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600 shrink-0"></div>
+<!-- MODAL KONFIRMASI PEMBATALAN TANDA TANGAN BERITA ACARA (SESUAI TEMA APLIKASI) -->
+<div id="cancelReportSignatureModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true" aria-labelledby="cancelReportModalTitle">
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all animate-in fade-in zoom-in-95 duration-150">
+        <!-- Accent Top Stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-amber-500 to-amber-400"></div>
 
-        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-            <div class="flex items-start justify-between gap-3">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
-                        <i class="bi bi-exclamation-triangle-fill text-xl"></i>
-                    </div>
-                    <div>
-                        <h3 id="cancelReportModalTitle" class="text-sm font-bold text-slate-900 leading-snug">Batalkan Tanda Tangan</h3>
-                        <p class="text-[11px] text-slate-400">Konfirmasi pembatalan persetujuan dokumen</p>
-                    </div>
+        <div class="p-6 text-center">
+            <!-- Close Button in corner -->
+            <button type="button" onclick="closeCancelReportSignatureModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Tutup">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+
+            <!-- Icon with urgency ring -->
+            <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shadow-xs">
+                <i class="bi bi-arrow-counterclockwise text-2xl"></i>
+            </div>
+
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1.5" id="cancelReportModalTitle">Batalkan Tanda Tangan</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-4 leading-relaxed" id="cancelReportModalDescription">
+                Apakah Anda yakin ingin membatalkan tanda tangan ini?
+            </p>
+
+            <!-- Warning Detail Box -->
+            <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-left mb-5 text-xs text-rose-800 leading-relaxed flex items-start gap-2.5">
+                <i class="bi bi-exclamation-triangle-fill text-rose-500 text-sm shrink-0 mt-0.5"></i>
+                <div class="space-y-0.5">
+                    <p class="font-bold text-rose-900">Perhatian:</p>
+                    <p id="cancelReportModalSubtext" class="text-rose-700">Tanda tangan digital akan dihapus dari dokumen Berita Acara ini.</p>
                 </div>
-                <button type="button" onclick="closeCancelReportSignatureModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <i class="bi bi-x-lg text-xs"></i>
-                </button>
             </div>
 
-            <div class="p-3.5 bg-rose-50/70 border border-rose-100 rounded-2xl text-xs text-slate-700 leading-relaxed space-y-1">
-                <p id="cancelReportModalDescription" class="font-medium text-rose-950">
-                    Apakah Anda yakin ingin membatalkan tanda tangan ini?
-                </p>
-                <p id="cancelReportModalSubtext" class="text-[11px] text-rose-600">
-                    Tindakan ini akan menghapus stempel tanda tangan dari Berita Acara resmi.
-                </p>
-            </div>
-
-            <form id="cancelReportSignatureForm" method="POST" action="" class="pt-2">
+            <form id="cancelReportSignatureForm" method="POST" action="" class="m-0">
                 @csrf
                 @method('DELETE')
-                <div class="grid grid-cols-2 gap-3">
-                    <button type="button" onclick="closeCancelReportSignatureModal()" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-95">
-                        Tutup
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button type="button" onclick="closeCancelReportSignatureModal()" 
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all active:scale-95">
+                        Batal
                     </button>
-                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                        <i class="bi bi-arrow-counterclockwise"></i>
-                        <span id="cancelReportModalBtnText">Ya, Batalkan</span>
+                    <button type="submit" 
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-arrow-counterclockwise text-sm"></i>
+                        <span id="cancelReportModalBtnText">Ya, Batalkan TTD</span>
                     </button>
                 </div>
             </form>

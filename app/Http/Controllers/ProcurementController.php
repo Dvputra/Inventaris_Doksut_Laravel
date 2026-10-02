@@ -432,8 +432,11 @@ class ProcurementController extends Controller
             abort(403, 'Anda tidak memiliki hak akses untuk menghapus usulan pengadaan jurusan lain.');
         }
 
-        if (! $user->isSarpras() && $procurement->status === 'disetujui') {
-            abort(403, 'Usulan pengadaan yang telah disetujui tidak dapat dihapus oleh akun selain Sarpras.');
+        $isAccSarpras = ($procurement->status === 'disetujui' || $procurement->ttd_sarpras !== null);
+        $isAccKepsek = ($procurement->status_kepsek === 'disetujui' || $procurement->ttd_kepsek !== null);
+
+        if (! $user->isSarpras() && ($isAccSarpras || $isAccKepsek)) {
+            abort(403, 'Usulan pengadaan yang telah disetujui/di-ACC oleh Sarpras atau Kepala Sekolah tidak dapat dihapus oleh akun Jurusan / Unit Kerja.');
         }
 
         $nomor = $procurement->nomor_usulan ?? 'UP-'.$procurement->id;

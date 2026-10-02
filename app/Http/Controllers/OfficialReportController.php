@@ -269,15 +269,36 @@ class OfficialReportController extends Controller
     /**
      * Hapus arsip Berita Acara.
      */
-    public function destroy(OfficialReport $officialReport): RedirectResponse
+    public function destroy(OfficialReport $officialReport, Request $request): RedirectResponse
     {
+        $user = $request->user();
+
+        if ($user->isJurusan() && $officialReport->jurusan_id && $user->jurusan_id !== $officialReport->jurusan_id) {
+            abort(403, 'Anda tidak berwenang menghapus Berita Acara jurusan lain.');
+        }
+
+        $isAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
+        $isAccKepsek = ($officialReport->status_approval === 'disetujui' || $officialReport->ttd_mengetahui !== null);
+
+        if (! $user->isSarpras() && ($isAccSarpras || $isAccKepsek)) {
+            abort(403, 'Berita Acara yang telah disetujui/di-ACC oleh Sarpras atau Kepala Sekolah tidak dapat dihapus oleh akun Jurusan / Unit Kerja.');
+        }
+
         if ($officialReport->file_lampiran && Storage::disk('public')->exists($officialReport->file_lampiran)) {
             Storage::disk('public')->delete($officialReport->file_lampiran);
         }
 
+        // Hapus file tanda tangan jika ada
+        foreach (['ttd_pihak_pertama', 'ttd_pihak_kedua', 'ttd_mengetahui'] as $sigField) {
+            if ($officialReport->$sigField && Storage::disk('public')->exists($officialReport->$sigField)) {
+                Storage::disk('public')->delete($officialReport->$sigField);
+            }
+        }
+
+        $nomorSurat = $officialReport->nomor_surat;
         $officialReport->delete();
 
-        return redirect()->route('official-reports.index')->with('success', 'Arsip Berita Acara berhasil dihapus.');
+        return redirect()->route('official-reports.index')->with('success', "Arsip Berita Acara [{$nomorSurat}] berhasil dihapus.");
     }
 
     /**

@@ -199,7 +199,10 @@
                                     @endif
 
                                     <!-- Tombol Hapus Usulan (Sarpras atau Unit Pemilik jika belum disetujui) -->
-                                    @if(Auth::user()->isSarpras() || ($p->jurusan_id === Auth::user()->jurusan_id && $p->status !== 'disetujui'))
+                                    @php
+                                        $pIsApproved = ($p->status === 'disetujui' || $p->ttd_sarpras !== null || $p->status_kepsek === 'disetujui' || $p->ttd_kepsek !== null);
+                                    @endphp
+                                    @if(Auth::user()->isSarpras() || ($p->jurusan_id === Auth::user()->jurusan_id && ! $pIsApproved))
                                         <form action="{{ route('procurements.destroy', $p) }}" method="POST" class="inline"
                                               data-confirm="Apakah Anda yakin ingin menghapus usulan pengadaan [{{ $p->nomor_usulan ?? 'UP-'.$p->id }}] {{ addslashes($p->summary_barang) }}?"
                                               data-confirm-title="Hapus Usulan Pengadaan"
@@ -340,7 +343,8 @@
 
                         @php
                             $canEdit = Auth::user()->isSarpras() || (Auth::user()->isJurusan() && $p->status === 'menunggu' && $p->jurusan_id === Auth::user()->jurusan_id);
-                            $canDelete = Auth::user()->isSarpras() || (Auth::user()->isJurusan() && $p->status !== 'disetujui' && $p->jurusan_id === Auth::user()->jurusan_id);
+                            $pIsApprovedMobile = ($p->status === 'disetujui' || $p->ttd_sarpras !== null || $p->status_kepsek === 'disetujui' || $p->ttd_kepsek !== null);
+                            $canDelete = Auth::user()->isSarpras() || (Auth::user()->isJurusan() && ! $pIsApprovedMobile && $p->jurusan_id === Auth::user()->jurusan_id);
                         @endphp
 
                         @if($canEdit)
