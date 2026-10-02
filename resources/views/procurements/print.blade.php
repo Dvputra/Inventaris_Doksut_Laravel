@@ -511,8 +511,8 @@
                         <div class="ttd-nip">NIP/NIY: {{ $procurement->jurusan->nip ?? ($procurement->user->nip ?? '.......................................') }}</div>
                     </td>
                     <td style="width: 10%;"></td>
-                    <td style="width: 45%;">
                         <div class="ttd-heading">Temanggung, {{ ($procurement->tanggal_persetujuan ?? $procurement->created_at)->translatedFormat('d F Y') }}</div>
+                        <div class="ttd-role">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
                         <div class="ttd-space">
                             @if($procurement->ttd_sarpras)
                                 <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 60px; max-width: 170px; object-fit: contain;">
@@ -528,7 +528,6 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="ttd-role-bottom" style="font-size: 10pt; font-weight: bold; margin-bottom: 4px;">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
                         <div class="ttd-nama">{{ $sarprasUnit->kepala_bengkel ?? ($procurement->verifier->name ?? ($sarprasUser->name ?? 'Waka Bidang Sarana & Prasarana')) }}</div>
                         <div class="ttd-nip">NIP/NPY: {{ $sarprasUnit->nip ?? ($procurement->verifier->nip ?? ($sarprasUser->nip ?? '.......................................')) }}</div>
                     </td>
