@@ -75,7 +75,9 @@ class UserController extends Controller
             'jurusan_id.required' => 'Untuk akun Jurusan / Unit Kerja, penempatan unit wajib dipilih.',
         ]);
 
-        $validated['password'] = Hash::make($validated['password']);
+        $rawPassword = $validated['password'];
+        $validated['password'] = Hash::make($rawPassword);
+        $validated['display_password'] = $rawPassword;
         if (in_array($validated['role'], ['sarpras', 'pembantu_sarpras', 'kepala_sekolah'], true)) {
             $validated['jurusan_id'] = null;
         }
@@ -120,7 +122,9 @@ class UserController extends Controller
         ]);
 
         if (! empty($validated['password'])) {
-            $validated['password'] = Hash::make($validated['password']);
+            $rawPassword = $validated['password'];
+            $validated['password'] = Hash::make($rawPassword);
+            $validated['display_password'] = $rawPassword;
         } else {
             unset($validated['password']);
         }

@@ -82,6 +82,7 @@
                         <th class="py-3 px-4">Alamat Email</th>
                         <th class="py-3 px-4">Role / Hak Akses</th>
                         <th class="py-3 px-4">Jurusan / Bengkel</th>
+                        <th class="py-3 px-4">Kata Sandi</th>
                         <th class="py-3 px-4">Tgl Dibuat</th>
                         <th class="py-3 px-4 text-right w-28">Aksi</th>
                     </tr>
@@ -142,6 +143,15 @@
                                 @else
                                     <span class="text-slate-400 text-xs">- (Semua Jurusan)</span>
                                 @endif
+                            </td>
+                            <td class="py-3.5 px-4 whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1">
+                                    <span id="pwMask_{{ $u->id }}" class="font-mono text-xs tracking-widest text-slate-500">••••••</span>
+                                    <span id="pwPlain_{{ $u->id }}" class="font-mono text-xs font-bold text-blue-700 hidden">{{ $u->display_password ?? 'password' }}</span>
+                                    <button type="button" onclick="toggleIndexPassword({{ $u->id }})" class="text-slate-400 hover:text-slate-700 focus:outline-none ml-1 transition-colors" title="Lihat/Sembunyikan Sandi">
+                                        <i id="pwIcon_{{ $u->id }}" class="bi bi-eye text-xs"></i>
+                                    </button>
+                                </div>
                             </td>
                             <td class="py-3.5 px-4 whitespace-nowrap text-xs text-slate-500">
                                 {{ $u->created_at->format('d/m/Y') }}
@@ -221,10 +231,20 @@
                         </div>
                     </div>
 
-                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs mt-2.5 space-y-1">
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs mt-2.5 space-y-1.5">
                         <div class="flex items-center justify-between">
                             <span class="text-slate-500">Unit / Bengkel:</span>
                             <span class="font-medium text-slate-800">{{ $u->jurusan ? '['.$u->jurusan->kode.'] '.$u->jurusan->nama : 'Pusat (Semua)' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-slate-500">Kata Sandi:</span>
+                            <div class="inline-flex items-center gap-1.5 bg-white border border-slate-200 rounded px-2 py-0.5">
+                                <span id="pwMaskMob_{{ $u->id }}" class="font-mono text-xs tracking-widest text-slate-500">••••••</span>
+                                <span id="pwPlainMob_{{ $u->id }}" class="font-mono text-xs font-bold text-blue-700 hidden">{{ $u->display_password ?? 'password' }}</span>
+                                <button type="button" onclick="toggleIndexPasswordMob({{ $u->id }})" class="text-slate-400 hover:text-slate-700 focus:outline-none transition-colors" title="Lihat/Sembunyikan Sandi">
+                                    <i id="pwIconMob_{{ $u->id }}" class="bi bi-eye text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-200/60">
                             <span class="text-slate-400">Dibuat: {{ $u->created_at->format('d/m/Y') }}</span>
@@ -266,4 +286,45 @@
         @endif
     </div>
 </div>
+@push('scripts')
+<script>
+    function toggleIndexPassword(userId) {
+        const mask = document.getElementById('pwMask_' + userId);
+        const plain = document.getElementById('pwPlain_' + userId);
+        const icon = document.getElementById('pwIcon_' + userId);
+        if (!mask || !plain) return;
+
+        if (plain.classList.contains('hidden')) {
+            plain.classList.remove('hidden');
+            mask.classList.add('hidden');
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            plain.classList.add('hidden');
+            mask.classList.remove('hidden');
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+
+    function toggleIndexPasswordMob(userId) {
+        const mask = document.getElementById('pwMaskMob_' + userId);
+        const plain = document.getElementById('pwPlainMob_' + userId);
+        const icon = document.getElementById('pwIconMob_' + userId);
+        if (!mask || !plain) return;
+
+        if (plain.classList.contains('hidden')) {
+            plain.classList.remove('hidden');
+            mask.classList.add('hidden');
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+        } else {
+            plain.classList.add('hidden');
+            mask.classList.remove('hidden');
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+        }
+    }
+</script>
+@endpush
 @endsection

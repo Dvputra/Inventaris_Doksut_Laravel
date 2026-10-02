@@ -50,9 +50,37 @@
                     @enderror
                 </div>
 
+                <!-- Info Password Saat Ini dengan Tombol Intip & Salin -->
+                <div class="sm:col-span-12 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                            <span class="block text-xs font-semibold text-slate-700">Kata Sandi Saat Ini yang Digunakan:</span>
+                            <span class="text-[11px] text-slate-400">Password login aktif untuk akun ini.</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="relative inline-flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1.5 shadow-2xs">
+                                <span id="currentPasswordMasked" class="font-mono text-sm tracking-widest text-slate-700 select-all">••••••••</span>
+                                <span id="currentPasswordPlain" class="font-mono text-sm font-bold text-blue-700 select-all hidden">{{ $user->display_password ?? 'password' }}</span>
+                            </div>
+                            <button type="button" onclick="toggleCurrentPasswordVisibility()" 
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
+                                    title="Lihat / Sembunyikan Password Saat Ini">
+                                <i id="currentPasswordEyeIcon" class="bi bi-eye text-sm"></i>
+                                <span id="currentPasswordBtnText">Lihat</span>
+                            </button>
+                            <button type="button" onclick="copyCurrentPassword()" 
+                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-colors"
+                                    title="Salin Password ke Clipboard">
+                                <i id="copyIcon" class="bi bi-clipboard text-xs"></i>
+                                <span id="copyText">Salin</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="sm:col-span-6">
                     <label for="password" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Kata Sandi Baru (Opsional)
+                        Ganti Kata Sandi Baru (Opsional)
                     </label>
                     <div class="relative">
                         <input type="password" name="password" id="password" 
@@ -64,7 +92,7 @@
                             <i id="eyeIconPassword" class="bi bi-eye text-base"></i>
                         </button>
                     </div>
-                    <span class="block text-[11px] text-slate-400 mt-1">Isi hanya jika ingin mereset/mengganti password.</span>
+                    <span class="block text-[11px] text-slate-400 mt-1">Isi hanya jika Anda ingin mereset/mengganti password akun ini.</span>
                     @error('password')
                         <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
                     @enderror
@@ -120,6 +148,47 @@
 
 @push('scripts')
 <script>
+    function toggleCurrentPasswordVisibility() {
+        const masked = document.getElementById('currentPasswordMasked');
+        const plain = document.getElementById('currentPasswordPlain');
+        const icon = document.getElementById('currentPasswordEyeIcon');
+        const btnText = document.getElementById('currentPasswordBtnText');
+        if (!masked || !plain) return;
+
+        if (plain.classList.contains('hidden')) {
+            plain.classList.remove('hidden');
+            masked.classList.add('hidden');
+            icon.classList.remove('bi-eye');
+            icon.classList.add('bi-eye-slash');
+            btnText.textContent = 'Tutup';
+        } else {
+            plain.classList.add('hidden');
+            masked.classList.remove('hidden');
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye');
+            btnText.textContent = 'Lihat';
+        }
+    }
+
+    function copyCurrentPassword() {
+        const plain = document.getElementById('currentPasswordPlain');
+        const copyText = document.getElementById('copyText');
+        const copyIcon = document.getElementById('copyIcon');
+        if (!plain) return;
+
+        const password = plain.textContent.trim();
+        navigator.clipboard.writeText(password).then(() => {
+            copyText.textContent = 'Tersalin!';
+            copyIcon.classList.remove('bi-clipboard');
+            copyIcon.classList.add('bi-check2');
+            setTimeout(() => {
+                copyText.textContent = 'Salin';
+                copyIcon.classList.remove('bi-check2');
+                copyIcon.classList.add('bi-clipboard');
+            }, 2000);
+        });
+    }
+
     function togglePasswordVisibility(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);

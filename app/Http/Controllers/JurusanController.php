@@ -77,6 +77,7 @@ class JurusanController extends Controller
                 'name' => 'Akun '.$jurusan->nama,
                 'email' => $validated['user_email'],
                 'password' => Hash::make($validated['user_password']),
+                'display_password' => $validated['user_password'],
                 'role' => 'jurusan',
                 'jurusan_id' => $jurusan->id,
             ]);
