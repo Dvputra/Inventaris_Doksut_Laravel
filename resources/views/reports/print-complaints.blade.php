@@ -120,9 +120,15 @@
         /* Signature block */
         .ttd-wrapper {
             margin-top: 24px;
-            page-break-inside: avoid;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
             font-size: 10pt;
             color: #000000;
+        }
+
+        .ttd-wrapper table, .ttd-wrapper tr, .ttd-wrapper td {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
 
         .action-bar {

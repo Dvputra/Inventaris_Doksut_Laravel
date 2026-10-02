@@ -212,7 +212,8 @@
         .ttd-container {
             margin-top: 36px;
             width: 100%;
-            page-break-inside: avoid;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
 
         .ttd-table {
@@ -220,6 +221,13 @@
             border-collapse: collapse;
             font-size: 10.5pt;
             text-align: center;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        .ttd-table tr, .ttd-table td {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
         }
 
         .ttd-table td {
@@ -245,10 +253,12 @@
         }
 
         .ttd-space {
-            height: 75px;
+            min-height: 75px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            margin-bottom: 4px;
         }
 
         .ttd-status-stamp {
@@ -264,6 +274,14 @@
             background: #ecfdf5;
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
+        }
+
+        .ttd-stamp-info {
+            font-size: 7pt;
+            color: #475569;
+            font-style: italic;
+            margin-top: 2px;
+            line-height: 1.2;
         }
 
         .ttd-nama {
@@ -495,7 +513,6 @@
                     <td style="width: 10%;"></td>
                     <td style="width: 45%;">
                         <div class="ttd-heading">Temanggung, {{ ($procurement->tanggal_persetujuan ?? $procurement->created_at)->translatedFormat('d F Y') }}</div>
-                        <div class="ttd-role">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
                         <div class="ttd-space">
                             @if($procurement->ttd_sarpras)
                                 <img src="{{ Storage::url($procurement->ttd_sarpras) }}" alt="TTD Sarpras" style="max-height: 60px; max-width: 170px; object-fit: contain;">
@@ -511,6 +528,7 @@
                                 </div>
                             @endif
                         </div>
+                        <div class="ttd-role-bottom" style="font-size: 10pt; font-weight: bold; margin-bottom: 4px;">Diverifikasi Oleh,<br>Waka Bidang Sarana &amp; Prasarana</div>
                         <div class="ttd-nama">{{ $sarprasUnit->kepala_bengkel ?? ($procurement->verifier->name ?? ($sarprasUser->name ?? 'Waka Bidang Sarana & Prasarana')) }}</div>
                         <div class="ttd-nip">NIP/NPY: {{ $sarprasUnit->nip ?? ($procurement->verifier->nip ?? ($sarprasUser->nip ?? '.......................................')) }}</div>
                     </td>
