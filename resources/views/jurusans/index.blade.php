@@ -119,6 +119,11 @@
                                     <i class="bi bi-person-badge text-amber-500 text-xs"></i>
                                     <span>{{ $j->kepala_bengkel ?? '-' }}</span>
                                 </div>
+                                @if($j->nip)
+                                    <div class="text-[11px] text-slate-400 font-mono mt-0.5 ml-4">
+                                        NIP/NIY: {{ $j->nip }}
+                                    </div>
+                                @endif
                             </td>
                             <td class="py-3.5 px-4 text-slate-500 max-w-xs truncate" title="{{ $j->deskripsi }}">
                                 {{ $j->deskripsi ?? '-' }}
@@ -219,6 +224,9 @@
                         <div>
                             <span class="text-[10px] text-slate-400 block font-medium">Kepala Bengkel / Unit</span>
                             <span class="font-semibold text-slate-800 truncate block">{{ $j->kepala_bengkel ?? '-' }}</span>
+                            @if($j->nip)
+                                <span class="text-[10px] text-slate-500 font-mono block">NIP: {{ $j->nip }}</span>
+                            @endif
                         </div>
                         <div>
                             <span class="text-[10px] text-slate-400 block font-medium">Akun Pengguna</span>

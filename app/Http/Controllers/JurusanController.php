@@ -50,6 +50,7 @@ class JurusanController extends Controller
             'kode' => ['required', 'string', 'max:20', 'unique:jurusans,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'kepala_bengkel' => ['nullable', 'string', 'max:255'],
+            'nip' => ['nullable', 'string', 'max:50'],
             'deskripsi' => ['nullable', 'string'],
             'create_user_account' => ['nullable', 'boolean'],
             'user_email' => ['nullable', 'required_if:create_user_account,1', 'email', 'max:255', 'unique:users,email'],
@@ -69,6 +70,7 @@ class JurusanController extends Controller
             'kode' => $validated['kode'],
             'nama' => $validated['nama'],
             'kepala_bengkel' => $validated['kepala_bengkel'] ?? null,
+            'nip' => $validated['nip'] ?? null,
             'deskripsi' => $validated['deskripsi'] ?? null,
         ]);
 
@@ -114,6 +116,7 @@ class JurusanController extends Controller
             'kode' => ['required', 'string', 'max:20', Rule::unique('jurusans', 'kode')->ignore($jurusan->id)],
             'nama' => ['required', 'string', 'max:255'],
             'kepala_bengkel' => ['nullable', 'string', 'max:255'],
+            'nip' => ['nullable', 'string', 'max:50'],
             'deskripsi' => ['nullable', 'string'],
         ], [
             'kode.required' => 'Kode unit kerja wajib diisi.',
@@ -144,6 +147,7 @@ class JurusanController extends Controller
 
         $validated = $request->validate([
             'kepala_bengkel' => ['nullable', 'string', 'max:255'],
+            'nip' => ['nullable', 'string', 'max:50'],
             'deskripsi' => ['nullable', 'string'],
         ]);
 

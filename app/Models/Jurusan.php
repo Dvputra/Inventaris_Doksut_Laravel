@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['kode', 'nama', 'kepala_bengkel', 'deskripsi'])]
+#[Fillable(['kode', 'nama', 'kepala_bengkel', 'nip', 'deskripsi'])]
 class Jurusan extends Model
 {
     public function users(): HasMany

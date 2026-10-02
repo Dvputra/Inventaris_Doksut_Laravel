@@ -514,14 +514,14 @@
                         <strong>{{ $selectedJurusan ? 'Kepala ' . $selectedJurusan->nama : 'Kepala Program Keahlian / Unit Kerja' }}</strong>
                         <div style="height: 65px;"></div>
                         <strong>( {{ $selectedJurusan->kepala_bengkel ?? '.....................................................' }} )</strong><br>
-                        <span>NIP/NPY: .......................................</span>
+                        <span>NIP/NIY: {{ $selectedJurusan->nip ?? '.......................................' }}</span>
                     </td>
                     <td style="width: 50%;">
                         Temanggung, {{ \Carbon\Carbon::now()->translatedFormat('d F Y') }}<br>
-                        <strong>Waka Bidang Sarana & Prasarana</strong>
+                        <strong>Waka Bidang Sarana &amp; Prasarana</strong>
                         <div style="height: 65px;"></div>
-                        <strong>( ..................................................... )</strong><br>
-                        <span>NIP/NPY: .......................................</span>
+                        <strong>( {{ $sarprasUnit->kepala_bengkel ?? '.....................................................' }} )</strong><br>
+                        <span>NIP/NIY: {{ $sarprasUnit->nip ?? '.......................................' }}</span>
                     </td>
                 </tr>
             </table>

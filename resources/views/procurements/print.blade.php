@@ -487,7 +487,7 @@
                             @endif
                         </div>
                         <div class="ttd-nama">{{ $procurement->jurusan->kepala_bengkel ?? ($procurement->user->name ?? '................................................') }}</div>
-                        <div class="ttd-nip">NIP/NPY: .......................................</div>
+                        <div class="ttd-nip">NIP/NIY: {{ $procurement->jurusan->nip ?? ($procurement->user->nip ?? '.......................................') }}</div>
                     </td>
                     <td style="width: 10%;"></td>
                     <td style="width: 45%;">

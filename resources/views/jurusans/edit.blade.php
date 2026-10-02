@@ -69,24 +69,45 @@
                     </div>
                 </div>
 
-                <!-- Kepala Bengkel / Kepala Unit -->
-                <div>
-                    <label for="kepala_bengkel" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                        Nama Kepala Bengkel / Kepala Unit Kerja
-                    </label>
-                    <div class="relative rounded-xl">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                            <i class="bi bi-person-badge text-xs"></i>
+                <!-- Kepala Bengkel / Kepala Unit & NIP -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <div class="sm:col-span-8">
+                        <label for="kepala_bengkel" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Nama Kepala Bengkel / Kepala Unit Kerja
+                        </label>
+                        <div class="relative rounded-xl">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="bi bi-person-badge text-xs"></i>
+                            </div>
+                            <input type="text" name="kepala_bengkel" id="kepala_bengkel" 
+                                   class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border @error('kepala_bengkel') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                   placeholder="Contoh: Bpk. Budi Santoso, S.Pd / Waka Bidang..." 
+                                   value="{{ old('kepala_bengkel', $jurusan->kepala_bengkel) }}">
                         </div>
-                        <input type="text" name="kepala_bengkel" id="kepala_bengkel" 
-                               class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border @error('kepala_bengkel') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                               placeholder="Contoh: Bpk. Budi Santoso, S.Pd / Waka Bidang..." 
-                               value="{{ old('kepala_bengkel', $jurusan->kepala_bengkel) }}">
+                        <span class="block text-[11px] text-slate-400 mt-1">Dicantumkan pada dashboard unit dan lembar pengesahan tanda tangan dokumen cetak.</span>
+                        @error('kepala_bengkel')
+                            <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
-                    <span class="block text-[11px] text-slate-400 mt-1">Nama ini akan dicantumkan pada header dashboard unit dan lembar pengesahan tanda tangan dokumen cetak.</span>
-                    @error('kepala_bengkel')
-                        <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
-                    @enderror
+
+                    <div class="sm:col-span-4">
+                        <label for="nip" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            NIP / NIY / NPY (Opsional)
+                        </label>
+                        <div class="relative rounded-xl">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                <i class="bi bi-card-text text-xs"></i>
+                            </div>
+                            <input type="text" name="nip" id="nip" 
+                                   class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border @error('nip') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                   placeholder="Contoh: 198507..." 
+                                   value="{{ old('nip', $jurusan->nip) }}" maxlength="50">
+                        </div>
+                        <span class="block text-[11px] text-slate-400 mt-1">Tercetak otomatis di berkas cetak PDF.</span>
+                        @error('nip')
+                            <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
                 </div>
 
                 <!-- Deskripsi / Ruang Lingkup -->

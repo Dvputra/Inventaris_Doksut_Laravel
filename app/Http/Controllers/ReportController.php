@@ -213,8 +213,9 @@ class ReportController extends Controller
 
         $items = $query->get();
         $viewMode = $request->input('view_mode', 'barang');
+        $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
 
-        return view('reports.print-items', compact('items', 'selectedJurusan', 'user', 'viewMode'));
+        return view('reports.print-items', compact('items', 'selectedJurusan', 'user', 'viewMode', 'sarprasUnit'));
     }
 
     /**
@@ -244,8 +245,9 @@ class ReportController extends Controller
         }
 
         $usages = $query->get();
+        $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
 
-        return view('reports.print-usages', compact('usages', 'selectedJurusan', 'user'));
+        return view('reports.print-usages', compact('usages', 'selectedJurusan', 'user', 'sarprasUnit'));
     }
 
     /**
