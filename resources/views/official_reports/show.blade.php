@@ -84,7 +84,7 @@
             <span class="text-xs text-slate-500">Legalitas Dokumen Digital</span>
         </div>
 
-        <div class="grid grid-cols-1 {{ $officialReport->jenis === 'serah_terima' ? 'lg:grid-cols-3' : 'md:grid-cols-2' }} gap-6">
+        <div class="grid grid-cols-1 {{ ($officialReport->jenis === 'serah_terima' || $officialReport->jurusan_id) ? 'lg:grid-cols-3' : 'md:grid-cols-2' }} gap-6">
             <!-- 1. Tanda Tangan Pihak Pertama (Sarpras / Penyerah) -->
             <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                 <div>
@@ -136,12 +136,14 @@
                 @endif
             </div>
 
-            <!-- 2. Tanda Tangan Pihak Kedua (Jurusan / Penerima) jika Serah Terima Barang -->
-            @if($officialReport->jenis === 'serah_terima')
+            <!-- 2. Tanda Tangan Pihak Kedua (Jurusan / Penerima / Saksi) -->
+            @if($officialReport->jenis === 'serah_terima' || $officialReport->jurusan_id)
                 <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-2">
-                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Pihak Kedua (Penerima Jurusan)</span>
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">
+                                {{ $officialReport->jenis === 'serah_terima' ? 'Pihak Kedua (Penerima Jurusan)' : 'Pihak Kedua (Saksi / Jurusan)' }}
+                            </span>
                             @if($officialReport->ttd_pihak_kedua)
                                 <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
                                     <i class="bi bi-check-circle-fill"></i> Tertanda Tangan
@@ -566,7 +568,7 @@
 </div>
 
 <!-- MODAL TTD JURUSAN / PIHAK KEDUA -->
-@if($officialReport->jenis === 'serah_terima')
+@if($officialReport->jenis === 'serah_terima' || $officialReport->jurusan_id)
 <div id="jurusanSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
         <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-400 shrink-0"></div>
@@ -579,7 +581,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Tanda Tangan Pihak Kedua</h3>
-                        <p class="text-[11px] text-slate-400">Penerima Barang ({{ $officialReport->jurusan ? $officialReport->jurusan->nama : 'Jurusan' }})</p>
+                        <p class="text-[11px] text-slate-400">{{ $officialReport->jenis === 'serah_terima' ? 'Penerima Barang' : 'Saksi / Pelapor Unit' }} ({{ $officialReport->jurusan ? $officialReport->jurusan->nama : 'Jurusan' }})</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeSignatureModal('jurusan')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
