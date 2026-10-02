@@ -136,13 +136,19 @@
                 @endif
             </div>
 
-            <!-- 2. Tanda Tangan Pihak Kedua (Jurusan / Penerima / Saksi) -->
-            @if($officialReport->jenis === 'serah_terima' || $officialReport->jurusan_id)
+            <!-- 2. Tanda Tangan Pihak Kedua (Jurusan / Penerima / Saksi / Pembeli) -->
+            @if($officialReport->pihak_kedua_nama)
                 <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                     <div>
                         <div class="flex items-center justify-between gap-2 mb-2">
                             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">
-                                {{ $officialReport->jenis === 'serah_terima' ? 'Pihak Kedua (Penerima Jurusan)' : 'Pihak Kedua (Saksi / Jurusan)' }}
+                                @if($officialReport->jenis === 'serah_terima')
+                                    Pihak Kedua (Penerima Barang)
+                                @elseif($officialReport->jenis === 'penjualan')
+                                    Pihak Kedua (Pembeli / Pihak Ketiga)
+                                @else
+                                    Pihak Kedua (Saksi / Jurusan / Umum)
+                                @endif
                             </span>
                             @if($officialReport->ttd_pihak_kedua)
                                 <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -150,7 +156,7 @@
                                 </span>
                             @else
                                 <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                                    Menunggu TTD Jurusan
+                                    Menunggu TTD Pihak Kedua
                                 </span>
                             @endif
                         </div>
@@ -164,31 +170,31 @@
                     <div class="my-4 text-center">
                         @if($officialReport->ttd_pihak_kedua)
                             <div class="inline-block p-2 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                                <img src="{{ Storage::url($officialReport->ttd_pihak_kedua) }}" alt="TTD Jurusan" class="h-24 max-w-[200px] object-contain mx-auto">
+                                <img src="{{ Storage::url($officialReport->ttd_pihak_kedua) }}" alt="TTD Pihak Kedua" class="h-24 max-w-[200px] object-contain mx-auto">
                             </div>
                             <p class="text-[10px] text-slate-400 mt-1">Ditandatangani: {{ $officialReport->ttd_pihak_kedua_at ? $officialReport->ttd_pihak_kedua_at->translatedFormat('d M Y, H:i') : '-' }}</p>
                         @else
                             <div class="h-24 flex flex-col items-center justify-center border-2 border-dashed border-emerald-300 bg-emerald-50/30 rounded-xl text-emerald-700/70 text-xs">
                                 <i class="bi bi-pen text-xl mb-1"></i>
-                                <span>Menunggu verifikasi &amp; tanda tangan pihak jurusan</span>
+                                <span>Menunggu verifikasi &amp; tanda tangan Pihak Kedua</span>
                             </div>
                         @endif
                     </div>
 
-                    <!-- Tombol Aksi Jurusan atau Sarpras -->
+                    <!-- Tombol Aksi Jurusan atau Sarpras (Sarpras bisa mewakili) -->
                     @php
-                        $canSignJurusan = (Auth::user()->isJurusan() && Auth::user()->jurusan_id === $officialReport->jurusan_id) || Auth::user()->isStaffSarpras();
+                        $canSignJurusan = Auth::user()->isStaffSarpras() || (Auth::user()->isJurusan() && $officialReport->jurusan_id && Auth::user()->jurusan_id === $officialReport->jurusan_id);
                     @endphp
                     @if($canSignJurusan)
                         @if(! $officialReport->ttd_pihak_kedua)
                             <button type="button" onclick="openSignatureModal('jurusan')" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
                                 <i class="bi bi-pen"></i>
-                                <span>Verifikasi &amp; Tanda Tangani (Jurusan)</span>
+                                <span>Verifikasi &amp; Tanda Tangani (Pihak Kedua)</span>
                             </button>
                         @else
                             <button type="button" onclick="confirmCancelReportSignature('pihak_kedua')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
                                 <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Batalkan TTD Jurusan</span>
+                                <span>Batalkan TTD Pihak Kedua</span>
                             </button>
                         @endif
                     @endif
@@ -568,7 +574,7 @@
 </div>
 
 <!-- MODAL TTD JURUSAN / PIHAK KEDUA -->
-@if($officialReport->jenis === 'serah_terima' || $officialReport->jurusan_id)
+@if($officialReport->pihak_kedua_nama)
 <div id="jurusanSignModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
     <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
         <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-amber-400 shrink-0"></div>
@@ -581,7 +587,7 @@
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-slate-900">Tanda Tangan Pihak Kedua</h3>
-                        <p class="text-[11px] text-slate-400">{{ $officialReport->jenis === 'serah_terima' ? 'Penerima Barang' : 'Saksi / Pelapor Unit' }} ({{ $officialReport->jurusan ? $officialReport->jurusan->nama : 'Jurusan' }})</p>
+                        <p class="text-[11px] text-slate-400">{{ $officialReport->pihak_kedua_nama }} ({{ $officialReport->pihak_kedua_jabatan }})</p>
                     </div>
                 </div>
                 <button type="button" onclick="closeSignatureModal('jurusan')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
@@ -595,8 +601,12 @@
                 <input type="hidden" name="signature_data" id="jurusanSignatureData">
 
                 @php
-                    $availableJurusanSig = Auth::user()->isJurusan() ? Auth::user()->signature : ($jurusanUser?->signature ?: Auth::user()->signature);
-                    $jurusanAccountName = $jurusanUser ? $jurusanUser->name : ($officialReport->jurusan ? $officialReport->jurusan->nama : 'Pihak Jurusan');
+                    $availableJurusanSig = Auth::user()->isJurusan() 
+                        ? Auth::user()->signature 
+                        : ($jurusanUser?->signature ?: Auth::user()->signature);
+                    $jurusanAccountName = Auth::user()->isStaffSarpras()
+                        ? ($jurusanUser ? $jurusanUser->name . ' / TTD Sarpras' : Auth::user()->name . ' (Sarpras)')
+                        : ($jurusanUser ? $jurusanUser->name : ($officialReport->jurusan ? $officialReport->jurusan->nama : 'Pihak Kedua'));
                 @endphp
 
                 @if($availableJurusanSig)
@@ -632,7 +642,7 @@
                         </button>
                         <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
                             <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
-                            <span>Simpan ke profil akun ({{ $jurusanAccountName }})</span>
+                            <span>Simpan ke profil akun ({{ Auth::user()->isStaffSarpras() ? Auth::user()->name : $jurusanAccountName }})</span>
                         </label>
                     </div>
                 </div>

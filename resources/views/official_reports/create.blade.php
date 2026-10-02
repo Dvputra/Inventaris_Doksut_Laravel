@@ -70,7 +70,7 @@
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Nomor Surat / Berita Acara <span class="text-rose-500">*</span>
                     </label>
-                    <input type="text" name="nomor_surat" id="nomorSuratInput" value="{{ old('nomor_surat', $suggestedNumberRusak) }}" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 font-mono font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <input type="text" name="nomor_surat" id="nomorSuratInput" value="{{ old('nomor_surat', Auth::user()->isJurusan() ? $suggestedNumberRusak : $suggestedNumberSerahTerima) }}" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 font-mono font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                     <p class="text-[11px] text-slate-400 mt-1">Format penomoran dapat disesuaikan dengan tata persuratan sekolah.</p>
                 </div>
 
@@ -78,7 +78,7 @@
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">
                         Judul Berita Acara <span class="text-rose-500">*</span>
                     </label>
-                    <input type="text" name="judul" id="judulInput" value="{{ old('judul', 'Berita Acara Barang Rusak') }}" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <input type="text" name="judul" id="judulInput" value="{{ old('judul', Auth::user()->isJurusan() ? 'Berita Acara Barang Rusak' : 'Berita Acara Serah Terima Barang Inventaris') }}" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                 </div>
 
                 <div>
@@ -93,7 +93,7 @@
                         Jurusan / Unit Kerja Terkait <span class="text-rose-500" id="jurusanRequiredStar">*</span>
                     </label>
                     <select name="jurusan_id" id="jurusanSelect" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                        <option value="" data-kepala="" data-nip="">-- Pilih Jurusan / Unit Kerja --</option>
+                        <option value="" data-nama="Umum / Pihak Luar" data-kepala="" data-nip="">-- Umum (Pihak Luar / Sarpras) --</option>
                         @foreach($jurusans as $j)
                             <option value="{{ $j->id }}" data-nama="{{ $j->nama }}" data-kepala="{{ $j->kepala_bengkel ?? '' }}" data-nip="{{ $j->nip ?? '' }}" {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
                                 {{ $j->kode }} - {{ $j->nama }}
@@ -374,9 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (nomorSuratInput.value === suggestedRusak || nomorSuratInput.value === suggestedJual || !nomorSuratInput.value) {
                 nomorSuratInput.value = suggestedSerahTerima;
             }
-            if (judulInput.value.includes('Barang Rusak') || judulInput.value.includes('Penjualan') || !judulInput.value) {
-                judulInput.value = 'Berita Acara Serah Terima Barang Inventaris';
-            }
+            judulInput.value = 'Berita Acara Serah Terima Barang Inventaris';
             labelPihakPertama.textContent = 'Pihak Pertama (Pihak yang Menyerahkan / Sarpras)';
             labelPihakKedua.textContent = 'Pihak Kedua (Pihak yang Menerima / Kepala Program / Unit)';
             
@@ -393,11 +391,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (nomorSuratInput.value === suggestedRusak || nomorSuratInput.value === suggestedSerahTerima) {
                 nomorSuratInput.value = suggestedJual;
             }
-            if (judulInput.value.includes('Barang Rusak') || judulInput.value.includes('Serah Terima')) {
-                judulInput.value = 'Berita Acara Penjualan / Pelepasan Aset Barang Bekas';
-            }
+            judulInput.value = 'Berita Acara Penjualan / Pelepasan Aset Barang Bekas';
             labelPihakPertama.textContent = 'Pihak Pertama (Penyelenggara / Sarpras)';
-            labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Pihak Ketiga)';
+            labelPihakKedua.textContent = 'Pihak Kedua (Pihak Pembeli / Saksi Luar)';
             if (pihakKeduaJabatan.value === 'Kepala Bengkel / Laboratorium' || pihakKeduaJabatan.value.includes('Kepala Program')) {
                 pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
             }
@@ -413,9 +409,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (nomorSuratInput.value === suggestedJual || nomorSuratInput.value === suggestedSerahTerima) {
                 nomorSuratInput.value = suggestedRusak;
             }
-            if (judulInput.value.includes('Pelepasan Aset') || judulInput.value.includes('Penjualan') || judulInput.value.includes('Serah Terima')) {
-                judulInput.value = 'Berita Acara Barang Rusak';
-            }
+            judulInput.value = 'Berita Acara Barang Rusak';
             labelPihakPertama.textContent = 'Pihak Pertama (Penyelenggara / Sarpras)';
             labelPihakKedua.textContent = 'Pihak Kedua (Saksi / Kepala Bengkel / Laboratorium)';
             if (pihakKeduaJabatan.value === 'Pembeli / Pihak Ketiga') {
@@ -449,6 +443,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (nip && (!pihakKeduaNip.value || jenisSelect.value === 'serah_terima')) {
                 pihakKeduaNip.value = nip;
             }
+        } else if (selectedOpt && !selectedOpt.value) {
+            // Umum / Pihak Luar terpilih
+            if (jenisSelect.value === 'penjualan') {
+                pihakKeduaJabatan.value = 'Pembeli / Pihak Ketiga';
+            } else if (jenisSelect.value === 'serah_terima') {
+                pihakKeduaJabatan.value = 'Penerima / Staf Terkait';
+            } else {
+                pihakKeduaJabatan.value = 'Saksi / Pihak Luar';
+            }
+            if (!pihakKeduaNama.value || pihakKeduaNama.value.includes('Kepala')) {
+                pihakKeduaNama.value = '';
+            }
+            pihakKeduaNip.value = '';
         }
     }
 

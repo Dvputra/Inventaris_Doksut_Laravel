@@ -481,7 +481,7 @@ class OfficialReportController extends Controller
                 if ($jurusanUser) {
                     $jurusanUser->update(['signature' => $signaturePath]);
                 }
-                if ($user->isJurusan()) {
+                if ($user->isJurusan() || $user->isStaffSarpras()) {
                     $user->update(['signature' => $signaturePath]);
                 }
             }
@@ -496,7 +496,7 @@ class OfficialReportController extends Controller
             'ttd_pihak_kedua_at' => now(),
         ]);
 
-        return back()->with('success', 'Tanda tangan Pihak Kedua (Jurusan) berhasil disimpan.');
+        return back()->with('success', 'Tanda tangan Pihak Kedua berhasil disimpan.');
     }
 
     /**
