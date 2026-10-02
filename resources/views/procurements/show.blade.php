@@ -149,14 +149,10 @@
                             <span>Bubuhkan TTD Pemohon</span>
                         </button>
                     @elseif($procurement->status !== 'disetujui')
-                        <form action="{{ route('procurements.cancel-signature', ['procurement' => $procurement, 'type' => 'pemohon']) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan tanda tangan pemohon ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Batalkan TTD Pemohon</span>
-                            </button>
-                        </form>
+                        <button type="button" onclick="confirmCancelSignature('pemohon')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>Batalkan TTD Pemohon</span>
+                        </button>
                     @endif
                 @endif
             </div>
@@ -216,14 +212,10 @@
                             </button>
                         </div>
                     @else
-                        <form action="{{ route('procurements.cancel-signature', ['procurement' => $procurement, 'type' => 'sarpras']) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan verifikasi & tanda tangan Sarpras? Status usulan akan dikembalikan ke Menunggu.')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Batalkan Verifikasi &amp; TTD Sarpras</span>
-                            </button>
-                        </form>
+                        <button type="button" onclick="confirmCancelSignature('sarpras')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>Batalkan Verifikasi &amp; TTD Sarpras</span>
+                        </button>
                     @endif
                 @endif
             </div>
@@ -283,14 +275,10 @@
                             </button>
                         </div>
                     @else
-                        <form action="{{ route('procurements.cancel-signature', ['procurement' => $procurement, 'type' => 'kepsek']) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin membatalkan pengesahan & tanda tangan Kepala Sekolah?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Batalkan Pengesahan Kepsek</span>
-                            </button>
-                        </form>
+                        <button type="button" onclick="confirmCancelSignature('kepsek')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>Batalkan Pengesahan Kepsek</span>
+                        </button>
                     @endif
                 @endif
             </div>
@@ -722,6 +710,53 @@
     </div>
 </div>
 
+<!-- MODAL KONFIRMASI PEMBATALAN TANDA TANGAN (SESUAI TEMA APLIKASI) -->
+<div id="cancelSignatureModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full overflow-hidden text-left animate-in fade-in zoom-in-95 duration-150">
+        <div class="h-1.5 bg-gradient-to-r from-rose-500 via-amber-500 to-rose-600"></div>
+
+        <div class="p-6 space-y-4">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0 shadow-2xs">
+                        <i class="bi bi-exclamation-triangle-fill text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 id="cancelModalTitle" class="text-sm font-bold text-slate-900 leading-snug">Batalkan Tanda Tangan</h3>
+                        <p class="text-[11px] text-slate-400">Konfirmasi pembatalan persetujuan dokumen</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeCancelSignatureModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+
+            <div class="p-3.5 bg-rose-50/70 border border-rose-100 rounded-2xl text-xs text-slate-700 leading-relaxed space-y-1">
+                <p id="cancelModalDescription" class="font-medium text-rose-950">
+                    Apakah Anda yakin ingin membatalkan tanda tangan ini?
+                </p>
+                <p id="cancelModalSubtext" class="text-[11px] text-rose-600">
+                    Tindakan ini akan menghapus stempel tanda tangan dari dokumen resmi usulan pengadaan.
+                </p>
+            </div>
+
+            <form id="cancelSignatureForm" method="POST" action="" class="pt-2">
+                @csrf
+                @method('DELETE')
+                <div class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="closeCancelSignatureModal()" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-95">
+                        Tutup
+                    </button>
+                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                        <span id="cancelModalBtnText">Ya, Batalkan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 // Logic Canvas Signature Pad untuk Modals
@@ -934,6 +969,49 @@ function submitModalSignature(type, event) {
         }
         const dataUrl = document.getElementById('kepsekModalCanvas').toDataURL('image/png');
         document.getElementById('kepsekSignatureData').value = dataUrl;
+    }
+}
+
+// Logic Modal Pop-up Pembatalan Tanda Tangan
+function confirmCancelSignature(type) {
+    const modal = document.getElementById('cancelSignatureModal');
+    const form = document.getElementById('cancelSignatureForm');
+    const title = document.getElementById('cancelModalTitle');
+    const desc = document.getElementById('cancelModalDescription');
+    const subtext = document.getElementById('cancelModalSubtext');
+    const btnText = document.getElementById('cancelModalBtnText');
+
+    const baseUrl = "{{ route('procurements.cancel-signature', $procurement) }}";
+    form.action = `${baseUrl}?type=${type}`;
+
+    if (type === 'pemohon') {
+        title.textContent = 'Batalkan Tanda Tangan Pemohon';
+        desc.textContent = 'Apakah Anda yakin ingin membatalkan tanda tangan Pemohon pada usulan pengadaan ini?';
+        subtext.textContent = 'Tanda tangan Anda akan dihapus dari usulan ini. Anda dapat membubuhkan tanda tangan kembali sebelum diverifikasi oleh Sarpras.';
+        btnText.textContent = 'Ya, Batalkan TTD Pemohon';
+    } else if (type === 'sarpras') {
+        title.textContent = 'Batalkan Verifikasi & TTD Sarpras';
+        desc.textContent = 'Apakah Anda yakin ingin membatalkan verifikasi dan persetujuan Sarpras ini?';
+        subtext.textContent = 'Status usulan pengadaan akan dikembalikan menjadi "Menunggu Verifikasi" dan tanda tangan Sarpras akan dihapus.';
+        btnText.textContent = 'Ya, Batalkan Verifikasi';
+    } else if (type === 'kepsek') {
+        title.textContent = 'Batalkan Pengesahan Kepala Sekolah';
+        desc.textContent = 'Apakah Anda yakin ingin membatalkan pengesahan & tanda tangan Kepala Sekolah ini?';
+        subtext.textContent = 'Status pengesahan usulan pengadaan akan dikembalikan menjadi "Menunggu ACC" dan tanda tangan Kepala Sekolah akan dihapus.';
+        btnText.textContent = 'Ya, Batalkan Pengesahan';
+    }
+
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+
+function closeCancelSignatureModal() {
+    const modal = document.getElementById('cancelSignatureModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 }
 </script>
