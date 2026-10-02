@@ -151,7 +151,7 @@
                         <input type="email" name="email" id="email" 
                                class="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border @error('email') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
                                placeholder="nama@sekolah.sch.id" 
-                               value="{{ old('email', 'sarpras@sekolah.sch.id') }}" required autofocus>
+                               value="{{ old('email') }}" required autofocus>
                     </div>
                 </div>
 
@@ -163,7 +163,7 @@
                         </div>
                         <input type="password" name="password" id="password" 
                                class="w-full pl-10 pr-10 py-2.5 bg-slate-50 border @error('password') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                               placeholder="Masukkan password" value="password" required>
+                               placeholder="Masukkan kata sandi" required>
                         <button type="button" onclick="togglePasswordVisibility('password', 'eyeIconLogin')" 
                                 class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
                                 title="Tampilkan/Sembunyikan Kata Sandi">
@@ -184,65 +184,6 @@
                     <i class="bi bi-arrow-right"></i>
                 </button>
             </form>
-
-            <!-- Quick Demo Login Switcher -->
-            <div class="mt-6 pt-5 border-t border-slate-100">
-                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">
-                    ⚡ Akun Demo Siap Pakai (Klik untuk pilih):
-                </span>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    <button type="button" onclick="fillForm('sarpras@sekolah.sch.id')" class="px-2.5 py-2 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-left transition-colors">
-                        <div class="flex items-center gap-1.5 text-amber-800 font-bold text-xs">
-                            <i class="bi bi-shield-lock-fill text-amber-600"></i>
-                            <span>Sarpras</span>
-                        </div>
-                        <span class="block text-[10px] text-amber-600">Pusat</span>
-                    </button>
-
-                    <button type="button" onclick="fillForm('tkr@sekolah.sch.id')" class="px-2.5 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors">
-                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
-                            <i class="bi bi-truck text-blue-600"></i>
-                            <span>TKR</span>
-                        </div>
-                        <span class="block text-[10px] text-slate-500">Otomotif</span>
-                    </button>
-
-                    <button type="button" onclick="fillForm('titl@sekolah.sch.id')" class="px-2.5 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors">
-                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
-                            <i class="bi bi-lightning-charge-fill text-amber-500"></i>
-                            <span>TITL</span>
-                        </div>
-                        <span class="block text-[10px] text-slate-500">Listrik</span>
-                    </button>
-
-                    <button type="button" onclick="fillForm('tki@sekolah.sch.id')" class="px-2.5 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors">
-                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
-                            <i class="bi bi-eyedropper text-emerald-600"></i>
-                            <span>TKI</span>
-                        </div>
-                        <span class="block text-[10px] text-slate-500">Kimia</span>
-                    </button>
-
-                    <button type="button" onclick="fillForm('tp@sekolah.sch.id')" class="px-2.5 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors">
-                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
-                            <i class="bi bi-gear-fill text-cyan-600"></i>
-                            <span>TP</span>
-                        </div>
-                        <span class="block text-[10px] text-slate-500">Mesin</span>
-                    </button>
-
-                    <button type="button" onclick="fillForm('tkp@sekolah.sch.id')" class="px-2.5 py-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-left transition-colors">
-                        <div class="flex items-center gap-1.5 text-slate-800 font-bold text-xs">
-                            <i class="bi bi-buildings-fill text-slate-600"></i>
-                            <span>TKP</span>
-                        </div>
-                        <span class="block text-[10px] text-slate-500">Konstruksi</span>
-                    </button>
-                </div>
-                <span class="block text-[11px] text-slate-400 mt-2 text-center">
-                    *Kata sandi semua akun demo adalah: <code class="bg-slate-100 px-1 py-0.5 rounded text-slate-700 font-mono">password</code>
-                </span>
-            </div>
         </div>
     </div>
 </div>
@@ -262,11 +203,6 @@
             icon.classList.remove('bi-eye-slash');
             icon.classList.add('bi-eye');
         }
-    }
-
-    function fillForm(email) {
-        document.getElementById('email').value = email;
-        document.getElementById('password').value = 'password';
     }
 </script>
 </body>
