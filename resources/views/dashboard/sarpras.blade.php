@@ -379,23 +379,10 @@
                                 <td class="py-3 px-4 text-right whitespace-nowrap">
                                     @if($proc->status === 'menunggu')
                                         @if(Auth::user()->isSarpras())
-                                            <div class="inline-flex items-center gap-1.5">
-                                                <form action="{{ route('procurements.approve', $proc) }}" method="POST" class="inline"
-                                                      data-confirm="Setujui permohonan usulan pengadaan {{ addslashes($proc->summary_barang) }} untuk jurusan {{ $proc->jurusan->kode }}?"
-                                                      data-confirm-title="Persetujuan Usulan Pengadaan"
-                                                      data-confirm-type="success"
-                                                      data-confirm-btn="Ya, Setujui"
-                                                      data-confirm-icon="bi bi-check2-circle text-2xl">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit" class="p-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs shadow-xs" title="Setujui Usulan">
-                                                        <i class="bi bi-check-lg"></i>
-                                                    </button>
-                                                </form>
-                                                <a href="{{ route('procurements.index') }}" class="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 text-xs shadow-xs" title="Detail / Tolak">
-                                                    <i class="bi bi-eye"></i>
-                                                </a>
-                                            </div>
+                                            <a href="{{ route('procurements.show', $proc) }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold shadow-xs transition-colors" title="Verifikasi & Tanda Tangan">
+                                                <i class="bi bi-pen"></i>
+                                                <span>Verifikasi TTD</span>
+                                            </a>
                                         @else
                                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200">
                                                 Menunggu
