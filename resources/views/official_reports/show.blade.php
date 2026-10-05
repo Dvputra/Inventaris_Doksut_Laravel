@@ -17,23 +17,6 @@
                 </span>
                 <span class="text-xs font-medium text-slate-400">|</span>
                 <span class="text-xs font-semibold text-slate-600">No. {{ $officialReport->nomor_surat }}</span>
-                <span class="text-xs font-medium text-slate-400">|</span>
-                @if($officialReport->status_approval === 'disetujui')
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                        <i class="bi bi-check-circle-fill text-xs"></i>
-                        <span>Disetujui (ACC) Kepala Sekolah</span>
-                    </span>
-                @elseif($officialReport->status_approval === 'ditolak')
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
-                        <i class="bi bi-x-circle-fill text-xs"></i>
-                        <span>Ditolak / Perlu Revisi</span>
-                    </span>
-                @else
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                        <i class="bi bi-clock-history text-xs"></i>
-                        <span>Menunggu Persetujuan (ACC) Kepala Sekolah</span>
-                    </span>
-                @endif
             </div>
             <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-2">{{ $officialReport->judul }}</h1>
         </div>
@@ -45,8 +28,7 @@
             </a>
             @php
                 $repAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
-                $repAccKepsek = ($officialReport->status_approval === 'disetujui' || $officialReport->ttd_mengetahui !== null);
-                $repCanDelete = Auth::user()->isSarpras() || ($officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras && ! $repAccKepsek);
+                $repCanDelete = Auth::user()->isSarpras() || ($officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras);
             @endphp
             @if($repCanDelete)
                 <form action="{{ route('official-reports.destroy', $officialReport) }}" method="POST" class="inline-block shrink-0"
@@ -65,19 +47,7 @@
         </div>
     </div>
 
-    <!-- Banner Evaluasi / Catatan Approval jika ada -->
-    @if($officialReport->catatan_approval)
-        <div class="p-4 rounded-2xl {{ $officialReport->status_approval === 'disetujui' ? 'bg-emerald-50 border border-emerald-200 text-emerald-900' : 'bg-rose-50 border border-rose-200 text-rose-900' }}">
-            <div class="flex items-center gap-2 font-bold text-xs uppercase tracking-wider mb-1">
-                <i class="bi {{ $officialReport->status_approval === 'disetujui' ? 'bi-chat-left-check-fill text-emerald-600' : 'bi-exclamation-octagon-fill text-rose-600' }}"></i>
-                <span>Catatan Kepala Sekolah ({{ $officialReport->approver->name ?? 'Kepala Sekolah' }}):</span>
-            </div>
-            <p class="text-xs sm:text-sm font-medium leading-relaxed">{{ $officialReport->catatan_approval }}</p>
-            @if($officialReport->approved_at)
-                <div class="text-[11px] opacity-75 mt-1">Pada: {{ $officialReport->approved_at->translatedFormat('d F Y, H:i') }} WIB</div>
-            @endif
-        </div>
-    @endif
+
 
     <!-- KOTAK TANDA TANGAN & PERSETUJUAN ONLINE -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-6">
@@ -89,7 +59,7 @@
             <span class="text-xs text-slate-500">Legalitas Dokumen Digital</span>
         </div>
 
-        <div class="grid grid-cols-1 {{ ($officialReport->jenis === 'serah_terima' || $officialReport->jurusan_id) ? 'lg:grid-cols-3' : 'md:grid-cols-2' }} gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- 1. Tanda Tangan Pihak Pertama (Sarpras / Penyerah) -->
             <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
                 <div>
@@ -225,71 +195,7 @@
                 </div>
             @endif
 
-            <!-- 3. Tanda Tangan & ACC Mengetahui (Kepala Sekolah) -->
-            <div class="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 flex flex-col justify-between">
-                <div>
-                    <div class="flex items-center justify-between gap-2 mb-2">
-                        <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Mengetahui (Kepala Sekolah)</span>
-                        @if($officialReport->status_approval === 'disetujui')
-                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                <i class="bi bi-check-circle-fill"></i> Di-ACC &amp; TTD
-                            </span>
-                        @elseif($officialReport->status_approval === 'ditolak')
-                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                                <i class="bi bi-x-circle-fill"></i> Ditolak
-                            </span>
-                        @else
-                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                                Menunggu ACC
-                            </span>
-                        @endif
-                    </div>
-                    <p class="text-sm font-bold text-slate-900">{{ $officialReport->mengetahui_nama }}</p>
-                    <p class="text-xs text-slate-600">{{ $officialReport->mengetahui_jabatan }}</p>
-                    @if($officialReport->mengetahui_nip)
-                        <p class="text-[11px] text-slate-400 mt-0.5">NIP/NIY: {{ $officialReport->mengetahui_nip }}</p>
-                    @endif
-                </div>
 
-                <div class="my-4 text-center">
-                    @if($officialReport->ttd_mengetahui)
-                        <div class="inline-block p-2 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                            <img src="{{ Storage::url($officialReport->ttd_mengetahui) }}" alt="TTD Kepsek" class="h-24 max-w-[200px] object-contain mx-auto">
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-1">Ditandatangani: {{ $officialReport->ttd_mengetahui_at ? $officialReport->ttd_mengetahui_at->translatedFormat('d M Y, H:i') : '-' }}</p>
-                    @elseif($officialReport->status_approval === 'disetujui')
-                        <div class="h-24 flex flex-col items-center justify-center border border-purple-200 bg-purple-50/50 rounded-xl text-purple-700 text-xs">
-                            <i class="bi bi-patch-check-fill text-2xl mb-1 text-purple-600"></i>
-                            <span class="font-bold">Disetujui Kepala Sekolah</span>
-                        </div>
-                    @else
-                        <div class="h-24 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-xl text-slate-400 text-xs">
-                            <i class="bi bi-shield-check text-xl mb-1"></i>
-                            <span>Menunggu pengesahan Kepala Sekolah</span>
-                        </div>
-                    @endif
-                </div>
-
-                <!-- Tombol Aksi Kepala Sekolah / Sarpras -->
-                @if(Auth::user()->isKepalaSekolah() || Auth::user()->isSarpras())
-                    @if($officialReport->status_approval !== 'disetujui')
-                        <div class="flex gap-2">
-                            <button type="button" onclick="openKepsekApprovalModal()" class="flex-1 py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
-                                <i class="bi bi-check2-circle"></i>
-                                <span>ACC &amp; Tanda Tangan</span>
-                            </button>
-                            <button type="button" onclick="openKepsekRejectModal()" class="py-2.5 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors" title="Tolak / Minta Revisi">
-                                Tolak
-                            </button>
-                        </div>
-                    @else
-                        <button type="button" onclick="confirmCancelReportSignature('kepsek')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
-                            <i class="bi bi-arrow-counterclockwise"></i>
-                            <span>Batalkan Pengesahan Kepsek</span>
-                        </button>
-                    @endif
-                @endif
-            </div>
         </div>
     </div>
 
@@ -691,132 +597,7 @@
 </div>
 @endif
 
-<!-- MODAL ACC & TTD KEPALA SEKOLAH -->
-<div id="kepsekApprovalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
-        <!-- Top accent stripe -->
-        <div class="h-1.5 bg-gradient-to-r from-purple-600 via-indigo-500 to-amber-400 shrink-0"></div>
 
-        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                        <i class="bi bi-shield-check text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Persetujuan &amp; TTD Kepala Sekolah</h3>
-                        <p class="text-[11px] text-slate-400">Pengesahan Resmi Dokumen Berita Acara</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeKepsekApprovalModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <i class="bi bi-x-lg text-xs"></i>
-                </button>
-            </div>
-
-            <form action="{{ route('official-reports.approve', $officialReport) }}" method="POST" id="kepsekApproveForm" class="space-y-4">
-                @csrf
-                @method('PATCH')
-                <input type="hidden" name="signature_data" id="kepsekSignatureData">
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Catatan Persetujuan (Opsional)</label>
-                    <textarea name="catatan_approval" rows="2" placeholder="Contoh: Disetujui untuk dihapuskan dari daftar inventaris aktif..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"></textarea>
-                </div>
-
-                @php
-                    $availableKepsekSig = Auth::user()->isKepalaSekolah() ? Auth::user()->signature : ($kepsekUser?->signature ?: Auth::user()->signature);
-                @endphp
-
-                @if($availableKepsekSig)
-                    <div class="p-3 bg-purple-50/70 border border-purple-200/80 rounded-2xl space-y-2">
-                        <span class="block text-xs font-bold text-purple-900">Pilihan Tanda Tangan:</span>
-                        <div class="flex flex-col gap-2">
-                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer">
-                                <input type="radio" name="kepsek_sig_choice" value="saved" checked onchange="toggleReportSigMode('kepsek')" class="text-purple-600 focus:ring-purple-500">
-                                <span class="font-semibold">Gunakan Tanda Tangan Tersimpan ({{ $kepsekUser->name ?? 'Kepala Sekolah' }})</span>
-                            </label>
-                            <div id="kepsekSavedPreview" class="ml-6 p-2 bg-white rounded-xl border border-purple-200 inline-block w-fit">
-                                <img src="{{ Storage::url($availableKepsekSig) }}" alt="TTD Tersimpan" class="h-16 max-w-[180px] object-contain">
-                            </div>
-                            <label class="flex items-center gap-2.5 text-xs text-slate-800 cursor-pointer mt-1">
-                                <input type="radio" name="kepsek_sig_choice" value="draw" onchange="toggleReportSigMode('kepsek')" class="text-purple-600 focus:ring-purple-500">
-                                <span>Goreskan Tanda Tangan Baru</span>
-                            </label>
-                        </div>
-                    </div>
-                @endif
-
-                <div id="kepsekDrawSection" class="{{ $availableKepsekSig ? 'hidden' : '' }} space-y-2">
-                    <label class="block text-xs font-semibold text-slate-700">Goreskan Tanda Tangan Digital Kepala Sekolah:</label>
-                    <div class="border-2 border-dashed border-purple-300 rounded-2xl overflow-hidden bg-slate-50 touch-none flex justify-center p-1">
-                        <canvas id="kepsekCanvas" width="420" height="180" class="cursor-crosshair bg-white rounded-xl shadow-inner w-full max-w-[420px] h-[150px] sm:h-[180px] block"></canvas>
-                    </div>
-                    <div class="flex items-center justify-between pt-1">
-                        <button type="button" onclick="clearCanvas('kepsek')" class="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-xs font-semibold flex items-center gap-1.5 transition-colors">
-                            <i class="bi bi-eraser text-xs"></i>
-                            <span>Bersihkan</span>
-                        </button>
-                        <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
-                            <input type="checkbox" name="save_signature_profile" value="1" class="rounded border-slate-300 text-purple-600 focus:ring-purple-500">
-                            <span>Simpan ke profil Kepala Sekolah</span>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="pt-2">
-                    <button type="submit" onclick="submitSignature('kepsek', event)" class="w-full py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                        <i class="bi bi-check2-circle"></i>
-                        <span>ACC &amp; Sahkan Dokumen</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL TOLAK KEPALA SEKOLAH -->
-<div id="kepsekRejectModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
-    <div class="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full max-h-[92vh] flex flex-col overflow-hidden text-left my-auto">
-        <!-- Top accent stripe -->
-        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400 shrink-0"></div>
-
-        <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
-                        <i class="bi bi-x-circle-fill text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-900">Tolak / Revisi Berita Acara</h3>
-                        <p class="text-[11px] text-slate-400">Kembalikan dokumen untuk diperbaiki</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeKepsekRejectModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
-                    <i class="bi bi-x-lg text-xs"></i>
-                </button>
-            </div>
-
-            <form action="{{ route('official-reports.reject', $officialReport) }}" method="POST" class="space-y-4">
-                @csrf
-                @method('PATCH')
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Alasan Penolakan / Catatan Revisi <span class="text-rose-500">*</span></label>
-                    <textarea name="catatan_approval" rows="3" required placeholder="Jelaskan alasan mengapa berita acara ini ditolak atau data apa yang harus diperbaiki..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"></textarea>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 pt-2">
-                    <button type="button" onclick="closeKepsekRejectModal()" class="w-full py-2.5 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-all active:scale-95">
-                        Batal
-                    </button>
-                    <button type="submit" class="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
-                        <i class="bi bi-x-circle"></i>
-                        <span>Kirim Penolakan</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- MODAL KONFIRMASI PEMBATALAN TANDA TANGAN BERITA ACARA (SESUAI TEMA APLIKASI) -->
 <div id="cancelReportSignatureModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true" aria-labelledby="cancelReportModalTitle">
@@ -873,7 +654,6 @@
 // Logic Canvas Signature Pad
 let isDrawing = false;
 let sarprasDrawn = false;
-let kepsekDrawn = false;
 let jurusanDrawn = false;
 
 function setupCanvas(canvasId, type) {
@@ -909,7 +689,6 @@ function setupCanvas(canvasId, type) {
         ctx.moveTo(pos.x, pos.y);
         if (type === 'sarpras') sarprasDrawn = true;
         else if (type === 'jurusan') jurusanDrawn = true;
-        else kepsekDrawn = true;
     }
 
     function move(e) {
@@ -938,19 +717,17 @@ function setupCanvas(canvasId, type) {
 
 document.addEventListener('DOMContentLoaded', function () {
     setupCanvas('sarprasCanvas', 'sarpras');
-    setupCanvas('kepsekCanvas', 'kepsek');
     setupCanvas('jurusanCanvas', 'jurusan');
 });
 
 function clearCanvas(type) {
-    const canvasId = type === 'sarpras' ? 'sarprasCanvas' : (type === 'jurusan' ? 'jurusanCanvas' : 'kepsekCanvas');
+    const canvasId = type === 'sarpras' ? 'sarprasCanvas' : 'jurusanCanvas';
     const canvas = document.getElementById(canvasId);
     if (canvas) {
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (type === 'sarpras') sarprasDrawn = false;
         else if (type === 'jurusan') jurusanDrawn = false;
-        else kepsekDrawn = false;
     }
 }
 
@@ -986,30 +763,6 @@ function closeSignatureModal(type) {
     }
 }
 
-function openKepsekApprovalModal() {
-    const modal = document.getElementById('kepsekApprovalModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeKepsekApprovalModal() {
-    const modal = document.getElementById('kepsekApprovalModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-
-function openKepsekRejectModal() {
-    const modal = document.getElementById('kepsekRejectModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeKepsekRejectModal() {
-    const modal = document.getElementById('kepsekRejectModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-
 function toggleReportSigMode(type) {
     const radio = document.querySelector(`input[name="${type}_sig_choice"]:checked`);
     const drawSection = document.getElementById(`${type}DrawSection`);
@@ -1028,9 +781,7 @@ function submitSignature(type, event) {
     const radio = document.querySelector(`input[name="${type}_sig_choice"]:checked`);
     const useSaved = radio ? (radio.value === 'saved') : false;
 
-    let formId = 'sarprasSignForm';
-    if (type === 'jurusan') formId = 'jurusanSignForm';
-    else if (type === 'kepsek') formId = 'kepsekApproveForm';
+    let formId = type === 'jurusan' ? 'jurusanSignForm' : 'sarprasSignForm';
 
     const form = document.getElementById(formId);
     let useSavedInput = form.querySelector('input[name="use_saved_signature"]');
@@ -1062,14 +813,6 @@ function submitSignature(type, event) {
         }
         const dataUrl = document.getElementById('jurusanCanvas').toDataURL('image/png');
         document.getElementById('jurusanSignatureData').value = dataUrl;
-    } else {
-        if (!kepsekDrawn) {
-            event.preventDefault();
-            alert('Silakan goreskan tanda tangan Kepala Sekolah pada canvas terlebih dahulu.');
-            return;
-        }
-        const dataUrl = document.getElementById('kepsekCanvas').toDataURL('image/png');
-        document.getElementById('kepsekSignatureData').value = dataUrl;
     }
 }
 
@@ -1094,11 +837,6 @@ function confirmCancelReportSignature(type) {
         desc.textContent = 'Apakah Anda yakin ingin membatalkan tanda tangan Pihak Kedua (Jurusan) pada Berita Acara ini?';
         subtext.textContent = 'Tanda tangan jurusan akan dihapus dari Berita Acara ini. Pihak jurusan dapat membubuhkan tanda tangan kembali sewaktu-waktu.';
         btnText.textContent = 'Ya, Batalkan TTD Jurusan';
-    } else if (type === 'kepsek') {
-        title.textContent = 'Batalkan Pengesahan Kepala Sekolah';
-        desc.textContent = 'Apakah Anda yakin ingin membatalkan pengesahan & tanda tangan Kepala Sekolah pada Berita Acara ini?';
-        subtext.textContent = 'Status Berita Acara akan dikembalikan menjadi "Menunggu ACC" dan tanda tangan Kepala Sekolah akan dihapus.';
-        btnText.textContent = 'Ya, Batalkan Pengesahan';
     }
 
     if (modal) {

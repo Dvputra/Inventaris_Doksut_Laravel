@@ -448,28 +448,6 @@
                         @endif
                     </td>
                 </tr>
-                <tr>
-                    <td colspan="3" style="text-align: center; padding-top: 20px;">
-                        Mengetahui / Mengesahkan,<br>
-                        <strong>{{ $officialReport->mengetahui_jabatan }}</strong>
-                        <div style="height: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: 3px;">
-                            @if($officialReport->ttd_mengetahui)
-                                <img src="{{ Storage::url($officialReport->ttd_mengetahui) }}" alt="TTD Kepsek" style="max-height: 55px; max-width: 160px; object-contain: contain;">
-                                <div style="font-size: 6.5pt; color: #64748b; font-style: italic; margin-top: 2px; line-height: 1.1;">
-                                    Disetujui &amp; TTD elektronik: {{ $officialReport->ttd_mengetahui_at ? $officialReport->ttd_mengetahui_at->translatedFormat('d/m/Y H:i') : '' }}
-                                </div>
-                            @elseif($officialReport->status_approval === 'disetujui')
-                                <div style="border: 1px solid #10b981; color: #047857; padding: 3px 8px; font-size: 7.5pt; border-radius: 4px; font-weight: bold;">
-                                    DISETUJUI SECARA ELEKTRONIK OLEH KEPALA SEKOLAH
-                                </div>
-                            @endif
-                        </div>
-                        <strong><u>{{ $officialReport->mengetahui_nama }}</u></strong>
-                        @if($officialReport->mengetahui_nip)
-                            <div style="font-size: 9.5pt;">NIP: {{ $officialReport->mengetahui_nip }}</div>
-                        @endif
-                    </td>
-                </tr>
             </table>
         </div>
     </div>

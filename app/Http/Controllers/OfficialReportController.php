@@ -278,10 +278,9 @@ class OfficialReportController extends Controller
         }
 
         $isAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
-        $isAccKepsek = ($officialReport->status_approval === 'disetujui' || $officialReport->ttd_mengetahui !== null);
 
-        if (! $user->isSarpras() && ($isAccSarpras || $isAccKepsek)) {
-            abort(403, 'Berita Acara yang telah disetujui/di-ACC oleh Sarpras atau Kepala Sekolah tidak dapat dihapus oleh akun Jurusan / Unit Kerja.');
+        if (! $user->isSarpras() && $isAccSarpras) {
+            abort(403, 'Berita Acara yang telah ditandatangani/di-ACC oleh Sarpras tidak dapat dihapus oleh akun Jurusan / Unit Kerja.');
         }
 
         if ($officialReport->file_lampiran && Storage::disk('public')->exists($officialReport->file_lampiran)) {

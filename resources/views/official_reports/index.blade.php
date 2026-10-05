@@ -133,7 +133,6 @@
                         <th class="py-3 px-4">Tanggal &amp; Unit</th>
                         <th class="py-3 px-4">Pihak Terkait</th>
                         <th class="py-3 px-4 text-center">Rincian Barang</th>
-                        <th class="py-3 px-4 text-center">Status ACC</th>
                         <th class="py-3 px-4 text-right">Aksi</th>
                     </tr>
                 </thead>
@@ -164,7 +163,7 @@
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
-                                        <i class="bi bi-cash-coin text-xs"></i>
+                                        <i class="bi bi-cash-stack text-xs"></i>
                                         <span>Penjualan</span>
                                     </span>
                                     @if($rep->total_nominal > 0)
@@ -195,24 +194,6 @@
                                     {{ $rep->items->count() }} Item
                                 </span>
                             </td>
-                            <td class="py-3.5 px-4 text-center">
-                                @if($rep->status_approval === 'disetujui')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        <i class="bi bi-check-circle-fill text-xs"></i>
-                                        <span>Disetujui Kepsek</span>
-                                    </span>
-                                @elseif($rep->status_approval === 'ditolak')
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                        <i class="bi bi-x-circle-fill text-xs"></i>
-                                        <span>Ditolak</span>
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                        <i class="bi bi-clock-history text-xs"></i>
-                                        <span>Menunggu ACC</span>
-                                    </span>
-                                @endif
-                            </td>
                             <td class="py-3.5 px-4 text-right">
                                 <div class="inline-flex items-center gap-1.5">
                                     <a href="{{ route('official-reports.print', $rep) }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors" title="Cetak Surat Dinas">
@@ -224,8 +205,7 @@
                                     </a>
                                     @php
                                         $repAccSarpras = ($rep->ttd_pihak_pertama !== null);
-                                        $repAccKepsek = ($rep->status_approval === 'disetujui' || $rep->ttd_mengetahui !== null);
-                                        $repCanDelete = Auth::user()->isSarpras() || ($rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras && ! $repAccKepsek);
+                                        $repCanDelete = Auth::user()->isSarpras() || ($rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras);
                                     @endphp
                                     @if($repCanDelete)
                                         <form action="{{ route('official-reports.destroy', $rep) }}" method="POST" class="inline-block"
@@ -285,20 +265,6 @@
                                         Penjualan
                                     </span>
                                 @endif
-
-                                @if($rep->status_approval === 'disetujui')
-                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        <i class="bi bi-check-circle-fill text-[9px]"></i> Disetujui
-                                    </span>
-                                @elseif($rep->status_approval === 'ditolak')
-                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                        <i class="bi bi-x-circle-fill text-[9px]"></i> Ditolak
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
-                                        <i class="bi bi-clock-history text-[9px]"></i> Menunggu
-                                    </span>
-                                @endif
                             </div>
 
                             <h3 class="text-sm font-bold text-slate-900 leading-snug">
@@ -335,7 +301,11 @@
                             <i class="bi bi-eye text-xs"></i>
                             <span>Detail</span>
                         </a>
-                        @if($repCanDelete)
+                        @php
+                            $repMobileAccSarpras = ($rep->ttd_pihak_pertama !== null);
+                            $repMobileCanDelete = Auth::user()->isSarpras() || ($rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repMobileAccSarpras);
+                        @endphp
+                        @if($repMobileCanDelete)
                             <form action="{{ route('official-reports.destroy', $rep) }}" method="POST" class="inline-block"
                                   data-confirm="Apakah Anda yakin ingin menghapus arsip Berita Acara {{ addslashes($rep->nomor_surat) }}?"
                                   data-confirm-title="Hapus Berita Acara"
