@@ -21,8 +21,8 @@ class ImageOptimizer
     public static function optimizeAndStore(
         UploadedFile $file,
         string $directory = 'items',
-        int $maxDimension = 1200,
-        int $quality = 75
+        int $maxDimension = 1000,
+        int $quality = 70
     ): string {
         $realPath = $file->getRealPath();
 

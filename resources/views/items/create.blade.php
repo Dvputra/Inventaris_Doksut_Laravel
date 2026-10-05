@@ -663,8 +663,8 @@
         const img = document.getElementById('fotoPreviewImg');
         if (input.files && input.files[0]) {
             const file = input.files[0];
-            if (file.size > 500 * 1024) {
-                alert('Ukuran foto melebihi 500 KB! Silakan pilih foto dengan ukuran lebih kecil (maksimal 500 KB).');
+            if (file.size > 3 * 1024 * 1024) {
+                alert('Ukuran foto melebihi 3 MB! Silakan pilih foto dengan ukuran lebih kecil (maksimal 3 MB).');
                 input.value = '';
                 container.classList.add('hidden');
                 img.src = '';
