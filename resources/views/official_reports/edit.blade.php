@@ -175,8 +175,6 @@
                     </div>
                 </div>
             </div>
-
-            </div>
         </div>
 
         <!-- 3. RINCIAN BARANG -->
