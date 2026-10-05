@@ -203,6 +203,11 @@
                                     <a href="{{ route('official-reports.show', $rep) }}" class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs transition-colors" title="Lihat Rincian">
                                         <i class="bi bi-eye"></i>
                                     </a>
+                                    @if(Auth::user()->isStaffSarpras())
+                                        <a href="{{ route('official-reports.edit', $rep) }}" class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs transition-colors" title="Edit Berita Acara">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    @endif
                                     @php
                                         $repAccSarpras = ($rep->ttd_pihak_pertama !== null);
                                         $repCanDelete = Auth::user()->isSarpras() || ($rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras);
@@ -301,6 +306,12 @@
                             <i class="bi bi-eye text-xs"></i>
                             <span>Detail</span>
                         </a>
+                        @if(Auth::user()->isStaffSarpras())
+                            <a href="{{ route('official-reports.edit', $rep) }}" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold hover:bg-amber-100 transition-colors">
+                                <i class="bi bi-pencil text-xs"></i>
+                                <span>Edit</span>
+                            </a>
+                        @endif
                         @php
                             $repMobileAccSarpras = ($rep->ttd_pihak_pertama !== null);
                             $repMobileCanDelete = Auth::user()->isSarpras() || ($rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repMobileAccSarpras);

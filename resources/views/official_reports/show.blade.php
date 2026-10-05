@@ -22,6 +22,12 @@
         </div>
 
         <div class="flex items-center gap-2 w-full sm:w-auto">
+            @if(Auth::user()->isStaffSarpras())
+                <a href="{{ route('official-reports.edit', $officialReport) }}" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm shadow-xs transition-colors" title="Edit Berita Acara">
+                    <i class="bi bi-pencil-square text-amber-500"></i>
+                    <span>Edit Dokumen</span>
+                </a>
+            @endif
             <a href="{{ route('official-reports.print', $officialReport) }}" target="_blank" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-colors">
                 <i class="bi bi-printer text-base"></i>
                 <span>Cetak Surat Dinas</span>

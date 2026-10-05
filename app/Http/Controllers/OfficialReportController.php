@@ -267,6 +267,142 @@ class OfficialReportController extends Controller
     }
 
     /**
+     * Tampilkan form edit Berita Acara (Hanya Akun Sarpras).
+     */
+    public function edit(OfficialReport $officialReport, Request $request): View
+    {
+        $user = $request->user();
+
+        if (! $user->isStaffSarpras()) {
+            abort(403, 'Hanya tim Sarpras yang berwenang mengedit Berita Acara.');
+        }
+
+        $officialReport->load(['items', 'jurusan']);
+        $jurusans = Jurusan::orderBy('nama')->get();
+        $items = Item::with('category')->orderBy('name')->get();
+
+        return view('official_reports.edit', compact('officialReport', 'jurusans', 'items', 'user'));
+    }
+
+    /**
+     * Perbarui data Berita Acara (Hanya Akun Sarpras).
+     */
+    public function update(Request $request, OfficialReport $officialReport): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isStaffSarpras()) {
+            abort(403, 'Hanya tim Sarpras yang berwenang memperbarui Berita Acara.');
+        }
+
+        $validated = $request->validate([
+            'nomor_surat' => 'required|string|max:100|unique:official_reports,nomor_surat,' . $officialReport->id,
+            'jenis' => 'required|in:serah_terima,barang_rusak,penjualan',
+            'judul' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'jurusan_id' => 'nullable|exists:jurusans,id',
+            'pihak_pertama_nama' => 'required|string|max:150',
+            'pihak_pertama_jabatan' => 'required|string|max:150',
+            'pihak_pertama_nip' => 'nullable|string|max:50',
+            'pihak_kedua_nama' => 'required|string|max:150',
+            'pihak_kedua_jabatan' => 'required|string|max:150',
+            'pihak_kedua_peran' => 'nullable|string|max:50',
+            'pihak_kedua_nip' => 'nullable|string|max:50',
+            'pihak_kedua_instansi' => 'nullable|string|max:150',
+            'pihak_kedua_kontak' => 'nullable|string|max:50',
+            'mengetahui_nama' => 'required|string|max:150',
+            'mengetahui_jabatan' => 'required|string|max:150',
+            'mengetahui_nip' => 'nullable|string|max:50',
+            'latar_belakang' => 'nullable|string',
+            'catatan' => 'nullable|string',
+            'file_lampiran' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+
+            // Rincian barang
+            'items' => 'required|array|min:1',
+            'items.*.nama_barang' => 'required|string|max:200',
+            'items.*.kode_barang' => 'nullable|string|max:100',
+            'items.*.unit_code' => 'nullable|string|max:100',
+            'items.*.nomor_seri' => 'nullable|string|max:100',
+            'items.*.jumlah' => 'required|numeric|min:1',
+            'items.*.satuan' => 'required|string|max:50',
+            'items.*.kondisi_saat_lapor' => 'nullable|string|max:100',
+            'items.*.harga_satuan' => 'nullable|numeric|min:0',
+            'items.*.keterangan' => 'nullable|string|max:255',
+        ]);
+
+        $filePath = $officialReport->file_lampiran;
+        if ($request->hasFile('file_lampiran')) {
+            if ($filePath && Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+            $filePath = $request->file('file_lampiran')->store('official_reports', 'public');
+        }
+
+        DB::transaction(function () use ($request, $validated, $filePath, $officialReport) {
+            $totalNominal = 0;
+
+            if ($validated['jenis'] === 'penjualan') {
+                foreach ($request->items as $row) {
+                    $qty = (int) ($row['jumlah'] ?? 1);
+                    $price = (float) ($row['harga_satuan'] ?? 0);
+                    $totalNominal += ($qty * $price);
+                }
+            }
+
+            $officialReport->update([
+                'nomor_surat' => $validated['nomor_surat'],
+                'jenis' => $validated['jenis'],
+                'judul' => $validated['judul'],
+                'tanggal' => $validated['tanggal'],
+                'jurusan_id' => $validated['jurusan_id'] ?? null,
+                'pihak_pertama_nama' => $validated['pihak_pertama_nama'],
+                'pihak_pertama_jabatan' => $validated['pihak_pertama_jabatan'],
+                'pihak_pertama_nip' => $validated['pihak_pertama_nip'] ?? null,
+                'pihak_kedua_nama' => $validated['pihak_kedua_nama'],
+                'pihak_kedua_jabatan' => $validated['pihak_kedua_jabatan'],
+                'pihak_kedua_peran' => $validated['pihak_kedua_peran'] ?? ($request->input('pihak_kedua_peran') ?? ($validated['jenis'] === 'penjualan' ? 'pembeli' : null)),
+                'pihak_kedua_nip' => $validated['pihak_kedua_nip'] ?? null,
+                'pihak_kedua_instansi' => $validated['pihak_kedua_instansi'] ?? null,
+                'pihak_kedua_kontak' => $validated['pihak_kedua_kontak'] ?? null,
+                'mengetahui_nama' => $validated['mengetahui_nama'],
+                'mengetahui_jabatan' => $validated['mengetahui_jabatan'],
+                'mengetahui_nip' => $validated['mengetahui_nip'] ?? null,
+                'latar_belakang' => $validated['latar_belakang'] ?? null,
+                'total_nominal' => $totalNominal,
+                'file_lampiran' => $filePath,
+                'catatan' => $validated['catatan'] ?? null,
+            ]);
+
+            // Hapus items lama dan ganti dengan items baru
+            $officialReport->items()->delete();
+
+            foreach ($request->items as $itemData) {
+                $qty = (int) ($itemData['jumlah'] ?? 1);
+                $price = (float) ($itemData['harga_satuan'] ?? 0);
+                $subtotal = $qty * $price;
+
+                OfficialReportItem::create([
+                    'official_report_id' => $officialReport->id,
+                    'item_id' => $itemData['item_id'] ?? null,
+                    'item_unit_id' => $itemData['item_unit_id'] ?? null,
+                    'kode_barang' => $itemData['kode_barang'] ?? null,
+                    'nama_barang' => $itemData['nama_barang'],
+                    'unit_code' => $itemData['unit_code'] ?? null,
+                    'nomor_seri' => $itemData['nomor_seri'] ?? null,
+                    'jumlah' => $qty,
+                    'satuan' => $itemData['satuan'] ?? 'unit',
+                    'kondisi_saat_lapor' => $itemData['kondisi_saat_lapor'] ?? 'rusak_berat',
+                    'harga_satuan' => $price,
+                    'subtotal' => $subtotal,
+                    'keterangan' => $itemData['keterangan'] ?? null,
+                ]);
+            }
+        });
+
+        return redirect()->route('official-reports.show', $officialReport)->with('success', 'Berita Acara berhasil diperbarui.');
+    }
+
+    /**
      * Hapus arsip Berita Acara.
      */
     public function destroy(OfficialReport $officialReport, Request $request): RedirectResponse
