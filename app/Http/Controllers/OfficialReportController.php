@@ -279,7 +279,7 @@ class OfficialReportController extends Controller
 
         $officialReport->load(['items', 'jurusan']);
         $jurusans = Jurusan::orderBy('nama')->get();
-        $items = Item::with('category')->orderBy('name')->get();
+        $items = Item::with('category')->orderBy('nama_barang')->get();
 
         return view('official_reports.edit', compact('officialReport', 'jurusans', 'items', 'user'));
     }
