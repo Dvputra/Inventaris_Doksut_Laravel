@@ -231,7 +231,7 @@
         </div>
 
         <!-- Pihak-Pihak Bertandatangan -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-blue-700 block mb-1">Pihak Pertama</span>
                 <p class="text-sm font-bold text-slate-900">{{ $officialReport->pihak_pertama_nama }}</p>
@@ -247,15 +247,6 @@
                 <p class="text-xs text-slate-600">{{ $officialReport->pihak_kedua_jabatan }}</p>
                 @if($officialReport->pihak_kedua_instansi)
                     <p class="text-[11px] text-slate-500 mt-0.5">{{ $officialReport->pihak_kedua_instansi }}</p>
-                @endif
-            </div>
-
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700 block mb-1">Mengetahui / Mengesahkan</span>
-                <p class="text-sm font-bold text-slate-900">{{ $officialReport->mengetahui_nama }}</p>
-                <p class="text-xs text-slate-600">{{ $officialReport->mengetahui_jabatan }}</p>
-                @if($officialReport->mengetahui_nip)
-                    <p class="text-[11px] text-slate-400 mt-1">NIP: {{ $officialReport->mengetahui_nip }}</p>
                 @endif
             </div>
         </div>
