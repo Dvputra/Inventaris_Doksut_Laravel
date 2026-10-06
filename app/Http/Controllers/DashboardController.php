@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Borrowing;
 use App\Models\Complaint;
 use App\Models\Item;
+use App\Models\ItemUnit;
 use App\Models\ItemUsage;
 use App\Models\Jurusan;
 use App\Models\Procurement;
@@ -27,9 +28,13 @@ class DashboardController extends Controller
             $totalUnit = Item::sum('jumlah');
             $totalUsers = User::count();
 
-            $baikCount = Item::where('kondisi', 'baik')->sum('jumlah');
-            $rusakRinganCount = Item::where('kondisi', 'rusak_ringan')->sum('jumlah');
-            $rusakBeratCount = Item::where('kondisi', 'rusak_berat')->sum('jumlah');
+            // Hitung kondisi gabungan: per unit (ItemUnit) + barang non-unit
+            $baikCount = ItemUnit::where('kondisi', 'baik')->count()
+                + Item::whereDoesntHave('units')->where('kondisi', 'baik')->sum('jumlah');
+            $rusakRinganCount = ItemUnit::where('kondisi', 'rusak_ringan')->count()
+                + Item::whereDoesntHave('units')->where('kondisi', 'rusak_ringan')->sum('jumlah');
+            $rusakBeratCount = ItemUnit::where('kondisi', 'rusak_berat')->count()
+                + Item::whereDoesntHave('units')->where('kondisi', 'rusak_berat')->sum('jumlah');
 
             $peminjamanAktif = Borrowing::where('status', 'dipinjam')->count();
             $pengajuanMenunggu = Procurement::where('status', 'menunggu')->count();
@@ -75,9 +80,13 @@ class DashboardController extends Controller
         $totalItems = Item::where('jurusan_id', $jurusanId)->count();
         $totalUnit = Item::where('jurusan_id', $jurusanId)->sum('jumlah');
 
-        $baikCount = Item::where('jurusan_id', $jurusanId)->where('kondisi', 'baik')->sum('jumlah');
-        $rusakRinganCount = Item::where('jurusan_id', $jurusanId)->where('kondisi', 'rusak_ringan')->sum('jumlah');
-        $rusakBeratCount = Item::where('jurusan_id', $jurusanId)->where('kondisi', 'rusak_berat')->sum('jumlah');
+        // Hitung kondisi gabungan untuk jurusan tertentu
+        $baikCount = ItemUnit::where('jurusan_id', $jurusanId)->where('kondisi', 'baik')->count()
+            + Item::where('jurusan_id', $jurusanId)->whereDoesntHave('units')->where('kondisi', 'baik')->sum('jumlah');
+        $rusakRinganCount = ItemUnit::where('jurusan_id', $jurusanId)->where('kondisi', 'rusak_ringan')->count()
+            + Item::where('jurusan_id', $jurusanId)->whereDoesntHave('units')->where('kondisi', 'rusak_ringan')->sum('jumlah');
+        $rusakBeratCount = ItemUnit::where('jurusan_id', $jurusanId)->where('kondisi', 'rusak_berat')->count()
+            + Item::where('jurusan_id', $jurusanId)->whereDoesntHave('units')->where('kondisi', 'rusak_berat')->sum('jumlah');
 
         $peminjamanAktif = Borrowing::where('jurusan_id', $jurusanId)->where('status', 'dipinjam')->count();
         $pengajuanCount = Procurement::where('jurusan_id', $jurusanId)->count();
