@@ -30,9 +30,18 @@
                 <label for="kode_barang" class="block text-xs font-semibold text-slate-700 mb-1.5">
                     Kode Barang <span class="text-rose-500">*</span>
                 </label>
-                <input type="text" name="kode_barang" id="kode_barang" 
-                       class="w-full font-mono px-3.5 py-2.5 text-xs rounded-xl border @error('kode_barang') border-rose-300 ring-1 ring-rose-200 @else border-slate-200 @enderror focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-xs" 
-                       value="{{ old('kode_barang', $item->kode_barang) }}" required>
+                <div class="flex gap-2">
+                    <input type="text" name="kode_barang" id="kode_barang" 
+                           class="flex-1 font-mono px-3.5 py-2.5 text-xs rounded-xl border @error('kode_barang') border-rose-300 ring-1 ring-rose-200 @else border-slate-200 @enderror focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-xs" 
+                           value="{{ old('kode_barang', $item->kode_barang) }}" required>
+                    <button type="button" onclick="fetchAutoCode()" 
+                            class="px-3 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-all shadow-xs flex items-center gap-1 active:scale-95" 
+                            title="Regenerate Kode Otomatis">
+                        <i class="bi bi-magic"></i>
+                        <span>Auto</span>
+                    </button>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1">Otomatis berubah saat Kategori/Jurusan diganti. Unit fisik juga ikut tersinkronisasi.</p>
                 @error('kode_barang') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
@@ -547,6 +556,46 @@
         }
     }
 
+    let isInitialLoad = true;
+
+    function fetchAutoCode() {
+        const jurusanElem = document.getElementById('jurusan_id');
+        const catElem = document.getElementById('category_id');
+
+        let jurusanId = jurusanElem ? jurusanElem.value : null;
+        let categoryId = catElem ? catElem.value : null;
+
+        if (!jurusanId && jurusanElem && jurusanElem.getAttribute('data-kode')) {
+            jurusanId = jurusanElem.value;
+        }
+
+        if (!categoryId) return;
+
+        fetch(`{{ route('items.generate-code') }}?jurusan_id=${jurusanId || ''}&category_id=${categoryId || ''}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.code) {
+                    const kodeInput = document.getElementById('kode_barang');
+                    if (kodeInput) {
+                        kodeInput.value = data.code;
+                        // Efek highlight visual
+                        kodeInput.classList.add('ring-2', 'ring-emerald-400', 'bg-emerald-50');
+                        setTimeout(() => {
+                            kodeInput.classList.remove('ring-2', 'ring-emerald-400', 'bg-emerald-50');
+                        }, 1200);
+                    }
+                }
+            })
+            .catch(err => console.error('Gagal mengambil kode otomatis:', err));
+    }
+
+    function handleJurusanChange() {
+        checkSarprasSelection();
+        if (!isInitialLoad) {
+            fetchAutoCode();
+        }
+    }
+
     function handleCategoryChange() {
         const catSelect = document.getElementById('category_id');
         const selectedOption = (catSelect && catSelect.selectedIndex >= 0) ? catSelect.options[catSelect.selectedIndex] : null;
@@ -563,6 +612,10 @@
             if (itTypeSection) itTypeSection.style.display = 'none';
             toggleComputerSpec(false);
             if (radioNo) radioNo.checked = true;
+        }
+
+        if (!isInitialLoad) {
+            fetchAutoCode();
         }
     }
 
@@ -616,6 +669,10 @@
         checkSarprasSelection();
         handleCategoryChange();
         handleJenisChange();
+        // Set false setelah DOM dan nilai awal siap, sehingga event onchange pengguna akan men-trigger auto-code
+        setTimeout(() => {
+            isInitialLoad = false;
+        }, 100);
     });
 </script>
 @endsection

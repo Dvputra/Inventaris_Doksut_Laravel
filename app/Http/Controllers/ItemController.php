@@ -521,7 +521,33 @@ class ItemController extends Controller
         }
         unset($validated['penempatan_sarpras']);
 
+        $oldKodeBarang = $item->kode_barang;
+        $oldJurusanId = $item->jurusan_id;
+
         $item->update($validated);
+
+        // Jika kode_barang atau jurusan_id berubah, sinkronkan seluruh ItemUnit
+        $newKodeBarang = $item->kode_barang;
+        $newJurusanId = $item->jurusan_id;
+
+        if ($oldKodeBarang !== $newKodeBarang || $oldJurusanId !== $newJurusanId) {
+            $units = $item->units()->orderBy('id')->get();
+            $index = 1;
+            foreach ($units as $unit) {
+                $newUnitCode = sprintf('%s-%02d', $newKodeBarang, $index);
+                
+                // Pertahankan akhiran nomor urut lama jika ada pola kode-XX
+                if (preg_match('/-(\d+)$/', $unit->unit_code, $matches)) {
+                    $newUnitCode = sprintf('%s-%s', $newKodeBarang, $matches[1]);
+                }
+
+                $unit->update([
+                    'unit_code' => $newUnitCode,
+                    'jurusan_id' => $newJurusanId,
+                ]);
+                $index++;
+            }
+        }
 
         return redirect()->route('items.show', $item)
             ->with('success', "Data barang '{$item->nama_barang}' berhasil diperbarui.");
