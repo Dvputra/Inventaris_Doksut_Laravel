@@ -826,8 +826,99 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    inputTglMulai.addEventListener('input', handleManualDateInput);
-    inputTglSelesai.addEventListener('input', handleManualDateInput);
+    // ==========================================
+    // CLIENT-SIDE TABLE COLUMN SORTING
+    // ==========================================
+    const previewTables = document.querySelectorAll('#preview-container table');
+    previewTables.forEach((table) => {
+        const thead = table.querySelector('thead');
+        const tbody = table.querySelector('tbody');
+        if (!thead || !tbody) return;
+
+        const thList = thead.querySelectorAll('th');
+        thList.forEach((th, colIdx) => {
+            // Berikan cursor pointer & style
+            th.style.cursor = 'pointer';
+            th.style.userSelect = 'none';
+            th.title = 'Klik untuk mengurutkan data kolom ini';
+
+            // Tambahkan wrapper dan ikon sort
+            const originalContent = th.innerHTML;
+            th.innerHTML = `
+                <div class="inline-flex items-center gap-1.5 justify-between w-full">
+                    <span>${originalContent}</span>
+                    <i class="sort-icon bi bi-arrow-down-up text-[10px] text-slate-300 transition-colors"></i>
+                </div>
+            `;
+
+            th.addEventListener('click', () => {
+                const currentOrder = th.getAttribute('data-sort-order') || 'none';
+                const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+
+                // Reset semua th lainnya
+                thList.forEach(otherTh => {
+                    otherTh.removeAttribute('data-sort-order');
+                    const otherIcon = otherTh.querySelector('.sort-icon');
+                    if (otherIcon) {
+                        otherIcon.className = 'sort-icon bi bi-arrow-down-up text-[10px] text-slate-300';
+                    }
+                });
+
+                // Update th yang diklik
+                th.setAttribute('data-sort-order', newOrder);
+                const icon = th.querySelector('.sort-icon');
+                if (icon) {
+                    icon.className = newOrder === 'asc' 
+                        ? 'sort-icon bi bi-sort-down-alt text-xs text-blue-600 font-bold' 
+                        : 'sort-icon bi bi-sort-up text-xs text-blue-600 font-bold';
+                }
+
+                // Ambil semua baris tr yang valid (kecuali baris 'empty')
+                const rows = Array.from(tbody.querySelectorAll('tr')).filter(tr => tr.children.length > 1);
+                if (rows.length <= 1) return;
+
+                rows.sort((rowA, rowB) => {
+                    const cellA = rowA.children[colIdx]?.innerText.trim() || '';
+                    const cellB = rowB.children[colIdx]?.innerText.trim() || '';
+
+                    // Parsing tanggal DD/MM/YYYY
+                    const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+                    const matchA = cellA.match(dateRegex);
+                    const matchB = cellB.match(dateRegex);
+                    if (matchA && matchB) {
+                        const dateA = new Date(matchA[3], matchA[2] - 1, matchA[1]).getTime();
+                        const dateB = new Date(matchB[3], matchB[2] - 1, matchB[1]).getTime();
+                        return newOrder === 'asc' ? dateA - dateB : dateB - dateA;
+                    }
+
+                    // Parsing angka (misal: stok, nomor urut, nilai float/int)
+                    const cleanA = cellA.replace(/[^0-9.,-]/g, '').replace(',', '.');
+                    const cleanB = cellB.replace(/[^0-9.,-]/g, '').replace(',', '.');
+                    const numA = parseFloat(cleanA);
+                    const numB = parseFloat(cleanB);
+
+                    if (!isNaN(numA) && !isNaN(numB) && cleanA !== '' && cleanB !== '' && !cleanA.includes('/') && !cleanB.includes('/')) {
+                        return newOrder === 'asc' ? numA - numB : numB - numA;
+                    }
+
+                    // Urutan string alfabetis biasa
+                    return newOrder === 'asc'
+                        ? cellA.localeCompare(cellB, 'id', { numeric: true, sensitivity: 'base' })
+                        : cellB.localeCompare(cellA, 'id', { numeric: true, sensitivity: 'base' });
+                });
+
+                // Masukkan kembali row yang sudah diurutkan
+                rows.forEach((row, i) => {
+                    tbody.appendChild(row);
+                    // Update nomor urut di kolom pertama jika kolom 0 adalah nomor
+                    const noCell = row.children[0];
+                    if (noCell && /^\d+$/.test(noCell.innerText.trim())) {
+                        noCell.innerText = i + 1;
+                    }
+                });
+            });
+        });
+    });
 });
 </script>
 @endpush
