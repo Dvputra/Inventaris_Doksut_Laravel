@@ -153,6 +153,7 @@ class DatabaseSeeder extends Seeder
             ['kode' => 'BHN', 'nama' => 'Bahan Praktik Habis Pakai', 'keterangan' => 'Oli, amplas, elektroda las, reagen kimia, semen/kayu'],
             ['kode' => 'APD', 'nama' => 'Alat Pelindung Diri (K3)', 'keterangan' => 'Helm kerja, kacamata pelindung, sarung tangan, apron'],
             ['kode' => 'KDR', 'nama' => 'Kendaraan & Transportasi', 'keterangan' => 'Sepeda motor dinas, mobil operasional sekolah, bus sekolah, kendaraan praktik'],
+            ['kode' => 'MBL', 'nama' => 'Mebel & Furnitur Ruangan', 'keterangan' => 'Meja guru/siswa, kursi, lemari arsip, rak buku, loker, kabinet dan perabot ruang'],
         ];
 
         $categories = [];
