@@ -53,7 +53,7 @@
     <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
         <div>
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Komputer</span>
-            <h3 class="text-2xl font-extrabold text-blue-700 mt-1">{{ $totalComputers }} Unit</h3>
+            <h3 class="text-2xl font-extrabold text-blue-700 mt-1">@formatJumlah($totalComputers) Unit</h3>
             <p class="text-xs mt-1">
                 <a href="{{ route('sarpras.umum', ['is_computer' => 1]) }}" class="text-blue-600 font-semibold hover:underline">
                     Filter komputer umum &rarr;
@@ -69,7 +69,7 @@
     <div class="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-between">
         <div>
             <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Kondisi Siap Pakai (Baik)</span>
-            <h3 class="text-2xl font-extrabold text-emerald-600 mt-1">{{ $totalBaik }} Unit</h3>
+            <h3 class="text-2xl font-extrabold text-emerald-600 mt-1">@formatJumlah($totalBaik) Unit</h3>
             <p class="text-xs text-slate-500 mt-1">Fasilitas dalam kondisi prima</p>
         </div>
         <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100 text-xl">
@@ -195,7 +195,7 @@
                             @endif
                         </td>
                         <td class="py-3 px-4">
-                            <span class="text-sm font-extrabold text-slate-900">{{ $item->jumlah }}</span>
+                            <span class="text-sm font-extrabold text-slate-900">@formatJumlah($item->jumlah)</span>
                             <span class="text-slate-500 text-xs">{{ $item->satuan }}</span>
                         </td>
                         <td class="py-3 px-4">
@@ -317,7 +317,7 @@
                     </div>
                     <div>
                         <span class="text-[10px] text-slate-400 block font-medium">Jumlah Fisik</span>
-                        <span class="font-extrabold text-slate-900">{{ $item->jumlah }} {{ $item->satuan }}</span>
+                        <span class="font-extrabold text-slate-900">@formatJumlah($item->jumlah) {{ $item->satuan }}</span>
                     </div>
                     @if($item->category)
                         <div class="col-span-2 pt-1 border-t border-slate-200/50 flex items-center justify-between text-[11px]">
