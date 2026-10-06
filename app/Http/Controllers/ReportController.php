@@ -82,7 +82,23 @@ class ReportController extends Controller
             }
 
             if ($request->filled('kondisi')) {
-                $itemsQuery->where('kondisi', $request->kondisi);
+                if ($viewMode === 'unit') {
+                    // Filter berbasis kondisi unit fisik atau kondisi barang bulk
+                    $itemsQuery->where(function ($q) use ($request) {
+                        $q->whereHas('units', function ($uq) use ($request) {
+                            $uq->where('kondisi', $request->kondisi);
+                        })->orWhere(function ($bq) use ($request) {
+                            $bq->doesntHave('units')->where('kondisi', $request->kondisi);
+                        });
+                    });
+
+                    // Muat hanya unit yang kondisi fisiknya sesuai dengan filter
+                    $itemsQuery->with(['units' => function ($uq) use ($request) {
+                        $uq->where('kondisi', $request->kondisi);
+                    }]);
+                } else {
+                    $itemsQuery->where('kondisi', $request->kondisi);
+                }
             }
 
             if ($request->filled('jenis')) {
@@ -190,8 +206,26 @@ class ReportController extends Controller
             }
         }
 
+        $viewMode = $request->input('view_mode', 'barang');
+
         if ($request->filled('kondisi')) {
-            $query->where('kondisi', $request->kondisi);
+            if ($viewMode === 'unit') {
+                // Filter berbasis kondisi unit fisik atau kondisi barang bulk
+                $query->where(function ($q) use ($request) {
+                    $q->whereHas('units', function ($uq) use ($request) {
+                        $uq->where('kondisi', $request->kondisi);
+                    })->orWhere(function ($bq) use ($request) {
+                        $bq->doesntHave('units')->where('kondisi', $request->kondisi);
+                    });
+                });
+
+                // Muat hanya unit yang kondisi fisiknya sesuai dengan filter
+                $query->with(['units' => function ($uq) use ($request) {
+                    $uq->where('kondisi', $request->kondisi);
+                }]);
+            } else {
+                $query->where('kondisi', $request->kondisi);
+            }
         }
 
         if ($request->filled('jenis')) {
@@ -212,7 +246,6 @@ class ReportController extends Controller
         $this->applyItemPeriodFilter($query, $request);
 
         $items = $query->get();
-        $viewMode = $request->input('view_mode', 'barang');
         $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
 
         return view('reports.print-items', compact('items', 'selectedJurusan', 'user', 'viewMode', 'sarprasUnit'));
