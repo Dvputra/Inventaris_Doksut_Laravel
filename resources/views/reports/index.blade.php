@@ -311,15 +311,15 @@
         </div>
     </div>
 
-    <!-- PRATINJAU TABEL DATA (DATA DIPERLIHATKAN SEBELUM CETAK) -->
-    <div class="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
+    <!-- TABEL HASIL DATA LAPORAN -->
+    <div id="data-table-container" class="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
         <div class="p-5 sm:p-6 border-b border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2.5">
                     @if($canExportPrint)
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                            Siap Dicetak
+                            Data Dimuat
                         </span>
                     @else
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
@@ -328,13 +328,13 @@
                         </span>
                     @endif
                     <h3 class="text-sm sm:text-base font-extrabold text-slate-900">
-                        Pratinjau Data: {{ $tab === 'items' ? ($isUnitMode ? 'Inventaris Fisik Per Unit' : 'Inventaris Rekapitulasi Per Barang') : ($tab === 'usages' ? 'Riwayat Pemakaian Bahan' : 'Pengaduan Sarpras') }}
+                        Hasil Data: {{ $tab === 'items' ? ($isUnitMode ? 'Inventaris Fisik Per Unit' : 'Inventaris Rekapitulasi Per Barang') : ($tab === 'usages' ? 'Riwayat Pemakaian Bahan' : 'Pengaduan Sarpras') }}
                     </h3>
                 </div>
                 <p class="text-xs text-slate-500 mt-1">
                     @if($tab === 'items')
                         @if(!$hasFiltered)
-                            Pilih periode waktu atau kriteria filter di atas lalu klik tombol <strong>Terapkan Filter</strong>.
+                            Pilih periode waktu atau kriteria filter di atas lalu klik tombol <strong>Terapkan Filter &amp; Tampilkan Data</strong>.
                         @else
                             @php
                                 $totalPhysicalUnits = $previewItems->sum(function($item) {
@@ -342,28 +342,18 @@
                                 });
                             @endphp
                             @if($isUnitMode)
-                                Menampilkan <strong>{{ $totalPhysicalUnits }} baris unit fisik</strong> dari <strong>{{ $previewItems->count() }} item barang</strong>
+                                Menampilkan <strong>{{ $totalPhysicalUnits }} baris unit fisik</strong> dari <strong>{{ $previewItems->count() }} item barang</strong> (Klik judul kolom untuk sortir urutan).
                             @else
-                                Menampilkan <strong>{{ $previewItems->count() }} item barang</strong> (Total stok fisik: <strong>{{ $previewItems->sum('jumlah') }} unit</strong>)
+                                Menampilkan <strong>{{ $previewItems->count() }} item barang</strong> (Total stok fisik: <strong>{{ $previewItems->sum('jumlah') }} unit</strong> • Klik judul kolom untuk sortir urutan).
                             @endif
                         @endif
                     @elseif($tab === 'usages')
-                        Menampilkan <strong>{{ $previewUsages->count() }} transaksi pemakaian</strong> (Total bahan terpakai: <strong>{{ $previewUsages->sum('jumlah') }}</strong>)
+                        Menampilkan <strong>{{ $previewUsages->count() }} transaksi pemakaian</strong> (Total bahan terpakai: <strong>{{ $previewUsages->sum('jumlah') }}</strong> • Klik judul kolom untuk sortir urutan).
                     @elseif($tab === 'complaints')
-                        Menampilkan <strong>{{ $previewComplaints->count() }} tiket pengaduan</strong>
+                        Menampilkan <strong>{{ $previewComplaints->count() }} tiket pengaduan</strong> (Klik judul kolom untuk sortir urutan).
                     @endif
                 </p>
             </div>
-
-            @if($canExportPrint)
-                <div class="flex items-center gap-2">
-                    <a href="{{ $printRoute }}" target="_blank" 
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all active:scale-95">
-                        <i class="bi bi-printer text-sm"></i>
-                        <span>Cetak Pratinjau Ini</span>
-                    </a>
-                </div>
-            @endif
         </div>
 
         <div class="overflow-x-auto">
@@ -827,27 +817,28 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ==========================================
-    // CLIENT-SIDE TABLE COLUMN SORTING
+    // CLIENT-SIDE TABLE COLUMN SORTING PADA HASIL DATA
     // ==========================================
-    const previewTables = document.querySelectorAll('#preview-container table');
-    previewTables.forEach((table) => {
+    const dataTables = document.querySelectorAll('#data-table-container table');
+    dataTables.forEach((table) => {
         const thead = table.querySelector('thead');
         const tbody = table.querySelector('tbody');
         if (!thead || !tbody) return;
 
         const thList = thead.querySelectorAll('th');
         thList.forEach((th, colIdx) => {
-            // Berikan cursor pointer & style
+            // Berikan cursor pointer & style hover
             th.style.cursor = 'pointer';
             th.style.userSelect = 'none';
-            th.title = 'Klik untuk mengurutkan data kolom ini';
+            th.classList.add('hover:bg-slate-100', 'transition-colors');
+            th.title = 'Klik untuk mengurutkan (A-Z / 0-9)';
 
             // Tambahkan wrapper dan ikon sort
             const originalContent = th.innerHTML;
             th.innerHTML = `
                 <div class="inline-flex items-center gap-1.5 justify-between w-full">
                     <span>${originalContent}</span>
-                    <i class="sort-icon bi bi-arrow-down-up text-[10px] text-slate-300 transition-colors"></i>
+                    <i class="sort-icon bi bi-arrow-down-up text-[10px] text-slate-400 shrink-0"></i>
                 </div>
             `;
 
@@ -860,7 +851,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     otherTh.removeAttribute('data-sort-order');
                     const otherIcon = otherTh.querySelector('.sort-icon');
                     if (otherIcon) {
-                        otherIcon.className = 'sort-icon bi bi-arrow-down-up text-[10px] text-slate-300';
+                        otherIcon.className = 'sort-icon bi bi-arrow-down-up text-[10px] text-slate-400 shrink-0';
                     }
                 });
 
@@ -869,11 +860,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const icon = th.querySelector('.sort-icon');
                 if (icon) {
                     icon.className = newOrder === 'asc' 
-                        ? 'sort-icon bi bi-sort-down-alt text-xs text-blue-600 font-bold' 
-                        : 'sort-icon bi bi-sort-up text-xs text-blue-600 font-bold';
+                        ? 'sort-icon bi bi-sort-down-alt text-xs text-blue-600 font-black shrink-0' 
+                        : 'sort-icon bi bi-sort-up text-xs text-blue-600 font-black shrink-0';
                 }
 
-                // Ambil semua baris tr yang valid (kecuali baris 'empty')
+                // Ambil semua baris tr yang valid (kecuali baris pesan kosong/colspan)
                 const rows = Array.from(tbody.querySelectorAll('tr')).filter(tr => tr.children.length > 1);
                 if (rows.length <= 1) return;
 
@@ -881,7 +872,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const cellA = rowA.children[colIdx]?.innerText.trim() || '';
                     const cellB = rowB.children[colIdx]?.innerText.trim() || '';
 
-                    // Parsing tanggal DD/MM/YYYY
+                    // 1. Parsing tanggal DD/MM/YYYY
                     const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
                     const matchA = cellA.match(dateRegex);
                     const matchB = cellB.match(dateRegex);
@@ -891,7 +882,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return newOrder === 'asc' ? dateA - dateB : dateB - dateA;
                     }
 
-                    // Parsing angka (misal: stok, nomor urut, nilai float/int)
+                    // 2. Parsing angka murni (stok, jumlah, tahun, dll)
                     const cleanA = cellA.replace(/[^0-9.,-]/g, '').replace(',', '.');
                     const cleanB = cellB.replace(/[^0-9.,-]/g, '').replace(',', '.');
                     const numA = parseFloat(cleanA);
@@ -901,7 +892,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return newOrder === 'asc' ? numA - numB : numB - numA;
                     }
 
-                    // Urutan string alfabetis biasa
+                    // 3. String alfabetis
                     return newOrder === 'asc'
                         ? cellA.localeCompare(cellB, 'id', { numeric: true, sensitivity: 'base' })
                         : cellB.localeCompare(cellA, 'id', { numeric: true, sensitivity: 'base' });
@@ -910,7 +901,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Masukkan kembali row yang sudah diurutkan
                 rows.forEach((row, i) => {
                     tbody.appendChild(row);
-                    // Update nomor urut di kolom pertama jika kolom 0 adalah nomor
+                    // Update nomor urut di kolom No (indeks 0) jika berisi angka
                     const noCell = row.children[0];
                     if (noCell && /^\d+$/.test(noCell.innerText.trim())) {
                         noCell.innerText = i + 1;
