@@ -39,8 +39,8 @@ class Item extends Model
     {
         return [
             'is_computer' => 'boolean',
-            'jumlah' => 'integer',
-            'min_stok' => 'integer',
+            'jumlah' => 'float',
+            'min_stok' => 'float',
         ];
     }
 

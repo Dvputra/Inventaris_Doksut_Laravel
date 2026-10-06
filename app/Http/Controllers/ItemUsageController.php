@@ -77,9 +77,15 @@ class ItemUsageController extends Controller
     {
         $user = $request->user();
 
+        if ($request->has('jumlah')) {
+            $request->merge([
+                'jumlah' => str_replace(',', '.', (string) $request->input('jumlah')),
+            ]);
+        }
+
         $validated = $request->validate([
             'item_id' => ['required', 'exists:items,id'],
-            'jumlah' => ['required', 'integer', 'min:1'],
+            'jumlah' => ['required', 'numeric', 'min:0.01'],
             'tanggal_pemakaian' => ['required', 'date'],
             'nama_guru' => ['required', 'string', 'max:150'],
             'kelas' => ['nullable', 'string', 'max:100'],
@@ -160,8 +166,14 @@ class ItemUsageController extends Controller
             abort(403, 'Anda tidak berhak mengedit pemakaian ini.');
         }
 
+        if ($request->has('jumlah')) {
+            $request->merge([
+                'jumlah' => str_replace(',', '.', (string) $request->input('jumlah')),
+            ]);
+        }
+
         $validated = $request->validate([
-            'jumlah' => ['required', 'integer', 'min:1'],
+            'jumlah' => ['required', 'numeric', 'min:0.01'],
             'tanggal_pemakaian' => ['required', 'date'],
             'nama_guru' => ['required', 'string', 'max:150'],
             'kelas' => ['nullable', 'string', 'max:100'],

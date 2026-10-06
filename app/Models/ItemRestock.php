@@ -28,9 +28,9 @@ class ItemRestock extends Model
     {
         return [
             'tanggal_masuk' => 'date',
-            'jumlah' => 'integer',
-            'stok_sebelum' => 'integer',
-            'stok_sesudah' => 'integer',
+            'jumlah' => 'float',
+            'stok_sebelum' => 'float',
+            'stok_sesudah' => 'float',
         ];
     }
 

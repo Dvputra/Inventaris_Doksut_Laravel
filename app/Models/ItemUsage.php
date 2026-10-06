@@ -29,9 +29,9 @@ class ItemUsage extends Model
     {
         return [
             'tanggal_pemakaian' => 'date',
-            'jumlah' => 'integer',
-            'stok_sebelum' => 'integer',
-            'stok_sesudah' => 'integer',
+            'jumlah' => 'float',
+            'stok_sebelum' => 'float',
+            'stok_sesudah' => 'float',
         ];
     }
 

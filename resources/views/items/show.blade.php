@@ -153,11 +153,11 @@
                 <div class="py-2.5 sm:grid sm:grid-cols-3 sm:gap-4">
                     <dt class="font-medium text-slate-500">Jumlah Stok Saat Ini</dt>
                     <dd class="mt-1 sm:col-span-2 sm:mt-0">
-                        <span class="text-base font-extrabold text-slate-900">{{ number_format($item->jumlah) }}</span>
+                        <span class="text-base font-extrabold text-slate-900">@formatJumlah($item->jumlah)</span>
                         <span class="text-slate-500">{{ $item->satuan }}</span>
                         @if($item->jenis === 'bahan' && $item->min_stok > 0)
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ml-2 {{ $item->jumlah <= $item->min_stok ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-slate-100 text-slate-600' }}">
-                                Min Stok: {{ $item->min_stok }} {{ $item->satuan }}
+                                Min Stok: @formatJumlah($item->min_stok) {{ $item->satuan }}
                             </span>
                         @endif
                     </dd>
@@ -272,14 +272,14 @@
                             <span class="text-[11px] font-semibold text-emerald-800 block mb-1">
                                 <i class="bi bi-box-arrow-in-down mr-1"></i>Total Re-stok
                             </span>
-                            <h4 class="text-xl font-black text-emerald-700">+{{ number_format($item->restocks->sum('jumlah')) }}</h4>
+                            <h4 class="text-xl font-black text-emerald-700">+@formatJumlah($item->restocks->sum('jumlah'))</h4>
                             <span class="text-[10px] text-emerald-600">{{ $item->satuan }}</span>
                         </div>
                         <div class="p-4 rounded-2xl bg-rose-50/60 border border-rose-200/70 text-center">
                             <span class="text-[11px] font-semibold text-rose-800 block mb-1">
                                 <i class="bi bi-box-arrow-up mr-1"></i>Total Keluar
                             </span>
-                            <h4 class="text-xl font-black text-rose-700">-{{ number_format($item->usages->sum('jumlah')) }}</h4>
+                            <h4 class="text-xl font-black text-rose-700">-@formatJumlah($item->usages->sum('jumlah'))</h4>
                             <span class="text-[10px] text-rose-600">{{ $item->satuan }}</span>
                         </div>
                     </div>
@@ -1065,90 +1065,90 @@
                             <td class="py-3 px-4 text-slate-700">{{ $usage->keperluan_jobsheet ?: '-' }}</td>
                             <td class="py-3 px-4 text-center">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                    -{{ number_format($usage->jumlah) }} {{ $usage->satuan }}
-                                </span>
-                            </td>
-                            <td class="py-3 px-4 text-center font-mono">
-                                <span class="text-slate-400">{{ $usage->stok_sebelum }}</span>
-                                <i class="bi bi-arrow-right mx-1 text-slate-300"></i>
-                                <strong class="text-blue-700">{{ $usage->stok_sesudah }}</strong>
-                            </td>
-                            <td class="py-3 px-4 text-slate-500">{{ $usage->catatan ?? '-' }}</td>
-                            <td class="py-3 px-4 text-right">
-                                <a href="{{ route('usages.edit', $usage) }}" 
-                                   class="p-1.5 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 transition-all shadow-xs inline-flex items-center" 
-                                   title="Edit Data Pemakaian">
-                                    <i class="bi bi-pencil text-xs"></i>
-                                </a>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="py-8 text-center text-slate-400">
-                                Belum ada riwayat pemakaian bahan ini.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
+                                     -@formatJumlah($usage->jumlah) {{ $usage->satuan }}
+                                 </span>
+                             </td>
+                             <td class="py-3 px-4 text-center font-mono">
+                                 <span class="text-slate-400">@formatJumlah($usage->stok_sebelum)</span>
+                                 <i class="bi bi-arrow-right mx-1 text-slate-300"></i>
+                                 <strong class="text-blue-700">@formatJumlah($usage->stok_sesudah)</strong>
+                             </td>
+                             <td class="py-3 px-4 text-slate-500">{{ $usage->catatan ?? '-' }}</td>
+                             <td class="py-3 px-4 text-right">
+                                 <a href="{{ route('usages.edit', $usage) }}" 
+                                    class="p-1.5 rounded-lg text-slate-600 hover:text-blue-600 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 transition-all shadow-xs inline-flex items-center" 
+                                    title="Edit Data Pemakaian">
+                                     <i class="bi bi-pencil text-xs"></i>
+                                 </a>
+                             </td>
+                         </tr>
+                     @empty
+                         <tr>
+                             <td colspan="8" class="py-8 text-center text-slate-400">
+                                 Belum ada riwayat pemakaian bahan ini.
+                             </td>
+                         </tr>
+                     @endforelse
+                 </tbody>
+             </table>
+         </div>
+     </div>
 
-    <!-- SECTION RIWAYAT RE-STOK MASUK (JIKA BAHAN) -->
-    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs mb-6 overflow-hidden">
-        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <div>
-                <h3 class="text-sm font-bold text-slate-900">Riwayat Re-stok Masuk (Pengadaan Baru)</h3>
-                <p class="text-[11px] text-slate-400">Pencatatan penambahan stok bahan dari pengadaan / pembelanjaan.</p>
-            </div>
-            <button type="button" onclick="openModal('restokBahanModal')" 
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all active:scale-95">
-                <i class="bi bi-box-arrow-in-down text-xs"></i>
-                <span>Re-stok Bahan Baru</span>
-            </button>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px]">
-                    <tr>
-                        <th class="py-3 px-4">Tanggal Masuk</th>
-                        <th class="py-3 px-4">Petugas / Pencatat</th>
-                        <th class="py-3 px-4">Sumber Dana</th>
-                        <th class="py-3 px-4">Pemasok / Toko</th>
-                        <th class="py-3 px-4 text-center">Jumlah Masuk</th>
-                        <th class="py-3 px-4 text-center">Perubahan Stok</th>
-                        <th class="py-3 px-4">Catatan</th>
-                        <th class="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    @forelse($item->restocks->sortByDesc('tanggal_masuk') as $restock)
-                        <tr class="hover:bg-slate-50/75 transition-colors">
-                            <td class="py-3 px-4 whitespace-nowrap">
-                                <p class="font-bold text-slate-800">{{ $restock->tanggal_masuk->format('d/m/Y') }}</p>
-                                <p class="text-[11px] text-slate-400">{{ $restock->tanggal_masuk->diffForHumans() }}</p>
-                            </td>
-                            <td class="py-3 px-4 font-medium text-slate-800">{{ $restock->user->name ?? '-' }}</td>
-                            <td class="py-3 px-4">
-                                @if($restock->sumber_dana)
-                                    <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                                        {{ $restock->sumber_dana }}
-                                    </span>
-                                @else
-                                    <span class="text-slate-400">-</span>
-                                @endif
-                            </td>
-                            <td class="py-3 px-4 text-slate-700">{{ $restock->pemasok ?? '-' }}</td>
-                            <td class="py-3 px-4 text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                    +{{ number_format($restock->jumlah) }} {{ $restock->satuan }}
-                                </span>
-                            </td>
-                            <td class="py-3 px-4 text-center font-mono">
-                                <span class="text-slate-400">{{ $restock->stok_sebelum }}</span>
-                                <i class="bi bi-arrow-right mx-1 text-slate-300"></i>
-                                <strong class="text-emerald-700">{{ $restock->stok_sesudah }}</strong>
-                            </td>
+     <!-- SECTION RIWAYAT RE-STOK MASUK (JIKA BAHAN) -->
+     <div class="bg-white rounded-2xl border border-slate-200/90 shadow-xs mb-6 overflow-hidden">
+         <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+             <div>
+                 <h3 class="text-sm font-bold text-slate-900">Riwayat Re-stok Masuk (Pengadaan Baru)</h3>
+                 <p class="text-[11px] text-slate-400">Pencatatan penambahan stok bahan dari pengadaan / pembelanjaan.</p>
+             </div>
+             <button type="button" onclick="openModal('restokBahanModal')" 
+                     class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-all active:scale-95">
+                 <i class="bi bi-box-arrow-in-down text-xs"></i>
+                 <span>Re-stok Bahan Baru</span>
+             </button>
+         </div>
+         <div class="overflow-x-auto">
+             <table class="w-full text-left text-xs">
+                 <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase text-[11px]">
+                     <tr>
+                         <th class="py-3 px-4">Tanggal Masuk</th>
+                         <th class="py-3 px-4">Petugas / Pencatat</th>
+                         <th class="py-3 px-4">Sumber Dana</th>
+                         <th class="py-3 px-4">Pemasok / Toko</th>
+                         <th class="py-3 px-4 text-center">Jumlah Masuk</th>
+                         <th class="py-3 px-4 text-center">Perubahan Stok</th>
+                         <th class="py-3 px-4">Catatan</th>
+                         <th class="py-3 px-4 text-right">Aksi</th>
+                     </tr>
+                 </thead>
+                 <tbody class="divide-y divide-slate-100">
+                     @forelse($item->restocks->sortByDesc('tanggal_masuk') as $restock)
+                         <tr class="hover:bg-slate-50/75 transition-colors">
+                             <td class="py-3 px-4 whitespace-nowrap">
+                                 <p class="font-bold text-slate-800">{{ $restock->tanggal_masuk->format('d/m/Y') }}</p>
+                                 <p class="text-[11px] text-slate-400">{{ $restock->tanggal_masuk->diffForHumans() }}</p>
+                             </td>
+                             <td class="py-3 px-4 font-medium text-slate-800">{{ $restock->user->name ?? '-' }}</td>
+                             <td class="py-3 px-4">
+                                 @if($restock->sumber_dana)
+                                     <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                         {{ $restock->sumber_dana }}
+                                     </span>
+                                 @else
+                                     <span class="text-slate-400">-</span>
+                                 @endif
+                             </td>
+                             <td class="py-3 px-4 text-slate-700">{{ $restock->pemasok ?? '-' }}</td>
+                             <td class="py-3 px-4 text-center">
+                                 <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                     +@formatJumlah($restock->jumlah) {{ $restock->satuan }}
+                                 </span>
+                             </td>
+                             <td class="py-3 px-4 text-center font-mono">
+                                 <span class="text-slate-400">@formatJumlah($restock->stok_sebelum)</span>
+                                 <i class="bi bi-arrow-right mx-1 text-slate-300"></i>
+                                 <strong class="text-emerald-700">@formatJumlah($restock->stok_sesudah)</strong>
+                             </td>
                             <td class="py-3 px-4 text-slate-500">{{ $restock->catatan ?? '-' }}</td>
                             <td class="py-3 px-4 text-right">
                                 <button type="button" 
@@ -1204,9 +1204,9 @@
                                 Jumlah Masuk <span class="text-rose-500">*</span>
                             </label>
                             <div class="relative">
-                                <input type="number" name="jumlah" min="1" required
+                                <input type="number" name="jumlah" min="0.01" step="any" required
                                        class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 pr-12"
-                                       placeholder="10">
+                                       placeholder="10 atau 1.5">
                                 <span class="absolute right-3 top-2 text-xs text-slate-400 pointer-events-none">{{ $item->satuan }}</span>
                             </div>
                         </div>

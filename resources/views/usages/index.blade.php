@@ -143,14 +143,14 @@
                         </td>
                         <td class="py-3 px-4 text-center">
                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                                -{{ number_format($u->jumlah) }} {{ $u->satuan }}
+                                -@formatJumlah($u->jumlah) {{ $u->satuan }}
                             </span>
                         </td>
                         <td class="py-3 px-4 text-center font-mono">
                             <div class="text-xs">
-                                <span class="text-slate-400">{{ $u->stok_sebelum }}</span>
+                                <span class="text-slate-400">@formatJumlah($u->stok_sebelum)</span>
                                 <i class="bi bi-arrow-right mx-1 text-slate-300"></i>
-                                <strong class="text-blue-700">{{ $u->stok_sesudah }}</strong>
+                                <strong class="text-blue-700">@formatJumlah($u->stok_sesudah)</strong>
                             </div>
                             <span class="text-[10px] text-slate-400">sisa stok</span>
                         </td>
@@ -214,10 +214,10 @@
                     </div>
                     <div class="text-right shrink-0">
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
-                            -{{ number_format($u->jumlah) }} {{ $u->satuan }}
+                            -@formatJumlah($u->jumlah) {{ $u->satuan }}
                         </span>
                         <div class="text-[10px] text-slate-400 mt-1">
-                            Sisa: <strong class="text-blue-700">{{ $u->stok_sesudah }}</strong>
+                            Sisa: <strong class="text-blue-700">@formatJumlah($u->stok_sesudah)</strong>
                         </div>
                     </div>
                 </div>

@@ -367,7 +367,7 @@
                             @endif
                         </td>
                         <td class="py-3 px-4">
-                            <span class="text-sm font-extrabold text-slate-900">{{ number_format($item->jumlah) }}</span>
+                            <span class="text-sm font-extrabold text-slate-900">@formatJumlah($item->jumlah)</span>
                             <span class="text-slate-500 text-xs">{{ $item->satuan }}</span>
 
                             @if($item->jenis === 'bahan' && $item->min_stok > 0 && $item->jumlah <= $item->min_stok)
@@ -529,7 +529,7 @@
                         <div class="grid grid-cols-3 gap-2 mt-3 p-2 rounded-xl bg-slate-50 border border-slate-100 text-center">
                             <div>
                                 <span class="text-[10px] text-slate-400 block font-medium">Stok</span>
-                                <span class="text-xs font-extrabold text-slate-900">{{ number_format($item->jumlah) }} {{ $item->satuan }}</span>
+                                <span class="text-xs font-extrabold text-slate-900">@formatJumlah($item->jumlah) {{ $item->satuan }}</span>
                             </div>
                             <div>
                                 <span class="text-[10px] text-slate-400 block font-medium">Unit Fisik</span>

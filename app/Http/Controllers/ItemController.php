@@ -228,11 +228,22 @@ class ItemController extends Controller
     {
         $user = $request->user();
 
+        if ($request->has('jumlah')) {
+            $request->merge([
+                'jumlah' => str_replace(',', '.', (string) $request->input('jumlah')),
+            ]);
+        }
+        if ($request->has('min_stok')) {
+            $request->merge([
+                'min_stok' => str_replace(',', '.', (string) $request->input('min_stok')),
+            ]);
+        }
+
         $rules = [
             'kode_barang' => ['nullable', 'string', 'max:50', 'unique:items,kode_barang'],
             'nama_barang' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'jumlah' => ['required', 'integer', 'min:0'],
+            'jumlah' => ['required', 'numeric', 'min:0'],
             'satuan' => ['required', 'string', 'max:30'],
             'kondisi' => ['required', 'in:baik,rusak_ringan,rusak_berat'],
             'jenis' => ['required', 'in:alat,bahan'],
@@ -240,7 +251,7 @@ class ItemController extends Controller
             'sumber_dana' => ['nullable', 'string', 'max:100'],
             'tahun_pengadaan' => ['nullable', 'integer', 'min:1990', 'max:'.(date('Y') + 1)],
             'spesifikasi' => ['nullable', 'string'],
-            'min_stok' => ['nullable', 'integer', 'min:0'],
+            'min_stok' => ['nullable', 'numeric', 'min:0'],
 
             // Spesifikasi Perangkat Komputer (Opsional / Tidak Wajib)
             'is_computer' => ['nullable', 'boolean'],
@@ -413,11 +424,22 @@ class ItemController extends Controller
             abort(403, 'Anda tidak dapat memperbarui barang dari jurusan lain.');
         }
 
+        if ($request->has('jumlah')) {
+            $request->merge([
+                'jumlah' => str_replace(',', '.', (string) $request->input('jumlah')),
+            ]);
+        }
+        if ($request->has('min_stok')) {
+            $request->merge([
+                'min_stok' => str_replace(',', '.', (string) $request->input('min_stok')),
+            ]);
+        }
+
         $rules = [
             'kode_barang' => ['required', 'string', 'max:50', 'unique:items,kode_barang,'.$item->id],
             'nama_barang' => ['required', 'string', 'max:255'],
             'category_id' => ['nullable', 'exists:categories,id'],
-            'jumlah' => ['required', 'integer', 'min:0'],
+            'jumlah' => ['required', 'numeric', 'min:0'],
             'satuan' => ['required', 'string', 'max:30'],
             'kondisi' => ['required', 'in:baik,rusak_ringan,rusak_berat'],
             'jenis' => ['required', 'in:alat,bahan'],
@@ -425,7 +447,7 @@ class ItemController extends Controller
             'sumber_dana' => ['nullable', 'string', 'max:100'],
             'tahun_pengadaan' => ['nullable', 'integer', 'min:1990', 'max:'.(date('Y') + 1)],
             'spesifikasi' => ['nullable', 'string'],
-            'min_stok' => ['nullable', 'integer', 'min:0'],
+            'min_stok' => ['nullable', 'numeric', 'min:0'],
             'penempatan_sarpras' => ['nullable', 'in:gudang,umum'],
 
             // Spesifikasi Komputer

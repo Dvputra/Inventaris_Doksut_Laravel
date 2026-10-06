@@ -24,8 +24,14 @@ class ItemRestockController extends Controller
             return back()->with('error', 'Re-stok via formulir ini hanya diperuntukkan bagi kategori bahan habis pakai.');
         }
 
+        if ($request->has('jumlah')) {
+            $request->merge([
+                'jumlah' => str_replace(',', '.', (string) $request->input('jumlah')),
+            ]);
+        }
+
         $validated = $request->validate([
-            'jumlah' => ['required', 'integer', 'min:1'],
+            'jumlah' => ['required', 'numeric', 'min:0.01'],
             'tanggal_masuk' => ['required', 'date'],
             'sumber_dana' => ['nullable', 'string', 'max:100'],
             'pemasok' => ['nullable', 'string', 'max:150'],

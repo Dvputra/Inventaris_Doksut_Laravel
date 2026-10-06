@@ -25,5 +25,12 @@ class AppServiceProvider extends ServiceProvider
 
         \Carbon\Carbon::setLocale('id');
         setlocale(LC_TIME, 'id_ID.utf8', 'id_ID', 'id', 'Indonesian');
+
+        \Illuminate\Support\Facades\Blade::directive('formatJumlah', function ($expression) {
+            return "<?php 
+                \$__val = (float) ($expression); 
+                echo floor(\$__val) == \$__val ? number_format(\$__val, 0, ',', '.') : rtrim(rtrim(number_format(\$__val, 2, ',', '.'), '0'), ','); 
+            ?>";
+        });
     }
 }

@@ -47,9 +47,9 @@
                     Jumlah yang Dipakai <span class="text-rose-500">*</span>
                 </label>
                 <div class="flex">
-                    <input type="number" name="jumlah" id="jumlah" min="1" 
+                    <input type="number" name="jumlah" id="jumlah" min="0.01" step="any" 
                            class="flex-1 px-3.5 py-2.5 text-xs rounded-l-xl border @error('jumlah') border-rose-300 @else border-slate-200 @enderror focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-xs" 
-                           value="{{ old('jumlah', $usage->jumlah) }}" required>
+                           value="{{ old('jumlah', (float) $usage->jumlah) }}" required>
                     <span class="px-3.5 py-2.5 text-xs font-semibold bg-slate-100 text-slate-600 border border-l-0 border-slate-200 rounded-r-xl">
                         {{ $usage->satuan }}
                     </span>
