@@ -817,7 +817,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ==========================================
-    // CLIENT-SIDE TABLE COLUMN SORTING PADA HASIL DATA
+    // HIGH-PERFORMANCE CLIENT-SIDE TABLE COLUMN SORTING PADA HASIL DATA
     // ==========================================
     const dataTables = document.querySelectorAll('#data-table-container table');
     dataTables.forEach((table) => {
@@ -826,14 +826,14 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!thead || !tbody) return;
 
         const thList = thead.querySelectorAll('th');
+        let isSorting = false;
+
         thList.forEach((th, colIdx) => {
-            // Berikan cursor pointer & style hover
             th.style.cursor = 'pointer';
             th.style.userSelect = 'none';
             th.classList.add('hover:bg-slate-100', 'transition-colors');
             th.title = 'Klik untuk mengurutkan (A-Z / 0-9)';
 
-            // Tambahkan wrapper dan ikon sort
             const originalContent = th.innerHTML;
             th.innerHTML = `
                 <div class="inline-flex items-center gap-1.5 justify-between w-full">
@@ -843,10 +843,12 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
 
             th.addEventListener('click', () => {
+                if (isSorting) return;
+
                 const currentOrder = th.getAttribute('data-sort-order') || 'none';
                 const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
 
-                // Reset semua th lainnya
+                // Reset indikator di header lain
                 thList.forEach(otherTh => {
                     otherTh.removeAttribute('data-sort-order');
                     const otherIcon = otherTh.querySelector('.sort-icon');
@@ -855,57 +857,83 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
 
-                // Update th yang diklik
+                // Update ikon aktif
                 th.setAttribute('data-sort-order', newOrder);
                 const icon = th.querySelector('.sort-icon');
                 if (icon) {
-                    icon.className = newOrder === 'asc' 
-                        ? 'sort-icon bi bi-sort-down-alt text-xs text-blue-600 font-black shrink-0' 
+                    icon.className = newOrder === 'asc'
+                        ? 'sort-icon bi bi-sort-down-alt text-xs text-blue-600 font-black shrink-0'
                         : 'sort-icon bi bi-sort-up text-xs text-blue-600 font-black shrink-0';
                 }
 
-                // Ambil semua baris tr yang valid (kecuali baris pesan kosong/colspan)
-                const rows = Array.from(tbody.querySelectorAll('tr')).filter(tr => tr.children.length > 1);
-                if (rows.length <= 1) return;
+                // Ambil semua tr valid
+                const trElements = Array.from(tbody.querySelectorAll('tr')).filter(tr => tr.children.length > 1);
+                if (trElements.length <= 1) return;
 
-                rows.sort((rowA, rowB) => {
-                    const cellA = rowA.children[colIdx]?.innerText.trim() || '';
-                    const cellB = rowB.children[colIdx]?.innerText.trim() || '';
+                isSorting = true;
+                table.style.opacity = '0.5';
 
-                    // 1. Parsing tanggal DD/MM/YYYY
-                    const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
-                    const matchA = cellA.match(dateRegex);
-                    const matchB = cellB.match(dateRegex);
-                    if (matchA && matchB) {
-                        const dateA = new Date(matchA[3], matchA[2] - 1, matchA[1]).getTime();
-                        const dateB = new Date(matchB[3], matchB[2] - 1, matchB[1]).getTime();
-                        return newOrder === 'asc' ? dateA - dateB : dateB - dateA;
-                    }
+                // Gunakan requestAnimationFrame + setTimeout agar browser me-render perubahan ikon terlebih dahulu dan tidak hang
+                requestAnimationFrame(() => {
+                    setTimeout(() => {
+                        const dateRegex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
 
-                    // 2. Parsing angka murni (stok, jumlah, tahun, dll)
-                    const cleanA = cellA.replace(/[^0-9.,-]/g, '').replace(',', '.');
-                    const cleanB = cellB.replace(/[^0-9.,-]/g, '').replace(',', '.');
-                    const numA = parseFloat(cleanA);
-                    const numB = parseFloat(cleanB);
+                        // 1. PRE-COMPUTE & CACHE VALUES (O(N)):
+                        // Membaca teks cell 1x saja, bukan berulang-ulang di dalam O(N log N) sorting loop
+                        const items = trElements.map(tr => {
+                            const raw = (tr.children[colIdx]?.textContent || '').trim();
+                            let parsedType = 'string';
+                            let parsedVal = raw.toLowerCase();
 
-                    if (!isNaN(numA) && !isNaN(numB) && cleanA !== '' && cleanB !== '' && !cleanA.includes('/') && !cleanB.includes('/')) {
-                        return newOrder === 'asc' ? numA - numB : numB - numA;
-                    }
+                            const dateMatch = raw.match(dateRegex);
+                            if (dateMatch) {
+                                parsedType = 'date';
+                                parsedVal = new Date(dateMatch[3], dateMatch[2] - 1, dateMatch[1]).getTime();
+                            } else {
+                                const cleanNum = raw.replace(/[^0-9.,-]/g, '').replace(',', '.');
+                                const num = parseFloat(cleanNum);
+                                if (!isNaN(num) && cleanNum !== '' && !cleanNum.includes('/') && !raw.includes('/')) {
+                                    parsedType = 'number';
+                                    parsedVal = num;
+                                }
+                            }
 
-                    // 3. String alfabetis
-                    return newOrder === 'asc'
-                        ? cellA.localeCompare(cellB, 'id', { numeric: true, sensitivity: 'base' })
-                        : cellB.localeCompare(cellA, 'id', { numeric: true, sensitivity: 'base' });
-                });
+                            return {
+                                tr: tr,
+                                noCell: tr.children[0],
+                                type: parsedType,
+                                val: parsedVal
+                            };
+                        });
 
-                // Masukkan kembali row yang sudah diurutkan
-                rows.forEach((row, i) => {
-                    tbody.appendChild(row);
-                    // Update nomor urut di kolom No (indeks 0) jika berisi angka
-                    const noCell = row.children[0];
-                    if (noCell && /^\d+$/.test(noCell.innerText.trim())) {
-                        noCell.innerText = i + 1;
-                    }
+                        // 2. FAST IN-MEMORY SORT
+                        items.sort((a, b) => {
+                            if (a.type === 'number' && b.type === 'number') {
+                                return newOrder === 'asc' ? a.val - b.val : b.val - a.val;
+                            }
+                            if (a.type === 'date' && b.type === 'date') {
+                                return newOrder === 'asc' ? a.val - b.val : b.val - a.val;
+                            }
+                            if (a.val < b.val) return newOrder === 'asc' ? -1 : 1;
+                            if (a.val > b.val) return newOrder === 'asc' ? 1 : -1;
+                            return 0;
+                        });
+
+                        // 3. FAST BATCH DOM RE-INSERTION dengan DocumentFragment (hanya 1x reflow layout)
+                        const fragment = document.createDocumentFragment();
+                        const len = items.length;
+                        for (let i = 0; i < len; i++) {
+                            const item = items[i];
+                            if (item.noCell && /^\d+$/.test(item.noCell.textContent.trim())) {
+                                item.noCell.textContent = i + 1;
+                            }
+                            fragment.appendChild(item.tr);
+                        }
+                        tbody.appendChild(fragment);
+
+                        table.style.opacity = '1';
+                        isSorting = false;
+                    }, 10);
                 });
             });
         });
