@@ -37,6 +37,9 @@
 
         .kop-surat {
             width: 100%;
+            max-width: 180mm;
+            margin-left: auto;
+            margin-right: auto;
             margin-bottom: 8px;
         }
 

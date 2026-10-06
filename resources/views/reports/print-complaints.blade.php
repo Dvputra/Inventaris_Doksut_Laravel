@@ -33,11 +33,14 @@
             color: #000000;
         }
 
-        /* Kop Surat Resmi (Template DOCX) */
+        /* Kop Surat Resmi (Maksimal Ukuran A4 dengan Margin Normal) */
         .kop-surat {
             padding-bottom: 4px;
             margin-bottom: 12px;
             width: 100%;
+            max-width: 180mm; /* Standar lebar dokumen A4 dikurangi margin normal */
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .kop-img {

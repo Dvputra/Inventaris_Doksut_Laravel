@@ -86,9 +86,12 @@
             background-color: #0369a1;
         }
 
-        /* Kop Surat Resmi (Sesuai DOCX Template SMK Dr. Sutomo) */
+        /* Kop Surat Resmi (Maksimal Ukuran A4 dengan Margin Normal) */
         .kop-surat {
             width: 100%;
+            max-width: 180mm;
+            margin-left: auto;
+            margin-right: auto;
             margin-bottom: 12px;
             padding-bottom: 2px;
         }
