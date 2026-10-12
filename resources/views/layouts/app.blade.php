@@ -157,6 +157,11 @@
                             <i class="bi bi-file-earmark-ruled-fill text-base text-amber-400 shrink-0"></i>
                             <span>Berita Acara</span>
                         </a>
+                        <a href="{{ route('inventory-audits.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('inventory-audits.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                            <i class="bi bi-clipboard-check-fill text-base text-amber-400 shrink-0"></i>
+                            <span>Audit Inventaris</span>
+                        </a>
                     </nav>
                 </div>
             @endif
@@ -182,6 +187,13 @@
                         <i class="bi bi-droplet-half text-base {{ request()->routeIs('usages.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
                         <span>Pemakaian Bahan</span>
                     </a>
+                    @if(Auth::user()->isJurusan())
+                        <a href="{{ route('inventory-audits.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('inventory-audits.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                            <i class="bi bi-clipboard-check text-base {{ request()->routeIs('inventory-audits.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
+                            <span>Audit Inventaris</span>
+                        </a>
+                    @endif
                     @if(Auth::user()->isPembantuSarpras())
                         <a href="{{ route('reports.index') }}" 
                            class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('reports.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">

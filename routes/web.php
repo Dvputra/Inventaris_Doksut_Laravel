@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BorrowingController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\InventoryAuditController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\ItemRestockController;
 use App\Http\Controllers\ItemUnitController;
@@ -127,6 +128,32 @@ Route::middleware('auth')->group(function () {
         ->middleware('role:sarpras,pembantu_sarpras,jurusan');
     Route::delete('/official-reports/{officialReport}/cancel-signature', [OfficialReportController::class, 'cancelSignature'])
         ->name('official-reports.cancel-signature')
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah,jurusan');
+
+    // Audit Inventaris & Verifikasi Fisik Barang (Sarpras & Unit Kerja)
+    Route::resource('inventory-audits', InventoryAuditController::class)
+        ->parameters(['inventory-audits' => 'inventoryAudit'])
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah,jurusan');
+    Route::post('/inventory-audits/{inventoryAudit}/pull-items', [InventoryAuditController::class, 'pullItems'])
+        ->name('inventory-audits.pull-items')
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+    Route::put('/inventory-audits/{inventoryAudit}/items', [InventoryAuditController::class, 'updateItems'])
+        ->name('inventory-audits.update-items')
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+    Route::patch('/inventory-audits/{inventoryAudit}/unlock', [InventoryAuditController::class, 'unlock'])
+        ->name('inventory-audits.unlock')
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+    Route::patch('/inventory-audits/{inventoryAudit}/sign-auditor', [InventoryAuditController::class, 'signAuditor'])
+        ->name('inventory-audits.sign-auditor')
+        ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah');
+    Route::patch('/inventory-audits/{inventoryAudit}/sign-auditee', [InventoryAuditController::class, 'signAuditee'])
+        ->name('inventory-audits.sign-auditee')
+        ->middleware('role:sarpras,pembantu_sarpras,jurusan');
+    Route::delete('/inventory-audits/{inventoryAudit}/cancel-signature', [InventoryAuditController::class, 'cancelSignature'])
+        ->name('inventory-audits.cancel-signature')
+        ->middleware('role:sarpras,pembantu_sarpras,jurusan');
+    Route::get('/inventory-audits/{inventoryAudit}/print', [InventoryAuditController::class, 'print'])
+        ->name('inventory-audits.print')
         ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah,jurusan');
 
     // Kelola Akun Pengguna (Hanya Admin Sarpras)
