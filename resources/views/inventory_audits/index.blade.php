@@ -214,13 +214,11 @@
                                         <i class="bi bi-printer"></i>
                                     </a>
                                     @if(Auth::user()->isSarprasOrKepalaSekolah() && $audit->status === 'draft')
-                                        <form action="{{ route('inventory-audits.destroy', $audit) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus sesi audit ini?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all" title="Hapus Audit">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button" 
+                                                onclick="openDeleteAuditModal('{{ route('inventory-audits.destroy', $audit) }}', '{{ $audit->audit_code }}', '{{ addslashes($audit->judul) }}')"
+                                                class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all" title="Hapus Audit">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
                                     @endif
                                 </div>
                             </td>
@@ -244,4 +242,81 @@
         @endif
     </div>
 </div>
+
+<!-- MODAL KONFIRMASI HAPUS AUDIT (SESUAI TEMA APLIKASI) -->
+<div id="deleteAuditModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true">
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all">
+        <!-- Accent Top Stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-amber-500 to-rose-400"></div>
+
+        <div class="p-6 text-center">
+            <button type="button" onclick="closeDeleteAuditModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+
+            <!-- Icon Ring -->
+            <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shadow-xs">
+                <i class="bi bi-trash3 text-2xl"></i>
+            </div>
+
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1.5">Hapus Sesi Audit</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-4 leading-relaxed">
+                Apakah Anda yakin ingin menghapus arsip audit <strong id="deleteAuditCodeText" class="text-slate-800"></strong>?
+            </p>
+
+            <!-- Warning Box -->
+            <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-left mb-5 text-xs text-rose-800 leading-relaxed flex items-start gap-2.5">
+                <i class="bi bi-exclamation-triangle-fill text-rose-500 text-sm shrink-0 mt-0.5"></i>
+                <div class="space-y-0.5">
+                    <p class="font-bold text-rose-900">Perhatian:</p>
+                    <p id="deleteAuditTitleText" class="text-rose-700">Seluruh checklist pemeriksaan barang di sesi audit ini akan dihapus secara permanen.</p>
+                </div>
+            </div>
+
+            <form id="deleteAuditForm" method="POST" action="" class="m-0">
+                @csrf
+                @method('DELETE')
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button type="button" onclick="closeDeleteAuditModal()" 
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all active:scale-95">
+                        Batal
+                    </button>
+                    <button type="submit" 
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-trash3 text-sm"></i>
+                        <span>Ya, Hapus Audit</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+function openDeleteAuditModal(actionUrl, code, title) {
+    const modal = document.getElementById('deleteAuditModal');
+    const form = document.getElementById('deleteAuditForm');
+    const codeEl = document.getElementById('deleteAuditCodeText');
+    const titleEl = document.getElementById('deleteAuditTitleText');
+
+    if (modal && form) {
+        form.action = actionUrl;
+        if (codeEl) codeEl.textContent = code;
+        if (titleEl) titleEl.textContent = 'Seluruh checklist barang pada "' + title + '" akan dihapus secara permanen.';
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeDeleteAuditModal() {
+    const modal = document.getElementById('deleteAuditModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+// Close on backdrop click
+document.getElementById('deleteAuditModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteAuditModal();
+});
+</script>
+@endpush
 @endsection

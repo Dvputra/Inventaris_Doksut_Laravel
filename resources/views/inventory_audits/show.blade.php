@@ -35,12 +35,12 @@
             @if(Auth::user()->isSarprasOrKepalaSekolah() && $inventoryAudit->status !== 'final')
                 @if($inventoryAudit->status === 'draft')
                     <!-- Tarik Ulang Data Barang -->
-                    <form action="{{ route('inventory-audits.pull-items', $inventoryAudit) }}" method="POST" onsubmit="return confirm('Tarik ulang data barang akan mereset checklist pemeriksaan saat ini. Lanjutkan?');">
+                    <button type="button" onclick="openPullItemsModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold text-xs transition-colors" title="Sinkronkan dengan master barang terbaru">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <span>Tarik Ulang Data</span>
+                    </button>
+                    <form id="pullItemsForm" action="{{ route('inventory-audits.pull-items', $inventoryAudit) }}" method="POST" class="hidden">
                         @csrf
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold text-xs transition-colors" title="Sinkronkan dengan master barang terbaru">
-                            <i class="bi bi-arrow-repeat"></i>
-                            <span>Tarik Ulang Data</span>
-                        </button>
                     </form>
                 @elseif($inventoryAudit->status === 'selesai' && !$inventoryAudit->ttd_auditor && !$inventoryAudit->ttd_auditee)
                     <!-- Buka Kunci Audit -->
@@ -106,11 +106,11 @@
                         <div class="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
                             <span class="text-[10px] text-slate-400">Waktu: {{ $inventoryAudit->ttd_auditor_at->format('d/m/Y H:i') }}</span>
                             @if(Auth::user()->isStaffSarpras() && $inventoryAudit->status !== 'final')
-                                <form action="{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditor']) }}" method="POST" onsubmit="return confirm('Batalkan tanda tangan Auditor?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-[10px] text-rose-600 hover:underline font-bold">Batalkan TTD</button>
-                                </form>
+                                <button type="button" 
+                                        onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditor']) }}', 'Auditor (Sarpras)')"
+                                        class="text-[10px] text-rose-600 hover:underline font-bold">
+                                    Batalkan TTD
+                                </button>
                             @endif
                         </div>
                     @endif
@@ -133,11 +133,11 @@
                         <div class="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
                             <span class="text-[10px] text-slate-400">Waktu: {{ $inventoryAudit->ttd_auditee_at->format('d/m/Y H:i') }}</span>
                             @if((Auth::user()->isJurusan() || Auth::user()->isStaffSarpras()) && $inventoryAudit->status !== 'final')
-                                <form action="{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditee']) }}" method="POST" onsubmit="return confirm('Batalkan tanda tangan Auditee?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-[10px] text-rose-600 hover:underline font-bold">Batalkan TTD</button>
-                                </form>
+                                <button type="button" 
+                                        onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditee']) }}', 'Penanggung Jawab Unit Kerja (Auditee)')"
+                                        class="text-[10px] text-rose-600 hover:underline font-bold">
+                                    Batalkan TTD
+                                </button>
                             @endif
                         </div>
                     @endif
@@ -236,7 +236,7 @@
 
         @if(Auth::user()->isSarprasOrKepalaSekolah() && $inventoryAudit->status === 'draft')
             <!-- Form Pengisian Verifikasi (Mode Edit Draft) -->
-            <form action="{{ route('inventory-audits.update-items', $inventoryAudit) }}" method="POST">
+            <form id="auditItemsForm" action="{{ route('inventory-audits.update-items', $inventoryAudit) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -331,8 +331,8 @@
                                 class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition-colors">
                             <i class="bi bi-floppy mr-1"></i> Simpan Sementara (Draft)
                         </button>
-                        <button type="submit" name="action" value="complete" 
-                                onclick="return confirm('Apakah Anda yakin ingin menyelesaikan dan mengunci audit ini? Data hasil verifikasi tidak dapat diubah setelah dikunci.');"
+                        <button type="button" 
+                                onclick="openCompleteAuditModal()"
                                 class="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all active:scale-95">
                             <i class="bi bi-check2-circle mr-1"></i> Selesaikan &amp; Kunci Audit
                         </button>
@@ -560,10 +560,246 @@
     </div>
 </div>
 
+<!-- MODAL KONFIRMASI SELESAIKAN & KUNCI AUDIT (SESUAI TEMA APLIKASI) -->
+<div id="completeAuditModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true" aria-labelledby="completeAuditModalTitle">
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all animate-in fade-in zoom-in-95 duration-150">
+        <!-- Accent Top Stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-500"></div>
+
+        <div class="p-6 text-center">
+            <!-- Close Button in corner -->
+            <button type="button" onclick="closeCompleteAuditModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Tutup">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+
+            <!-- Icon with urgency ring -->
+            <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shadow-xs">
+                <i class="bi bi-check2-circle text-2xl"></i>
+            </div>
+
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1.5" id="completeAuditModalTitle">Selesaikan &amp; Kunci Audit</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-4 leading-relaxed">
+                Apakah Anda yakin ingin menyelesaikan dan mengunci sesi audit inventaris ini?
+            </p>
+
+            <!-- Warning Detail Box -->
+            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-left mb-5 text-xs text-emerald-800 leading-relaxed flex items-start gap-2.5">
+                <i class="bi bi-lock-fill text-emerald-600 text-sm shrink-0 mt-0.5"></i>
+                <div class="space-y-0.5">
+                    <p class="font-bold text-emerald-950">Catatan Penting:</p>
+                    <p class="text-emerald-800 text-[11px]">Setelah dikunci, hasil verifikasi fisik barang akan dibekukan untuk proses penandatanganan Berita Acara Audit oleh Auditor &amp; Auditee.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+                <button type="button" onclick="closeCompleteAuditModal()" 
+                        class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all active:scale-95">
+                    Batal
+                </button>
+                <button type="button" onclick="submitCompleteAudit()" 
+                        class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                    <i class="bi bi-check-lg text-sm"></i>
+                    <span>Ya, Kunci Audit</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL KONFIRMASI TARIK ULANG DATA (SESUAI TEMA APLIKASI) -->
+<div id="pullItemsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true" aria-labelledby="pullItemsModalTitle">
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all animate-in fade-in zoom-in-95 duration-150">
+        <!-- Accent Top Stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-400"></div>
+
+        <div class="p-6 text-center">
+            <!-- Close Button in corner -->
+            <button type="button" onclick="closePullItemsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Tutup">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+
+            <!-- Icon with urgency ring -->
+            <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shadow-xs">
+                <i class="bi bi-arrow-repeat text-2xl"></i>
+            </div>
+
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1.5" id="pullItemsModalTitle">Tarik Ulang Data Barang</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-4 leading-relaxed">
+                Apakah Anda ingin menarik ulang data aset dari unit kerja ini?
+            </p>
+
+            <!-- Warning Detail Box -->
+            <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-left mb-5 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
+                <i class="bi bi-exclamation-triangle-fill text-amber-600 text-sm shrink-0 mt-0.5"></i>
+                <div class="space-y-0.5">
+                    <p class="font-bold text-amber-950">Perhatian:</p>
+                    <p class="text-amber-800 text-[11px]">Daftar barang akan disinkronkan kembali dengan data master barang terkini. Hasil checklist yang belum disimpan permanen mungkin akan direset.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+                <button type="button" onclick="closePullItemsModal()" 
+                        class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all active:scale-95">
+                    Batal
+                </button>
+                <button type="button" onclick="submitPullItems()" 
+                        class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-md shadow-amber-500/20 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                    <i class="bi bi-arrow-repeat text-sm"></i>
+                    <span>Tarik Sekarang</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL KONFIRMASI PEMBATALAN TANDA TANGAN (SESUAI TEMA APLIKASI) -->
+<div id="cancelAuditSignatureModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true" aria-labelledby="cancelAuditSigTitle">
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all animate-in fade-in zoom-in-95 duration-150">
+        <!-- Accent Top Stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-rose-600 via-amber-500 to-amber-400"></div>
+
+        <div class="p-6 text-center">
+            <!-- Close Button in corner -->
+            <button type="button" onclick="closeCancelAuditSignatureModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Tutup">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+
+            <!-- Icon with urgency ring -->
+            <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 border border-rose-200 flex items-center justify-center shadow-xs">
+                <i class="bi bi-arrow-counterclockwise text-2xl"></i>
+            </div>
+
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1.5" id="cancelAuditSigTitle">Batalkan Tanda Tangan</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-4 leading-relaxed" id="cancelAuditSigDescription">
+                Apakah Anda yakin ingin membatalkan tanda tangan ini?
+            </p>
+
+            <!-- Warning Detail Box -->
+            <div class="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200/80 text-left mb-5 text-xs text-rose-800 leading-relaxed flex items-start gap-2.5">
+                <i class="bi bi-exclamation-triangle-fill text-rose-500 text-sm shrink-0 mt-0.5"></i>
+                <div class="space-y-0.5">
+                    <p class="font-bold text-rose-900">Perhatian:</p>
+                    <p id="cancelAuditSigSubtext" class="text-rose-700 text-[11px]">Tanda tangan digital akan dihapus dari dokumen Berita Acara Audit ini.</p>
+                </div>
+            </div>
+
+            <form id="cancelAuditSignatureForm" method="POST" action="" class="m-0">
+                @csrf
+                @method('DELETE')
+                <div class="grid grid-cols-2 gap-3 pt-1">
+                    <button type="button" onclick="closeCancelAuditSignatureModal()" 
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all active:scale-95">
+                        Batal
+                    </button>
+                    <button type="submit" 
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-md shadow-rose-200 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                        <i class="bi bi-arrow-counterclockwise text-sm"></i>
+                        <span>Ya, Batalkan</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 let auditorPad = null;
 let auditeePad = null;
+
+// Complete / Lock Audit Modal Functions
+function openCompleteAuditModal() {
+    const modal = document.getElementById('completeAuditModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+function closeCompleteAuditModal() {
+    const modal = document.getElementById('completeAuditModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+function submitCompleteAudit() {
+    const form = document.getElementById('auditItemsForm');
+    if (!form) return;
+    
+    // Set or create hidden action input
+    let actionInput = form.querySelector('input[name="action"]');
+    if (!actionInput) {
+        actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        form.appendChild(actionInput);
+    }
+    actionInput.value = 'complete';
+    form.submit();
+}
+
+// Pull Items Modal Functions
+function openPullItemsModal() {
+    const modal = document.getElementById('pullItemsModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+function closePullItemsModal() {
+    const modal = document.getElementById('pullItemsModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+function submitPullItems() {
+    const form = document.getElementById('pullItemsForm');
+    if (form) {
+        form.submit();
+    }
+}
+
+// Cancel Signature Modal Functions
+function openCancelAuditSignatureModal(actionUrl, roleName) {
+    const modal = document.getElementById('cancelAuditSignatureModal');
+    const form = document.getElementById('cancelAuditSignatureForm');
+    const desc = document.getElementById('cancelAuditSigDescription');
+    const subtext = document.getElementById('cancelAuditSigSubtext');
+
+    if (form && actionUrl) {
+        form.action = actionUrl;
+    }
+    if (desc && roleName) {
+        desc.textContent = `Apakah Anda yakin ingin membatalkan tanda tangan ${roleName}?`;
+    }
+    if (subtext && roleName) {
+        subtext.textContent = `Tanda tangan digital ${roleName} akan dihapus dan perlu ditandatangani ulang.`;
+    }
+
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+function closeCancelAuditSignatureModal() {
+    const modal = document.getElementById('cancelAuditSignatureModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+
+// Close modals when clicking backdrop
+window.addEventListener('click', function(e) {
+    const completeModal = document.getElementById('completeAuditModal');
+    const pullModal = document.getElementById('pullItemsModal');
+    const cancelModal = document.getElementById('cancelAuditSignatureModal');
+    
+    if (e.target === completeModal) closeCompleteAuditModal();
+    if (e.target === pullModal) closePullItemsModal();
+    if (e.target === cancelModal) closeCancelAuditSignatureModal();
+});
 
 function setupCanvas(canvasId) {
     const canvas = document.getElementById(canvasId);
