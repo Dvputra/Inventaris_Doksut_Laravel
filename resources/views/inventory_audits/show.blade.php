@@ -32,7 +32,7 @@
                 <span>Cetak Dokumen (A4)</span>
             </a>
 
-            @if(Auth::user()->isSarprasOrKepalaSekolah() && $inventoryAudit->status !== 'final')
+            @if(Auth::user()->isSarprasOrKepalaSekolah())
                 @if($inventoryAudit->status === 'draft')
                     <!-- Tarik Ulang Data Barang -->
                     <button type="button" onclick="openPullItemsModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 font-bold text-xs transition-colors" title="Sinkronkan dengan master barang terbaru">
@@ -42,8 +42,8 @@
                     <form id="pullItemsForm" action="{{ route('inventory-audits.pull-items', $inventoryAudit) }}" method="POST" class="hidden">
                         @csrf
                     </form>
-                @elseif($inventoryAudit->status !== 'draft')
-                    <!-- Buka Kunci Audit -->
+                @else
+                    <!-- Buka Kunci Audit (Bisa dibuka baik saat Selesai maupun Final) -->
                     <button type="button" onclick="openUnlockAuditModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs transition-colors">
                         <i class="bi bi-unlock"></i>
                         <span>Buka Kunci (Revisi)</span>
@@ -105,7 +105,7 @@
                     @if($inventoryAudit->ttd_auditor)
                         <div class="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
                             <span class="text-[10px] text-slate-400">Waktu: {{ $inventoryAudit->ttd_auditor_at->format('d/m/Y H:i') }}</span>
-                            @if(Auth::user()->isStaffSarpras() && $inventoryAudit->status !== 'final')
+                            @if(Auth::user()->isStaffSarpras())
                                 <button type="button" 
                                         onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditor']) }}', 'Auditor (Sarpras)')"
                                         class="text-[10px] text-rose-600 hover:underline font-bold">
@@ -132,7 +132,7 @@
                     @if($inventoryAudit->ttd_auditee)
                         <div class="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
                             <span class="text-[10px] text-slate-400">Waktu: {{ $inventoryAudit->ttd_auditee_at->format('d/m/Y H:i') }}</span>
-                            @if((Auth::user()->isJurusan() || Auth::user()->isStaffSarpras()) && $inventoryAudit->status !== 'final')
+                            @if(Auth::user()->isJurusan() || Auth::user()->isStaffSarpras())
                                 <button type="button" 
                                         onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditee']) }}', 'Penanggung Jawab Unit Kerja (Auditee)')"
                                         class="text-[10px] text-rose-600 hover:underline font-bold">
