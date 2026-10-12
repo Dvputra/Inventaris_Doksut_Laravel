@@ -42,15 +42,15 @@
                     <form id="pullItemsForm" action="{{ route('inventory-audits.pull-items', $inventoryAudit) }}" method="POST" class="hidden">
                         @csrf
                     </form>
-                @elseif($inventoryAudit->status === 'selesai' && !$inventoryAudit->ttd_auditor && !$inventoryAudit->ttd_auditee)
+                @elseif($inventoryAudit->status !== 'draft')
                     <!-- Buka Kunci Audit -->
-                    <form action="{{ route('inventory-audits.unlock', $inventoryAudit) }}" method="POST">
+                    <button type="button" onclick="openUnlockAuditModal()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs transition-colors">
+                        <i class="bi bi-unlock"></i>
+                        <span>Buka Kunci (Revisi)</span>
+                    </button>
+                    <form id="unlockAuditForm" action="{{ route('inventory-audits.unlock', $inventoryAudit) }}" method="POST" class="hidden">
                         @csrf
                         @method('PATCH')
-                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs transition-colors">
-                            <i class="bi bi-unlock"></i>
-                            <span>Buka Kunci (Revisi)</span>
-                        </button>
                     </form>
                 @endif
             @endif
@@ -702,10 +702,86 @@
     </div>
 </div>
 
+<!-- MODAL KONFIRMASI BUKA KUNCI AUDIT (SESUAI TEMA APLIKASI) -->
+<div id="unlockAuditModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity" role="dialog" aria-modal="true" aria-labelledby="unlockAuditModalTitle">
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transform transition-all animate-in fade-in zoom-in-95 duration-150">
+        <!-- Accent Top Stripe -->
+        <div class="h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500"></div>
+
+        <div class="p-6 text-center">
+            <!-- Close Button in corner -->
+            <button type="button" onclick="closeUnlockAuditModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors" aria-label="Tutup">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+
+            <!-- Icon with urgency ring -->
+            <div class="mx-auto mb-4 w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shadow-xs">
+                <i class="bi bi-unlock-fill text-2xl"></i>
+            </div>
+
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1.5" id="unlockAuditModalTitle">Buka Kunci Sesi Audit</h3>
+            <p class="text-xs sm:text-sm text-slate-500 mb-4 leading-relaxed">
+                Apakah Anda yakin ingin membuka kembali sesi audit ini ke status <strong>Draft (Mode Revisi)</strong>?
+            </p>
+
+            @if($inventoryAudit->ttd_auditor || $inventoryAudit->ttd_auditee)
+                <!-- Warning Detail Box jika sudah ada TTD -->
+                <div class="p-3.5 rounded-2xl bg-rose-50/80 border border-rose-200/90 text-left mb-5 text-xs text-rose-800 leading-relaxed flex items-start gap-2.5">
+                    <i class="bi bi-exclamation-triangle-fill text-rose-500 text-sm shrink-0 mt-0.5"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold text-rose-950">Konsekuensi Tanda Tangan:</p>
+                        <p class="text-rose-700 text-[11px]">Audit ini telah ditandatangani. Membuka kunci akan <strong>mereset tanda tangan</strong> yang ada, sehingga dokumen perlu ditandatangani ulang setelah revisi selesai.</p>
+                    </div>
+                </div>
+            @else
+                <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-left mb-5 text-xs text-amber-800 leading-relaxed flex items-start gap-2.5">
+                    <i class="bi bi-info-circle-fill text-amber-600 text-sm shrink-0 mt-0.5"></i>
+                    <div class="space-y-0.5">
+                        <p class="font-bold text-amber-950">Mode Revisi:</p>
+                        <p class="text-amber-800 text-[11px]">Anda dapat mengubah kembali kuantitas fisik, kondisi, dan status verifikasi per barang.</p>
+                    </div>
+                </div>
+            @endif
+
+            <div class="grid grid-cols-2 gap-3 pt-1">
+                <button type="button" onclick="closeUnlockAuditModal()" 
+                        class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition-all active:scale-95">
+                    Batal
+                </button>
+                <button type="button" onclick="submitUnlockAudit()" 
+                        class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 shadow-md shadow-amber-500/20 transition-all flex items-center justify-center gap-1.5 active:scale-95">
+                    <i class="bi bi-unlock text-sm"></i>
+                    <span>Ya, Buka Kunci</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
 <script>
 let auditorPad = null;
 let auditeePad = null;
+
+// Unlock Audit Modal Functions
+function openUnlockAuditModal() {
+    const modal = document.getElementById('unlockAuditModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+}
+function closeUnlockAuditModal() {
+    const modal = document.getElementById('unlockAuditModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+}
+function submitUnlockAudit() {
+    const form = document.getElementById('unlockAuditForm');
+    if (form) form.submit();
+}
 
 // Complete / Lock Audit Modal Functions
 function openCompleteAuditModal() {
@@ -792,10 +868,12 @@ function closeCancelAuditSignatureModal() {
 
 // Close modals when clicking backdrop
 window.addEventListener('click', function(e) {
+    const unlockModal = document.getElementById('unlockAuditModal');
     const completeModal = document.getElementById('completeAuditModal');
     const pullModal = document.getElementById('pullItemsModal');
     const cancelModal = document.getElementById('cancelAuditSignatureModal');
     
+    if (e.target === unlockModal) closeUnlockAuditModal();
     if (e.target === completeModal) closeCompleteAuditModal();
     if (e.target === pullModal) closePullItemsModal();
     if (e.target === cancelModal) closeCancelAuditSignatureModal();

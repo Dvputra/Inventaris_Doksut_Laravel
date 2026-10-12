@@ -247,13 +247,29 @@ class InventoryAuditController extends Controller
             abort(403, 'Hanya Sarpras yang berwenang membuka kunci audit.');
         }
 
-        if ($inventoryAudit->ttd_auditor || $inventoryAudit->ttd_auditee) {
-            return back()->with('error', 'Audit yang sudah ditandatangani tidak dapat dibuka kunci. Batalkan tanda tangan terlebih dahulu.');
+        $hadSignatures = $inventoryAudit->ttd_auditor || $inventoryAudit->ttd_auditee;
+
+        // Jika terdapat tanda tangan, hapus file gambar tanda tangan audit dari storage jika tersimpan lokal
+        if ($inventoryAudit->ttd_auditor && Storage::disk('public')->exists($inventoryAudit->ttd_auditor)) {
+            Storage::disk('public')->delete($inventoryAudit->ttd_auditor);
+        }
+        if ($inventoryAudit->ttd_auditee && Storage::disk('public')->exists($inventoryAudit->ttd_auditee)) {
+            Storage::disk('public')->delete($inventoryAudit->ttd_auditee);
         }
 
-        $inventoryAudit->update(['status' => 'draft']);
+        $inventoryAudit->update([
+            'status' => 'draft',
+            'ttd_auditor' => null,
+            'ttd_auditor_at' => null,
+            'ttd_auditee' => null,
+            'ttd_auditee_at' => null,
+        ]);
 
-        return back()->with('success', 'Kunci audit berhasil dibuka kembali ke status Draft.');
+        $msg = $hadSignatures
+            ? 'Kunci audit berhasil dibuka kembali ke status Draft. Tanda tangan sebelumnya telah direset untuk ditandatangani ulang setelah revisi selesai.'
+            : 'Kunci audit berhasil dibuka kembali ke status Draft.';
+
+        return back()->with('success', $msg);
     }
 
     /**

@@ -263,6 +263,14 @@
                 </table>
             </div>
 
+            <!-- Tombol Tambah Baris Barang di Bawah Tabel (Mudah dijangkau saat input banyak) -->
+            <div class="pt-1">
+                <button type="button" id="addItemRowBtnBottom" class="w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-blue-200 hover:border-blue-400 bg-blue-50/50 hover:bg-blue-50 text-blue-700 font-bold text-xs flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+                    <i class="bi bi-plus-circle-fill text-sm"></i>
+                    <span>Tambah Baris Barang Lagi (+ Di Bawah)</span>
+                </button>
+            </div>
+
             <!-- Total Nilai Penjualan (Hanya Muncul jika Penjualan) -->
             <div id="totalPenjualanBox" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 {{ $officialReport->jenis === 'penjualan' ? 'flex' : 'hidden' }} items-center justify-between">
                 <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Total Hasil Penjualan:</span>
@@ -449,9 +457,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // Dynamic Row Add
     let rowIdx = {{ count($formItems) }};
     const addItemRowBtn = document.getElementById('addItemRowBtn');
+    const addItemRowBtnBottom = document.getElementById('addItemRowBtnBottom');
     const tableBody = document.getElementById('itemsTableBody');
 
-    addItemRowBtn.addEventListener('click', function () {
+    function addRow() {
         const isJual = jenisSelect.value === 'penjualan';
         const kondisiOpts = getKondisiOptions(jenisSelect.value);
         const tr = document.createElement('tr');
@@ -493,7 +502,14 @@ document.addEventListener('DOMContentLoaded', function () {
         tableBody.appendChild(tr);
         rowIdx++;
         attachRowEvents();
-    });
+
+        // Fokuskan input nama barang yang baru ditambahkan
+        const newNamaInput = tr.querySelector('input[name*="[nama_barang]"]');
+        if (newNamaInput) newNamaInput.focus();
+    }
+
+    if (addItemRowBtn) addItemRowBtn.addEventListener('click', addRow);
+    if (addItemRowBtnBottom) addItemRowBtnBottom.addEventListener('click', addRow);
 
     function attachRowEvents() {
         document.querySelectorAll('.remove-row-btn').forEach(btn => {
