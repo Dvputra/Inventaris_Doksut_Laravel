@@ -229,9 +229,62 @@
 
             @if(Auth::user()->isSarprasOrKepalaSekolah() && $inventoryAudit->status === 'draft')
                 <div class="flex items-center gap-2">
-                    <span class="text-xs text-slate-500 font-medium hidden sm:inline">Mode Edit Aktif</span>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Mode Edit Aktif
+                    </span>
                 </div>
             @endif
+        </div>
+
+        @php
+            // Kumpulkan daftar kategori unik yang ada pada barang audit ini
+            $kategoriList = $inventoryAudit->items->pluck('kategori_nama')->filter()->unique()->values();
+        @endphp
+
+        <!-- BILAH PENCARIAN & FILTER KATEGORI BARANG (LIVE FILTER) -->
+        <div class="p-3.5 sm:p-4 bg-slate-50/80 border-b border-slate-200/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+                <!-- Search Box -->
+                <div class="relative flex-1 max-w-md">
+                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="auditSearchInput" placeholder="Cari nama, kode barang, atau ruang..." 
+                           class="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                </div>
+
+                <!-- Filter Kategori Dropdown -->
+                <div class="relative min-w-[170px]">
+                    <select id="auditKategoriFilter" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                        <option value="">Semua Kategori ({{ $inventoryAudit->items->count() }})</option>
+                        @foreach($kategoriList as $kat)
+                            @php
+                                $cnt = $inventoryAudit->items->where('kategori_nama', $kat)->count();
+                            @endphp
+                            <option value="{{ strtolower($kat) }}">{{ $kat }} ({{ $cnt }})</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Filter Status Verifikasi -->
+                <div class="relative min-w-[160px]">
+                    <select id="auditStatusFilter" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                        <option value="">Semua Status Fisik</option>
+                        <option value="sesuai">Fisik Sesuai</option>
+                        <option value="rusak">Kondisi Rusak</option>
+                        <option value="selisih">Selisih Kuantitas</option>
+                        <option value="hilang">Tidak Ditemukan / Hilang</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between sm:justify-end gap-2.5 text-[11px] text-slate-500 pt-1 sm:pt-0">
+                <span id="auditItemCountDisplay" class="font-medium text-slate-600">
+                    Menampilkan <strong id="visibleItemCount">{{ $inventoryAudit->items->count() }}</strong> dari {{ $inventoryAudit->items->count() }} barang
+                </span>
+                <button type="button" id="resetAuditFilterBtn" onclick="resetAuditFilters()" class="text-blue-600 hover:text-blue-700 font-bold hidden hover:underline">
+                    Reset Filter
+                </button>
+            </div>
         </div>
 
         @if(Auth::user()->isSarprasOrKepalaSekolah() && $inventoryAudit->status === 'draft')
@@ -241,11 +294,12 @@
                 @method('PUT')
 
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left text-xs text-slate-600">
+                    <table class="w-full text-left text-xs text-slate-600" id="auditItemsTable">
                         <thead class="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
                             <tr>
                                 <th class="py-3 px-3 w-10 text-center">No</th>
-                                <th class="py-3 px-3 w-44">Kode &amp; Nama Barang</th>
+                                <th class="py-3 px-3 w-44">Nama Barang &amp; Kode</th>
+                                <th class="py-3 px-3 w-32 text-center">Kategori Barang</th>
                                 <th class="py-3 px-3 w-28 text-center bg-slate-100/70">Kondisi &amp; Qty Sistem</th>
                                 <th class="py-3 px-3 w-28 text-center bg-blue-50/60 text-blue-900">Qty Fisik</th>
                                 <th class="py-3 px-3 w-32 bg-blue-50/60 text-blue-900">Kondisi Fisik</th>
@@ -253,19 +307,41 @@
                                 <th class="py-3 px-3">Catatan Temuan Lapangan</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody class="divide-y divide-slate-100" id="auditItemsTableBody">
                             @forelse($inventoryAudit->items as $idx => $item)
-                                <tr class="hover:bg-slate-50/50">
-                                    <td class="py-3 px-3 text-center text-slate-400 font-medium">
+                                <tr class="audit-row hover:bg-slate-50/50" 
+                                    data-nama="{{ strtolower($item->nama_barang) }}"
+                                    data-kode="{{ strtolower($item->kode_barang) }}"
+                                    data-ruang="{{ strtolower($item->lokasi_sistem ?? '') }}"
+                                    data-kategori="{{ strtolower($item->kategori_nama ?? '') }}"
+                                    data-status="{{ strtolower($item->status_verifikasi ?? 'sesuai') }}">
+                                    <td class="py-3 px-3 text-center text-slate-400 font-medium audit-row-num">
                                         {{ $idx + 1 }}
                                     </td>
                                     <td class="py-3 px-3">
                                         <span class="font-bold text-slate-900 block leading-snug">{{ $item->nama_barang }}</span>
                                         <div class="flex items-center gap-1.5 mt-0.5">
                                             <span class="font-mono text-[10px] text-blue-600 font-semibold">{{ $item->kode_barang }}</span>
-                                            <span class="text-[10px] text-slate-400">• {{ $item->kategori_nama }}</span>
                                         </div>
-                                        <span class="text-[10px] text-slate-500 block mt-0.5">Ruang: {{ $item->lokasi_sistem }}</span>
+                                        <span class="text-[10px] text-slate-500 block mt-0.5">Ruang: {{ $item->lokasi_sistem ?: '-' }}</span>
+                                    </td>
+                                    <td class="py-3 px-3 text-center">
+                                        @php
+                                            $katName = $item->kategori_nama ?: 'Umum';
+                                            $badgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                                            if (stripos($katName, 'kebersihan') !== false) {
+                                                $badgeClass = 'bg-teal-50 text-teal-700 border-teal-200';
+                                            } elseif (stripos($katName, 'atk') !== false) {
+                                                $badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                                            } elseif (stripos($katName, 'elektronik') !== false || stripos($katName, 'komputer') !== false) {
+                                                $badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+                                            } elseif (stripos($katName, 'mesin') !== false || stripos($katName, 'alat') !== false) {
+                                                $badgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                                            }
+                                        @endphp
+                                        <span class="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold border {{ $badgeClass }}">
+                                            {{ $katName }}
+                                        </span>
                                     </td>
                                     <td class="py-3 px-3 text-center bg-slate-50/50 font-medium">
                                         <span class="font-extrabold text-slate-800 text-sm">@formatJumlah($item->jumlah_sistem)</span>
@@ -296,6 +372,7 @@
                                     </td>
                                     <td class="py-3 px-3">
                                         <select name="items[{{ $item->id }}][status_verifikasi]" 
+                                                onchange="updateRowStatusData(this)"
                                                 class="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:border-blue-500 font-semibold">
                                             <option value="sesuai" {{ $item->status_verifikasi === 'sesuai' ? 'selected' : '' }}>Sesuai (Cocok)</option>
                                             <option value="rusak" {{ $item->status_verifikasi === 'rusak' ? 'selected' : '' }}>Rusak</option>
@@ -311,14 +388,34 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr>
-                                    <td colspan="7" class="py-8 text-center text-slate-400">
+                                <tr id="emptyAuditRow">
+                                    <td colspan="8" class="py-8 text-center text-slate-400">
                                         Tidak ada data barang di unit kerja ini.
                                     </td>
                                 </tr>
                             @endforelse
+                            <tr id="noFilterMatchRow" class="hidden">
+                                <td colspan="8" class="py-8 text-center text-slate-400">
+                                    <i class="bi bi-search text-2xl text-slate-300 block mb-1"></i>
+                                    Tidak ada barang yang cocok dengan filter / pencarian.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
+                </div>
+
+                <!-- Bagian Bawah: Catatan Khusus dari Sarpras -->
+                <div class="p-4 sm:p-5 bg-white border-t border-slate-200/80 space-y-2">
+                    <label for="catatanUmumField" class="block text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="bi bi-chat-left-text-fill text-blue-600"></i>
+                        <span>Catatan Khusus / Rekomendasi Hasil Audit dari Sarpras:</span>
+                    </label>
+                    <textarea name="catatan_umum" id="catatanUmumField" rows="3" 
+                              placeholder="Contoh: Seluruh barang dalam kondisi baik. Diperlukan pengadaan ulang 3 unit sapu dan pemeliharaan dinamo mesin bubut di ruang bengkel." 
+                              class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">{{ old('catatan_umum', $inventoryAudit->catatan_umum) }}</textarea>
+                    <p class="text-[11px] text-slate-400">
+                        Catatan ini akan tercantum di lembar pengesahan Berita Acara Audit dan terbaca oleh Penanggung Jawab Unit Kerja.
+                    </p>
                 </div>
 
                 <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
@@ -342,11 +439,12 @@
         @else
             <!-- Mode Read-Only (Audit Terkunci / Ditandatangani) -->
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-600">
+                <table class="w-full text-left text-xs text-slate-600" id="auditItemsTable">
                     <thead class="bg-slate-50 border-b border-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[11px]">
                         <tr>
                             <th class="py-3 px-4 w-12 text-center">No</th>
                             <th class="py-3 px-4">Nama Barang &amp; Identitas</th>
+                            <th class="py-3 px-4 text-center">Kategori Barang</th>
                             <th class="py-3 px-4 text-center">Qty Sistem</th>
                             <th class="py-3 px-4 text-center">Qty Fisik</th>
                             <th class="py-3 px-4 text-center">Kondisi Fisik</th>
@@ -354,17 +452,39 @@
                             <th class="py-3 px-4">Catatan Temuan</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody class="divide-y divide-slate-100" id="auditItemsTableBody">
                         @forelse($inventoryAudit->items as $idx => $item)
-                            <tr class="hover:bg-slate-50/50">
-                                <td class="py-3 px-4 text-center text-slate-400 font-medium">{{ $idx + 1 }}</td>
+                            <tr class="audit-row hover:bg-slate-50/50"
+                                data-nama="{{ strtolower($item->nama_barang) }}"
+                                data-kode="{{ strtolower($item->kode_barang) }}"
+                                data-ruang="{{ strtolower($item->lokasi_sistem ?? '') }}"
+                                data-kategori="{{ strtolower($item->kategori_nama ?? '') }}"
+                                data-status="{{ strtolower($item->status_verifikasi ?? 'sesuai') }}">
+                                <td class="py-3 px-4 text-center text-slate-400 font-medium audit-row-num">{{ $idx + 1 }}</td>
                                 <td class="py-3 px-4">
                                     <span class="font-bold text-slate-900 block leading-snug">{{ $item->nama_barang }}</span>
                                     <div class="flex items-center gap-1.5 mt-0.5">
                                         <span class="font-mono text-[10px] text-blue-600 font-semibold">{{ $item->kode_barang }}</span>
-                                        <span class="text-[10px] text-slate-400">• {{ $item->kategori_nama }}</span>
                                     </div>
-                                    <span class="text-[10px] text-slate-500 block mt-0.5">Ruang: {{ $item->lokasi_sistem }}</span>
+                                    <span class="text-[10px] text-slate-500 block mt-0.5">Ruang: {{ $item->lokasi_sistem ?: '-' }}</span>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    @php
+                                        $katName = $item->kategori_nama ?: 'Umum';
+                                        $badgeClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                                        if (stripos($katName, 'kebersihan') !== false) {
+                                            $badgeClass = 'bg-teal-50 text-teal-700 border-teal-200';
+                                        } elseif (stripos($katName, 'atk') !== false) {
+                                            $badgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                                        } elseif (stripos($katName, 'elektronik') !== false || stripos($katName, 'komputer') !== false) {
+                                            $badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
+                                        } elseif (stripos($katName, 'mesin') !== false || stripos($katName, 'alat') !== false) {
+                                            $badgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                                        }
+                                    @endphp
+                                    <span class="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold border {{ $badgeClass }}">
+                                        {{ $katName }}
+                                    </span>
                                 </td>
                                 <td class="py-3 px-4 text-center font-medium">
                                     <span class="font-bold text-slate-800">@formatJumlah($item->jumlah_sistem)</span>
@@ -408,15 +528,32 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="7" class="py-8 text-center text-slate-400">
+                            <tr id="emptyAuditRow">
+                                <td colspan="8" class="py-8 text-center text-slate-400">
                                     Tidak ada data barang yang diaudit.
                                 </td>
                             </tr>
                         @endforelse
+                        <tr id="noFilterMatchRow" class="hidden">
+                            <td colspan="8" class="py-8 text-center text-slate-400">
+                                <i class="bi bi-search text-2xl text-slate-300 block mb-1"></i>
+                                Tidak ada barang yang cocok dengan filter / pencarian.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+
+            @if($inventoryAudit->catatan_umum)
+                <!-- Tampilan Catatan Khusus Sarpras pada Mode Read Only -->
+                <div class="p-4 sm:p-5 bg-blue-50/40 border-t border-blue-100 flex items-start gap-3 text-xs">
+                    <i class="bi bi-chat-left-quote-fill text-blue-600 text-lg shrink-0 mt-0.5"></i>
+                    <div class="space-y-1">
+                        <strong class="font-bold text-blue-950 uppercase tracking-wider text-[11px] block">Catatan Khusus / Rekomendasi Sarpras:</strong>
+                        <p class="text-slate-700 leading-relaxed">{{ $inventoryAudit->catatan_umum }}</p>
+                    </div>
+                </div>
+            @endif
         @endif
     </div>
 </div>
@@ -583,12 +720,23 @@
             </p>
 
             <!-- Warning Detail Box -->
-            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-left mb-5 text-xs text-emerald-800 leading-relaxed flex items-start gap-2.5">
+            <div class="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 text-left mb-3.5 text-xs text-emerald-800 leading-relaxed flex items-start gap-2.5">
                 <i class="bi bi-lock-fill text-emerald-600 text-sm shrink-0 mt-0.5"></i>
                 <div class="space-y-0.5">
                     <p class="font-bold text-emerald-950">Catatan Penting:</p>
                     <p class="text-emerald-800 text-[11px]">Setelah dikunci, hasil verifikasi fisik barang akan dibekukan untuk proses penandatanganan Berita Acara Audit oleh Auditor &amp; Auditee.</p>
                 </div>
+            </div>
+
+            <!-- Input Catatan Khusus dari Sarpras saat Mengunci -->
+            <div class="text-left mb-4 space-y-1.5">
+                <label for="modalCatatanUmum" class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
+                    <i class="bi bi-pencil-square text-emerald-600"></i>
+                    <span>Catatan Khusus dari Sarpras (Opsional):</span>
+                </label>
+                <textarea id="modalCatatanUmum" rows="2" 
+                          placeholder="Tuliskan catatan akhir/rekomendasi hasil audit (misal: perlu perbaikan/pengadaan barang)..."
+                          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"></textarea>
             </div>
 
             <div class="grid grid-cols-2 gap-3 pt-1">
@@ -786,6 +934,14 @@ function submitUnlockAudit() {
 // Complete / Lock Audit Modal Functions
 function openCompleteAuditModal() {
     const modal = document.getElementById('completeAuditModal');
+    const fieldPage = document.getElementById('catatanUmumField');
+    const fieldModal = document.getElementById('modalCatatanUmum');
+    
+    // Sinkronkan isi catatan jika sudah diisi di halaman bawah
+    if (fieldPage && fieldModal) {
+        fieldModal.value = fieldPage.value;
+    }
+
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -802,6 +958,13 @@ function submitCompleteAudit() {
     const form = document.getElementById('auditItemsForm');
     if (!form) return;
     
+    // Ambil catatan dari modal jika diedit di dalam modal
+    const fieldPage = document.getElementById('catatanUmumField');
+    const fieldModal = document.getElementById('modalCatatanUmum');
+    if (fieldModal && fieldPage) {
+        fieldPage.value = fieldModal.value;
+    }
+
     // Set or create hidden action input
     let actionInput = form.querySelector('input[name="action"]');
     if (!actionInput) {
@@ -813,6 +976,94 @@ function submitCompleteAudit() {
     actionInput.value = 'complete';
     form.submit();
 }
+
+// Live Filter & Pencarian Barang Audit
+function applyAuditFilters() {
+    const searchVal = (document.getElementById('auditSearchInput')?.value || '').toLowerCase().trim();
+    const katVal = (document.getElementById('auditKategoriFilter')?.value || '').toLowerCase().trim();
+    const statusVal = (document.getElementById('auditStatusFilter')?.value || '').toLowerCase().trim();
+
+    const rows = document.querySelectorAll('.audit-row');
+    const noMatchRow = document.getElementById('noFilterMatchRow');
+    const resetBtn = document.getElementById('resetAuditFilterBtn');
+    const countDisplay = document.getElementById('visibleItemCount');
+
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const nama = row.getAttribute('data-nama') || '';
+        const kode = row.getAttribute('data-kode') || '';
+        const ruang = row.getAttribute('data-ruang') || '';
+        const kategori = row.getAttribute('data-kategori') || '';
+        const status = row.getAttribute('data-status') || '';
+
+        const matchSearch = !searchVal || nama.includes(searchVal) || kode.includes(searchVal) || ruang.includes(searchVal);
+        const matchKat = !katVal || kategori === katVal;
+        const matchStatus = !statusVal || status === statusVal;
+
+        if (matchSearch && matchKat && matchStatus) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Perbarui penomoran urut baris yang tampil
+    let currentNum = 1;
+    rows.forEach(row => {
+        if (row.style.display !== 'none') {
+            const numCell = row.querySelector('.audit-row-num');
+            if (numCell) numCell.textContent = currentNum++;
+        }
+    });
+
+    if (countDisplay) countDisplay.textContent = visibleCount;
+    if (noMatchRow) {
+        if (visibleCount === 0 && rows.length > 0) {
+            noMatchRow.classList.remove('hidden');
+        } else {
+            noMatchRow.classList.add('hidden');
+        }
+    }
+
+    // Tampilkan tombol reset filter jika ada kriteria yang aktif
+    if (resetBtn) {
+        if (searchVal || katVal || statusVal) {
+            resetBtn.classList.remove('hidden');
+        } else {
+            resetBtn.classList.add('hidden');
+        }
+    }
+}
+
+function resetAuditFilters() {
+    const s = document.getElementById('auditSearchInput');
+    const k = document.getElementById('auditKategoriFilter');
+    const st = document.getElementById('auditStatusFilter');
+    if (s) s.value = '';
+    if (k) k.value = '';
+    if (st) st.value = '';
+    applyAuditFilters();
+}
+
+function updateRowStatusData(selectEl) {
+    const tr = selectEl.closest('.audit-row');
+    if (tr) {
+        tr.setAttribute('data-status', (selectEl.value || '').toLowerCase());
+    }
+}
+
+// Bind event live filter saat DOM selesai dimuat
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('auditSearchInput');
+    const katFilter = document.getElementById('auditKategoriFilter');
+    const statusFilter = document.getElementById('auditStatusFilter');
+
+    if (searchInput) searchInput.addEventListener('input', applyAuditFilters);
+    if (katFilter) katFilter.addEventListener('change', applyAuditFilters);
+    if (statusFilter) statusFilter.addEventListener('change', applyAuditFilters);
+});
 
 // Pull Items Modal Functions
 function openPullItemsModal() {

@@ -216,8 +216,8 @@ class InventoryAuditController extends Controller
                 }
             }
 
-            if ($request->filled('catatan_umum')) {
-                $inventoryAudit->catatan_umum = $request->catatan_umum;
+            if ($request->has('catatan_umum')) {
+                $inventoryAudit->catatan_umum = $request->input('catatan_umum');
             }
 
             // Hitung ulang summary temuan

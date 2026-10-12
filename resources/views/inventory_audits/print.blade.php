@@ -280,9 +280,9 @@
         </table>
 
         @if($inventoryAudit->catatan_umum)
-            <div style="font-size: 9pt; margin-bottom: 12px;">
-                <strong>Catatan / Kesimpulan Pemeriksa:</strong><br>
-                <em>{{ $inventoryAudit->catatan_umum }}</em>
+            <div style="font-size: 9pt; margin-bottom: 14px; border: 1px solid #333; padding: 7px 10px; background-color: #f9f9f9; border-radius: 4px;">
+                <strong style="text-transform: uppercase; font-size: 8.5pt; letter-spacing: 0.5px;">Catatan Khusus / Rekomendasi Tim Sarpras:</strong><br>
+                <div style="margin-top: 3px; font-style: italic; line-height: 1.4;">{{ $inventoryAudit->catatan_umum }}</div>
             </div>
         @endif
 
