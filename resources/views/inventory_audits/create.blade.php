@@ -57,14 +57,30 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Pilih Unit Kerja / Jurusan yang Diaudit <span class="text-rose-500">*</span>
                     </label>
-                    <select name="jurusan_id" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                    <select name="jurusan_id" id="jurusanSelect" required onchange="updateJurusanPreview(this)"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
                         <option value="">-- Pilih Unit Kerja / Laboratorium / Bengkel --</option>
                         @foreach($jurusans as $j)
-                            <option value="{{ $j->id }}" {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
+                            <option value="{{ $j->id }}" 
+                                    data-pj="{{ $j->kepala_bengkel ?? '-' }}"
+                                    data-nip="{{ $j->nip ?? '-' }}"
+                                    data-nama="{{ $j->nama }}"
+                                    {{ old('jurusan_id') == $j->id ? 'selected' : '' }}>
                                 [{{ $j->kode }}] {{ $j->nama }} (PJ: {{ $j->kepala_bengkel ?? '-' }})
                             </option>
                         @endforeach
                     </select>
+
+                    <!-- Preview Identitas PJ & NIP Unit Kerja Terpilih -->
+                    <div id="jurusanInfoBox" class="mt-2.5 p-3 rounded-xl bg-blue-50/70 border border-blue-100 flex items-start gap-2.5 text-xs text-blue-900 hidden">
+                        <i class="bi bi-person-badge text-blue-600 text-lg shrink-0 mt-0.5"></i>
+                        <div class="space-y-0.5">
+                            <div class="font-bold">Penanggung Jawab Unit (Auditee Terintegrasi):</div>
+                            <div>Nama: <strong id="pjNamaPreview">-</strong></div>
+                            <div>NIP / NIY: <strong id="pjNipPreview" class="font-mono text-blue-700">-</strong></div>
+                        </div>
+                    </div>
+
                     <p class="text-[11px] text-amber-600 mt-1.5 flex items-center gap-1 font-medium">
                         <i class="bi bi-info-circle-fill"></i>
                         Seluruh barang aktif milik unit kerja yang dipilih akan otomatis disalin ke dalam lembar verifikasi audit ini.
@@ -122,4 +138,33 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+function updateJurusanPreview(selectEl) {
+    const selectedOpt = selectEl.options[selectEl.selectedIndex];
+    const infoBox = document.getElementById('jurusanInfoBox');
+    const pjNama = document.getElementById('pjNamaPreview');
+    const pjNip = document.getElementById('pjNipPreview');
+
+    if (selectedOpt && selectedOpt.value) {
+        const pj = selectedOpt.dataset.pj || '-';
+        const nip = selectedOpt.dataset.nip || '-';
+        pjNama.textContent = pj;
+        pjNip.textContent = nip !== '-' && nip !== '' ? nip : '(Belum ada data NIP di sistem)';
+        infoBox.classList.remove('hidden');
+    } else {
+        infoBox.classList.add('hidden');
+    }
+}
+
+// Inisialisasi preview jika sudah ada pilihan (misal setelah validasi error)
+document.addEventListener('DOMContentLoaded', function() {
+    const sel = document.getElementById('jurusanSelect');
+    if (sel && sel.value) {
+        updateJurusanPreview(sel);
+    }
+});
+</script>
+@endpush
 @endsection

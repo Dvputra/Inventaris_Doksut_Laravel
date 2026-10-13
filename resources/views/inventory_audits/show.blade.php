@@ -127,7 +127,12 @@
                     </div>
                     <p class="font-bold text-slate-900 text-sm">{{ $inventoryAudit->auditee_nama ?: ($inventoryAudit->jurusan->kepala_bengkel ?? 'Penanggung Jawab') }}</p>
                     <p class="text-slate-500">{{ $inventoryAudit->auditee_jabatan ?: 'Kepala ' . ($inventoryAudit->jurusan->nama ?? 'Unit Kerja') }}</p>
-                    @if($inventoryAudit->auditee_nip)<p class="text-[11px] text-slate-400 font-mono mt-0.5">NIP: {{ $inventoryAudit->auditee_nip }}</p>@endif
+                    @php
+                        $effectiveAuditeeNip = $inventoryAudit->auditee_nip ?: ($inventoryAudit->jurusan->nip ?? null);
+                    @endphp
+                    @if($effectiveAuditeeNip)
+                        <p class="text-[11px] text-slate-400 font-mono mt-0.5">NIP: {{ $effectiveAuditeeNip }}</p>
+                    @endif
 
                     @if($inventoryAudit->ttd_auditee)
                         <div class="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
@@ -647,7 +652,7 @@
                 </div>
                 <div>
                     <label class="block font-bold text-slate-600 mb-1">NIP / NPY</label>
-                    <input type="text" name="auditee_nip" value="{{ old('auditee_nip', $inventoryAudit->auditee_nip) }}" placeholder="NIP/NPY..."
+                    <input type="text" name="auditee_nip" value="{{ old('auditee_nip', $inventoryAudit->auditee_nip ?: ($inventoryAudit->jurusan->nip ?? '')) }}" placeholder="NIP/NPY..."
                            class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500">
                 </div>
             </div>

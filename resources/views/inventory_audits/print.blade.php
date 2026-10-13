@@ -14,28 +14,29 @@
             background-color: #f1f5f9;
             color: #000000;
             font-size: 10pt;
-            line-height: 1.35;
+            line-height: 1.4;
             margin: 0;
-            padding: 20px 0;
+            padding: 24px 0;
         }
 
         .paper {
             background: #ffffff;
-            width: 297mm; /* A4 Landscape agar tabel checklist muat rapi */
+            width: 297mm; /* Format A4 Landscape untuk lembar kerja audit */
             min-height: 210mm;
             margin: 0 auto;
-            padding: 15mm 15mm;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 16mm 18mm;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
             color: #000000;
             box-sizing: border-box;
+            border-radius: 4px;
         }
 
-        /* Kop Surat Resmi (Maksimal Ukuran A4 dengan Margin Normal di Tengah) */
+        /* Kop Surat Resmi - Lebar maksimal proporsional & presisi di tengah */
         .kop-surat {
             padding-bottom: 4px;
             margin-bottom: 12px;
             width: 100%;
-            max-width: 180mm;
+            max-width: 195mm;
             margin-left: auto;
             margin-right: auto;
         }
@@ -46,70 +47,109 @@
             display: block;
         }
 
-        .report-title {
+        .title-block {
             text-align: center;
-            margin: 8px 0 14px;
+            margin: 10px 0 16px;
         }
 
-        .report-title h5 {
+        .title-block h4 {
             font-family: 'Times New Roman', Times, serif;
             font-size: 13pt;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
             text-decoration: underline;
         }
 
-        .report-title p {
+        .title-block .nomor {
             font-size: 10pt;
-            color: #000000;
+            color: #111111;
+            font-weight: bold;
             margin: 0;
         }
 
-        .meta-table {
+        /* Tabel Identitas & Informasi Sesi Audit (Format Microsoft Word) */
+        .info-table {
             width: 100%;
             margin-bottom: 12px;
             font-size: 9.5pt;
+            border-collapse: collapse;
         }
 
-        .meta-table td {
-            padding: 2px 4px;
+        .info-table td {
+            padding: 2.5px 4px;
             vertical-align: top;
         }
 
+        /* Ringkasan Rekapitulasi Hasil Fisik */
+        .summary-box {
+            border: 1.5px solid #000000;
+            padding: 6px 12px;
+            font-size: 9pt;
+            margin-bottom: 14px;
+            background: #fcfcfc;
+        }
+
+        .summary-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .summary-box td {
+            padding: 3px 6px;
+        }
+
+        /* Tabel Utama Hasil Checklist Verifikasi Fisik (Formal Standard Word) */
         .table-report {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9pt;
+            font-size: 8.5pt;
             margin-bottom: 14px;
         }
 
         .table-report th {
-            background-color: #f2f2f2 !important;
+            background-color: #f0f0f0 !important;
             color: #000000 !important;
-            border: 1px solid #000000 !important;
-            padding: 5px 4px;
+            border: 1.2px solid #000000 !important;
+            padding: 6px 4px;
             font-weight: bold;
             text-align: center;
             vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
         }
 
         .table-report td {
             border: 1px solid #000000 !important;
-            padding: 4px 5px;
+            padding: 4.5px 5px;
             vertical-align: top;
             color: #000000;
         }
 
-        .summary-box {
-            border: 1px solid #000000;
-            padding: 6px 10px;
+        /* Kotak Catatan Khusus Sarpras */
+        .catatan-box {
             font-size: 9pt;
-            margin-bottom: 14px;
-            background: #fafafa;
+            margin-bottom: 16px;
+            border: 1.2px solid #000000;
+            padding: 8px 12px;
+            background-color: #fafafa;
         }
 
+        .catatan-title {
+            text-transform: uppercase;
+            font-size: 8.5pt;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+        }
+
+        .catatan-content {
+            margin-top: 3px;
+            font-style: italic;
+            line-height: 1.45;
+        }
+
+        /* Lembar Tanda Tangan */
         .ttd-wrapper {
             margin-top: 18px;
             page-break-inside: avoid !important;
@@ -117,29 +157,61 @@
             font-size: 9.5pt;
         }
 
-        .ttd-box {
+        .ttd-table {
+            width: 100%;
+            border-collapse: collapse;
             text-align: center;
-            width: 45%;
         }
 
+        .ttd-col {
+            width: 45%;
+            vertical-align: top;
+            padding: 0 10px;
+        }
+
+        .signature-container {
+            height: 75px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 3px 0 2px;
+        }
+
+        .signature-img {
+            max-height: 58px;
+            max-width: 170px;
+            object-fit: contain;
+        }
+
+        .signature-verify-badge {
+            font-size: 6.5pt;
+            color: #475569;
+            font-style: italic;
+            margin-top: 2px;
+            line-height: 1.1;
+        }
+
+        /* Floating Action Bar (Hanya di Layar) */
         .action-bar {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 24px;
+            right: 24px;
             z-index: 1050;
             background: #ffffff;
-            padding: 10px 16px;
+            padding: 10px 18px;
             border-radius: 50px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.18);
             display: flex;
             gap: 10px;
             align-items: center;
+            border: 1px solid #e2e8f0;
         }
 
         @media print {
             body {
-                background: #ffffff;
-                padding: 0;
+                background: #ffffff !important;
+                padding: 0 !important;
             }
             .action-bar {
                 display: none !important;
@@ -148,7 +220,8 @@
                 box-shadow: none !important;
                 margin: 0 !important;
                 width: 100% !important;
-                padding: 10mm 10mm !important;
+                padding: 6mm 8mm !important;
+                border-radius: 0 !important;
             }
             @page {
                 size: A4 landscape;
@@ -158,16 +231,18 @@
     </style>
 </head>
 <body>
+
     <!-- Floating Action Bar -->
     <div class="action-bar d-print-none">
-        <button onclick="window.print()" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-            <i class="bi bi-printer me-1"></i> Cetak Dokumen
-        </button>
-        <button onclick="window.close()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            Tutup
+        <a href="{{ route('inventory-audits.show', $inventoryAudit) }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Kembali
+        </a>
+        <button onclick="window.print()" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold">
+            <i class="bi bi-printer-fill me-1"></i> Cetak / Simpan PDF
         </button>
     </div>
 
+    <!-- Lembar Dokumen Resmi Kertas A4 Landscape -->
     <div class="paper">
         <!-- Kop Surat Resmi -->
         <div class="kop-surat">
@@ -175,13 +250,19 @@
         </div>
 
         <!-- Judul Berita Acara -->
-        <div class="report-title">
-            <h5>BERITA ACARA HASIL AUDIT &amp; VERIFIKASI FISIK INVENTARIS</h5>
-            <p>Nomor Registrasi Audit: <strong>{{ $inventoryAudit->audit_code }}</strong></p>
+        <div class="title-block">
+            <h4>BERITA ACARA HASIL AUDIT &amp; VERIFIKASI FISIK INVENTARIS</h4>
+            <div class="nomor">Nomor Registrasi: {{ $inventoryAudit->audit_code }}</div>
         </div>
 
-        <!-- Metadata Informasi Sesi Audit -->
-        <table class="meta-table">
+        @php
+            $auditeeNip = $inventoryAudit->auditee_nip ?: ($inventoryAudit->jurusan->nip ?? null);
+            $auditeeNama = $inventoryAudit->auditee_nama ?: ($inventoryAudit->jurusan->kepala_bengkel ?? 'Penanggung Jawab Unit');
+            $auditeeJabatan = $inventoryAudit->auditee_jabatan ?: ('Kepala ' . ($inventoryAudit->jurusan->nama ?? 'Unit Kerja'));
+        @endphp
+
+        <!-- Metadata Informasi Sesi Audit (Format Standar Surat Dinas) -->
+        <table class="info-table">
             <tr>
                 <td style="width: 18%;"><strong>Judul / Sesi Audit</strong></td>
                 <td style="width: 2%;">:</td>
@@ -193,7 +274,7 @@
             <tr>
                 <td><strong>Unit Kerja / Jurusan</strong></td>
                 <td>:</td>
-                <td>{{ $inventoryAudit->jurusan->nama ?? '-' }} ({{ $inventoryAudit->jurusan->kode ?? '' }})</td>
+                <td>{{ $inventoryAudit->jurusan->nama ?? '-' }} (Kode: {{ $inventoryAudit->jurusan->kode ?? '-' }})</td>
                 <td><strong>Status Dokumen</strong></td>
                 <td>:</td>
                 <td><strong>{{ strtoupper($inventoryAudit->status) }}</strong></td>
@@ -201,16 +282,23 @@
             <tr>
                 <td><strong>Auditor Pemeriksa</strong></td>
                 <td>:</td>
-                <td>{{ $inventoryAudit->auditor_nama }} ({{ $inventoryAudit->auditor_jabatan }})</td>
+                <td>
+                    <strong>{{ $inventoryAudit->auditor_nama }}</strong> 
+                    ({{ $inventoryAudit->auditor_jabatan }})
+                    @if($inventoryAudit->auditor_nip) • <span style="font-family: monospace;">NIP: {{ $inventoryAudit->auditor_nip }}</span>@endif
+                </td>
                 <td><strong>Penanggung Jawab</strong></td>
                 <td>:</td>
-                <td>{{ $inventoryAudit->auditee_nama ?: ($inventoryAudit->jurusan->kepala_bengkel ?? '-') }}</td>
+                <td>
+                    <strong>{{ $auditeeNama }}</strong>
+                    @if($auditeeNip) <br><span style="font-size: 8.5pt; font-family: monospace;">NIP: {{ $auditeeNip }}</span>@endif
+                </td>
             </tr>
         </table>
 
-        <!-- Ringkasan Hasil Temuan Fisik -->
+        <!-- Ringkasan Rekapitulasi Hasil Fisik -->
         <div class="summary-box">
-            <table style="width: 100%;">
+            <table>
                 <tr>
                     <td style="width: 25%;">Total Barang Terdaftar: <strong>{{ $inventoryAudit->items->count() }} Item</strong></td>
                     <td style="width: 25%;">Fisik Sesuai: <strong class="text-success">{{ $inventoryAudit->total_barang_sesuai }} Item</strong></td>
@@ -220,33 +308,38 @@
             </table>
         </div>
 
-        <!-- Tabel Lembar Verifikasi Fisik -->
+        <!-- Tabel Lembar Verifikasi Fisik Barang -->
         <table class="table-report">
             <thead>
                 <tr>
                     <th style="width: 3%;">No</th>
-                    <th style="width: 13%;">Kode Barang</th>
-                    <th style="width: 22%;">Nama Barang &amp; Spesifikasi</th>
+                    <th style="width: 12%;">Kode Barang</th>
+                    <th style="width: 21%;">Nama Barang &amp; Spesifikasi</th>
+                    <th style="width: 11%;">Kategori</th>
                     <th style="width: 10%;">Ruang / Lokasi</th>
                     <th style="width: 7%;">Qty Sistem</th>
                     <th style="width: 7%;">Qty Fisik</th>
                     <th style="width: 9%;">Kondisi Fisik</th>
-                    <th style="width: 10%;">Status Verifikasi</th>
-                    <th style="width: 19%;">Catatan Temuan Lapangan</th>
+                    <th style="width: 9%;">Status</th>
+                    <th style="width: 11%;">Catatan Temuan</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($inventoryAudit->items as $idx => $item)
                     <tr>
-                        <td class="text-center">{{ $idx + 1 }}</td>
-                        <td class="font-monospace fw-bold">{{ $item->kode_barang }}</td>
+                        <td class="text-center" style="font-weight: 500;">{{ $idx + 1 }}</td>
+                        <td class="font-monospace" style="font-weight: 600; font-size: 8pt;">{{ $item->kode_barang }}</td>
                         <td>
                             <strong>{{ $item->nama_barang }}</strong>
-                            <div style="font-size: 8pt; color: #555;">Kategori: {{ $item->kategori_nama }}</div>
+                        </td>
+                        <td class="text-center">
+                            {{ $item->kategori_nama ?: 'Umum' }}
                         </td>
                         <td>{{ $item->lokasi_sistem ?: '-' }}</td>
                         <td class="text-center">@formatJumlah($item->jumlah_sistem) {{ $item->satuan }}</td>
-                        <td class="text-center fw-bold">@formatJumlah($item->jumlah_fisik) {{ $item->satuan }}</td>
+                        <td class="text-center" style="font-weight: bold; {{ $item->jumlah_fisik != $item->jumlah_sistem ? 'color: #c2410c;' : '' }}">
+                            @formatJumlah($item->jumlah_fisik) {{ $item->satuan }}
+                        </td>
                         <td class="text-center">
                             @if($item->kondisi_fisik === 'baik')
                                 Baik
@@ -256,7 +349,7 @@
                                 Rusak Berat
                             @endif
                         </td>
-                        <td class="text-center fw-bold">
+                        <td class="text-center" style="font-weight: bold;">
                             @if($item->status_verifikasi === 'sesuai')
                                 <span class="text-success">Sesuai</span>
                             @elseif($item->status_verifikasi === 'rusak')
@@ -264,7 +357,7 @@
                             @elseif($item->status_verifikasi === 'selisih')
                                 <span class="text-primary">Selisih</span>
                             @elseif($item->status_verifikasi === 'hilang')
-                                <span class="text-danger">Tidak Ditemukan</span>
+                                <span class="text-danger">Hilang</span>
                             @else
                                 <span>-</span>
                             @endif
@@ -273,56 +366,72 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="9" class="text-center py-3">Tidak ada rincian data barang dalam sesi audit ini.</td>
+                        <td colspan="10" class="text-center py-3">Tidak ada rincian data barang dalam sesi audit ini.</td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
 
+        <!-- Catatan Khusus / Rekomendasi Sarpras -->
         @if($inventoryAudit->catatan_umum)
-            <div style="font-size: 9pt; margin-bottom: 14px; border: 1px solid #333; padding: 7px 10px; background-color: #f9f9f9; border-radius: 4px;">
-                <strong style="text-transform: uppercase; font-size: 8.5pt; letter-spacing: 0.5px;">Catatan Khusus / Rekomendasi Tim Sarpras:</strong><br>
-                <div style="margin-top: 3px; font-style: italic; line-height: 1.4;">{{ $inventoryAudit->catatan_umum }}</div>
+            <div class="catatan-box">
+                <div class="catatan-title">Catatan Khusus / Rekomendasi Tim Sarpras:</div>
+                <div class="catatan-content">{{ $inventoryAudit->catatan_umum }}</div>
             </div>
         @endif
 
-        <!-- Lembar Tanda Tangan Dua Belah Pihak -->
+        <!-- Lembar Tanda Tangan Dua Belah Pihak (Dilengkapi Verifikasi Elektronik Kecil) -->
         <div class="ttd-wrapper">
-            <table style="width: 100%;">
+            <table class="ttd-table">
                 <tr>
-                    <td class="ttd-box">
+                    <!-- Kolom Tanda Tangan Auditee (Kiri) -->
+                    <td class="ttd-col">
                         <span>Menyetujui &amp; Mengetahui,</span><br>
-                        <strong>Penanggung Jawab Unit Kerja / Auditee</strong><br>
-                        <span style="font-size: 8.5pt; color: #555;">{{ $inventoryAudit->auditee_jabatan ?: ('Kepala ' . ($inventoryAudit->jurusan->nama ?? 'Unit Kerja')) }}</span>
+                        <strong>Penanggung Jawab Unit Kerja (Auditee)</strong><br>
+                        <span style="font-size: 8.5pt; color: #444444;">{{ $auditeeJabatan }}</span>
                         
-                        <div style="height: 70px; display: flex; align-items: center; justify-content: center; margin: 4px 0;">
-                            @if($inventoryAudit->ttd_auditee && file_exists(public_path('storage/' . $inventoryAudit->ttd_auditee)))
-                                <img src="{{ asset('storage/' . $inventoryAudit->ttd_auditee) }}" alt="TTD Auditee" style="max-height: 65px; max-width: 180px; object-contain: contain;">
-                            @elseif($inventoryAudit->ttd_auditee)
-                                <img src="{{ Storage::url($inventoryAudit->ttd_auditee) }}" alt="TTD Auditee" style="max-height: 65px; max-width: 180px; object-contain: contain;">
+                        <div class="signature-container">
+                            @if($inventoryAudit->ttd_auditee)
+                                @php
+                                    $auditeeSigSrc = file_exists(public_path('storage/' . $inventoryAudit->ttd_auditee))
+                                        ? asset('storage/' . $inventoryAudit->ttd_auditee)
+                                        : Storage::url($inventoryAudit->ttd_auditee);
+                                @endphp
+                                <img src="{{ $auditeeSigSrc }}" alt="TTD Auditee" class="signature-img">
+                                <div class="signature-verify-badge">
+                                    Ditandatangani elektronik: {{ $inventoryAudit->ttd_auditee_at ? $inventoryAudit->ttd_auditee_at->translatedFormat('d/m/Y H:i') : date('d/m/Y H:i') }}
+                                </div>
                             @else
-                                <span style="color: #999; font-style: italic; font-size: 8pt;">( Belum Ditandatangani )</span>
+                                <span style="color: #94a3b8; font-style: italic; font-size: 8pt;">( Belum Ditandatangani )</span>
                             @endif
                         </div>
 
-                        <strong><u>{{ $inventoryAudit->auditee_nama ?: ($inventoryAudit->jurusan->kepala_bengkel ?? '.....................................................') }}</u></strong><br>
-                        <span>NIP/NPY: {{ $inventoryAudit->auditee_nip ?: '.....................................................' }}</span>
+                        <strong><u>{{ $auditeeNama }}</u></strong><br>
+                        <span>NIP/NPY: {{ $auditeeNip ?: '.....................................................' }}</span>
                     </td>
 
+                    <!-- Spacer Tengah -->
                     <td style="width: 10%;"></td>
 
-                    <td class="ttd-box">
+                    <!-- Kolom Tanda Tangan Auditor Sarpras (Kanan) -->
+                    <td class="ttd-col">
                         <span>Temanggung, {{ $inventoryAudit->tanggal_audit ? $inventoryAudit->tanggal_audit->translatedFormat('d F Y') : date('d F Y') }}</span><br>
                         <strong>Petugas Pemeriksa / Auditor Sarpras</strong><br>
-                        <span style="font-size: 8.5pt; color: #555;">{{ $inventoryAudit->auditor_jabatan ?: 'Staff Sarana dan Prasarana' }}</span>
+                        <span style="font-size: 8.5pt; color: #444444;">{{ $inventoryAudit->auditor_jabatan ?: 'Staff Sarana dan Prasarana' }}</span>
 
-                        <div style="height: 70px; display: flex; align-items: center; justify-content: center; margin: 4px 0;">
-                            @if($inventoryAudit->ttd_auditor && file_exists(public_path('storage/' . $inventoryAudit->ttd_auditor)))
-                                <img src="{{ asset('storage/' . $inventoryAudit->ttd_auditor) }}" alt="TTD Auditor" style="max-height: 65px; max-width: 180px; object-contain: contain;">
-                            @elseif($inventoryAudit->ttd_auditor)
-                                <img src="{{ Storage::url($inventoryAudit->ttd_auditor) }}" alt="TTD Auditor" style="max-height: 65px; max-width: 180px; object-contain: contain;">
+                        <div class="signature-container">
+                            @if($inventoryAudit->ttd_auditor)
+                                @php
+                                    $auditorSigSrc = file_exists(public_path('storage/' . $inventoryAudit->ttd_auditor))
+                                        ? asset('storage/' . $inventoryAudit->ttd_auditor)
+                                        : Storage::url($inventoryAudit->ttd_auditor);
+                                @endphp
+                                <img src="{{ $auditorSigSrc }}" alt="TTD Auditor" class="signature-img">
+                                <div class="signature-verify-badge">
+                                    Ditandatangani elektronik: {{ $inventoryAudit->ttd_auditor_at ? $inventoryAudit->ttd_auditor_at->translatedFormat('d/m/Y H:i') : date('d/m/Y H:i') }}
+                                </div>
                             @else
-                                <span style="color: #999; font-style: italic; font-size: 8pt;">( Belum Ditandatangani )</span>
+                                <span style="color: #94a3b8; font-style: italic; font-size: 8pt;">( Belum Ditandatangani )</span>
                             @endif
                         </div>
 

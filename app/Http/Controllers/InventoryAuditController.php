@@ -116,6 +116,7 @@ class InventoryAuditController extends Controller
                 'auditor_nip' => $validated['auditor_nip'],
                 'auditor_jabatan' => $validated['auditor_jabatan'],
                 'auditee_nama' => $jurusan->kepala_bengkel ?? 'Penanggung Jawab Unit Kerja',
+                'auditee_nip' => $jurusan->nip,
                 'auditee_jabatan' => 'Kepala ' . $jurusan->nama,
                 'catatan_umum' => $validated['catatan_umum'],
             ]);
