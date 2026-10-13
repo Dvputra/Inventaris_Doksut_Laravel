@@ -106,11 +106,17 @@
                         <div class="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
                             <span class="text-[10px] text-slate-400">Waktu: {{ $inventoryAudit->ttd_auditor_at->format('d/m/Y H:i') }}</span>
                             @if(Auth::user()->isStaffSarpras())
-                                <button type="button" 
-                                        onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditor']) }}', 'Auditor (Sarpras)')"
-                                        class="text-[10px] text-rose-600 hover:underline font-bold">
-                                    Batalkan TTD
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openAuditorSignModal()" class="text-[10px] text-blue-600 hover:underline font-bold">
+                                        Ubah TTD
+                                    </button>
+                                    <span class="text-slate-300">•</span>
+                                    <button type="button" 
+                                            onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditor']) }}', 'Auditor (Sarpras)')"
+                                            class="text-[10px] text-rose-600 hover:underline font-bold">
+                                        Batalkan TTD
+                                    </button>
+                                </div>
                             @endif
                         </div>
                     @endif
@@ -138,11 +144,17 @@
                         <div class="mt-2 pt-2 border-t border-slate-200/60 flex items-center justify-between">
                             <span class="text-[10px] text-slate-400">Waktu: {{ $inventoryAudit->ttd_auditee_at->format('d/m/Y H:i') }}</span>
                             @if(Auth::user()->isJurusan() || Auth::user()->isStaffSarpras())
-                                <button type="button" 
-                                        onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditee']) }}', 'Penanggung Jawab Unit Kerja (Auditee)')"
-                                        class="text-[10px] text-rose-600 hover:underline font-bold">
-                                    Batalkan TTD
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openAuditeeSignModal()" class="text-[10px] text-emerald-600 hover:underline font-bold">
+                                        Ubah TTD
+                                    </button>
+                                    <span class="text-slate-300">•</span>
+                                    <button type="button" 
+                                            onclick="openCancelAuditSignatureModal('{{ route('inventory-audits.cancel-signature', [$inventoryAudit, 'type' => 'auditee']) }}', 'Penanggung Jawab Unit Kerja (Auditee)')"
+                                            class="text-[10px] text-rose-600 hover:underline font-bold">
+                                        Batalkan TTD
+                                    </button>
+                                </div>
                             @endif
                         </div>
                     @endif
@@ -195,22 +207,38 @@
                 </div>
             </div>
 
-            <!-- Panel Tombol TTD -->
+            <!-- Panel Tombol TTD (Tetap Muncul untuk Mengubah / Menandatangani) -->
             <div class="pt-3 border-t border-slate-100 space-y-2">
-                @if(Auth::user()->isSarprasOrKepalaSekolah() && !$inventoryAudit->ttd_auditor && $inventoryAudit->status !== 'draft')
-                    <button type="button" onclick="openAuditorSignModal()"
-                            class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-95">
-                        <i class="bi bi-pen-fill"></i>
-                        <span>Tanda Tangani Sebagai Auditor (Sarpras)</span>
-                    </button>
+                @if(Auth::user()->isSarprasOrKepalaSekolah() && $inventoryAudit->status !== 'draft')
+                    @if(!$inventoryAudit->ttd_auditor)
+                        <button type="button" onclick="openAuditorSignModal()"
+                                class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <i class="bi bi-pen-fill"></i>
+                            <span>Tanda Tangani Sebagai Auditor (Sarpras)</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="openAuditorSignModal()"
+                                class="w-full py-2.5 px-4 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>Ubah / Perbarui Tanda Tangan Auditor</span>
+                        </button>
+                    @endif
                 @endif
 
-                @if((Auth::user()->isJurusan() || Auth::user()->isSarprasOrKepalaSekolah()) && !$inventoryAudit->ttd_auditee && $inventoryAudit->status !== 'draft')
-                    <button type="button" onclick="openAuditeeSignModal()"
-                            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-95">
-                        <i class="bi bi-pen-fill"></i>
-                        <span>Tanda Tangani Sebagai Unit Kerja (Auditee)</span>
-                    </button>
+                @if((Auth::user()->isJurusan() || Auth::user()->isSarprasOrKepalaSekolah()) && $inventoryAudit->status !== 'draft')
+                    @if(!$inventoryAudit->ttd_auditee)
+                        <button type="button" onclick="openAuditeeSignModal()"
+                                class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <i class="bi bi-pen-fill"></i>
+                            <span>Tanda Tangani Sebagai Unit Kerja (Auditee)</span>
+                        </button>
+                    @else
+                        <button type="button" onclick="openAuditeeSignModal()"
+                                class="w-full py-2.5 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-xs transition-all flex items-center justify-center gap-2 active:scale-95">
+                            <i class="bi bi-arrow-repeat"></i>
+                            <span>Ubah / Perbarui Tanda Tangan Unit Kerja</span>
+                        </button>
+                    @endif
                 @endif
             </div>
         </div>
