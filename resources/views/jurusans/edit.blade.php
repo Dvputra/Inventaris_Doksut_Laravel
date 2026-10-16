@@ -69,7 +69,7 @@
                                     class="w-full px-3.5 py-2.5 bg-white border @error('parent_id') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
                                 <option value="">-- Pilih Jurusan Induk --</option>
                                 @foreach($parentCandidates as $p)
-                                    <option value="{{ $p->id }}" {{ old('parent_id', $jurusan->parent_id) == $p->id ? 'selected' : '' }}>
+                                    <option value="{{ $p->id }}" data-kode="{{ $p->kode }}" {{ old('parent_id', $jurusan->parent_id) == $p->id ? 'selected' : '' }}>
                                         {{ $p->nama }} ({{ $p->kode }})
                                     </option>
                                 @endforeach
@@ -84,14 +84,22 @@
 
                 <!-- Kode & Nama Unit -->
                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
-                    <div class="sm:col-span-4">
+                    <div class="sm:col-span-5">
                         <label for="kode" class="block text-xs font-semibold text-slate-700 mb-1.5">
                             Kode / Singkatan <span class="text-rose-500">*</span>
                         </label>
-                        <input type="text" name="kode" id="kode" 
-                               class="w-full px-3.5 py-2.5 bg-slate-50 border @error('kode') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm font-mono uppercase text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
-                               value="{{ old('kode', $jurusan->kode) }}" required maxlength="20"
-                               {{ $jurusan->kode === 'SAR' ? 'readonly' : '' }}>
+                        <div class="flex items-center rounded-xl shadow-xs overflow-hidden border @error('kode') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror bg-slate-50 focus-within:bg-white focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
+                            <span id="parentCodePrefix" class="hidden px-3 py-2.5 bg-blue-100/70 border-r border-blue-200 font-mono font-bold text-sm text-blue-800 select-none shrink-0">
+                                RPL-
+                            </span>
+                            <input type="text" id="kode_input" 
+                                   class="w-full px-3.5 py-2.5 bg-transparent border-0 text-sm font-mono uppercase text-slate-800 focus:outline-none" 
+                                   placeholder="Contoh: DKV, RPL, BKK" 
+                                   value="{{ old('kode', $jurusan->kode) }}" required maxlength="20"
+                                   {{ $jurusan->kode === 'SAR' ? 'readonly' : '' }}>
+                            <input type="hidden" name="kode" id="kode_hidden" value="{{ old('kode', $jurusan->kode) }}">
+                        </div>
+                        <p id="kodeHelpText" class="text-[11px] text-slate-500 mt-1">Gunakan singkatan huruf kapital (misal: RPL, TKJ).</p>
                         @if($jurusan->kode === 'SAR')
                             <p class="text-[11px] text-amber-600 mt-1">Kode unit SAR adalah kode sistem utama dan terkunci.</p>
                         @endif
@@ -100,7 +108,7 @@
                         @enderror
                     </div>
 
-                    <div class="sm:col-span-8">
+                    <div class="sm:col-span-7">
                         <label for="nama" class="block text-xs font-semibold text-slate-700 mb-1.5">
                             Nama Lengkap Unit Kerja / Jurusan <span class="text-rose-500">*</span>
                         </label>
@@ -182,6 +190,39 @@
 </div>
 
 <script>
+    function updateCodeField() {
+        const isSubUnitRadio = document.querySelector('input[name="is_sub_unit"]:checked');
+        const isSubUnit = isSubUnitRadio ? isSubUnitRadio.value === '1' : false;
+        const parentSelect = document.getElementById('parent_id');
+        const prefixSpan = document.getElementById('parentCodePrefix');
+        const kodeInput = document.getElementById('kode_input');
+        const kodeHidden = document.getElementById('kode_hidden');
+        const helpText = document.getElementById('kodeHelpText');
+
+        if (isSubUnit && parentSelect) {
+            const selectedOpt = parentSelect.options[parentSelect.selectedIndex];
+            const parentCode = selectedOpt && selectedOpt.dataset.kode ? selectedOpt.dataset.kode : '';
+
+            if (parentCode) {
+                prefixSpan.textContent = parentCode + '-';
+                prefixSpan.classList.remove('hidden');
+                kodeInput.placeholder = 'Contoh: LAB1, LAB2, 01';
+                helpText.innerHTML = `Kode akhir yang tersimpan: <span class="font-mono font-bold text-blue-700">${parentCode}-${kodeInput.value.trim().toUpperCase() || '...'}</span>`;
+                kodeHidden.value = kodeInput.value.trim() ? (parentCode + '-' + kodeInput.value.trim().toUpperCase()) : '';
+            } else {
+                prefixSpan.classList.add('hidden');
+                kodeInput.placeholder = 'Pilih jurusan induk di atas terlebih dahulu';
+                helpText.textContent = 'Pilih unit kerja induk di atas untuk memunculkan awalan kode.';
+                kodeHidden.value = kodeInput.value.trim().toUpperCase();
+            }
+        } else {
+            if (prefixSpan) prefixSpan.classList.add('hidden');
+            kodeInput.placeholder = 'Contoh: DKV, RPL, BKK';
+            if (helpText) helpText.textContent = 'Gunakan singkatan huruf kapital unik (misal: RPL, TKJ).';
+            kodeHidden.value = kodeInput.value.trim().toUpperCase();
+        }
+    }
+
     function toggleParentSelect(show) {
         const container = document.getElementById('parentSelectContainer');
         const select = document.getElementById('parent_id');
@@ -193,6 +234,32 @@
             select.removeAttribute('required');
             select.value = '';
         }
+        updateCodeField();
     }
+
+    const parentSelectEl = document.getElementById('parent_id');
+    if (parentSelectEl) {
+        parentSelectEl.addEventListener('change', updateCodeField);
+    }
+
+    document.getElementById('kode_input').addEventListener('input', function() {
+        this.value = this.value.toUpperCase().replace(/[^A-Z0-9_-]/g, '');
+        updateCodeField();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const isSubUnitRadio = document.querySelector('input[name="is_sub_unit"]:checked');
+        const isSubUnit = isSubUnitRadio ? isSubUnitRadio.value === '1' : false;
+        const parentSelect = document.getElementById('parent_id');
+        if (isSubUnit && parentSelect && parentSelect.value) {
+            const selectedOpt = parentSelect.options[parentSelect.selectedIndex];
+            const parentCode = selectedOpt && selectedOpt.dataset.kode ? selectedOpt.dataset.kode : '';
+            const rawVal = document.getElementById('kode_input').value;
+            if (parentCode && rawVal.startsWith(parentCode + '-')) {
+                document.getElementById('kode_input').value = rawVal.substring(parentCode.length + 1);
+            }
+        }
+        updateCodeField();
+    });
 </script>
 @endsection
