@@ -57,7 +57,22 @@
                     <option value="">Semua Jurusan & Unit</option>
                     @foreach($jurusans as $j)
                         <option value="{{ $j->id }}" {{ request('jurusan_id') == $j->id ? 'selected' : '' }}>
-                            [{{ $j->kode }}] {{ $j->nama }}
+                            [{{ $j->kode }}] {{ $j->nama }}{{ $j->parent_id ? ' (Sub-Unit)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        @elseif(Auth::user()->isJurusan() && isset($mySubUnits) && $mySubUnits->count() > 0)
+            <div class="lg:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Lingkup Lab / Sub-Unit</label>
+                <select name="sub_unit_id" onchange="this.form.submit()" class="w-full px-3 py-2 text-xs rounded-xl border border-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-blue-50/50 font-medium text-blue-900">
+                    <option value="">Semua Lab &amp; Ruangan ({{ $myJurusan->nama }})</option>
+                    <option value="{{ $myJurusan->id }}" {{ request('sub_unit_id') == $myJurusan->id ? 'selected' : '' }}>
+                        [Induk] {{ $myJurusan->nama }}
+                    </option>
+                    @foreach($mySubUnits as $sub)
+                        <option value="{{ $sub->id }}" {{ request('sub_unit_id') == $sub->id ? 'selected' : '' }}>
+                            ↳ [{{ $sub->kode }}] {{ $sub->nama }}
                         </option>
                     @endforeach
                 </select>

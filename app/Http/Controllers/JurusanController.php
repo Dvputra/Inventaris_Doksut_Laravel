@@ -17,7 +17,7 @@ class JurusanController extends Controller
      */
     public function index(Request $request): View
     {
-        $query = Jurusan::withCount(['items', 'users'])->orderBy('kode');
+        $query = Jurusan::with(['parent', 'children'])->withCount(['items', 'users'])->orderBy('kode');
 
         if ($request->filled('q')) {
             $search = $request->q;
@@ -38,7 +38,9 @@ class JurusanController extends Controller
      */
     public function create(): View
     {
-        return view('jurusans.create');
+        $parentCandidates = Jurusan::whereNull('parent_id')->where('kode', '!=', 'SAR')->orderBy('nama')->get();
+
+        return view('jurusans.create', compact('parentCandidates'));
     }
 
     /**
@@ -47,6 +49,7 @@ class JurusanController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'parent_id' => ['nullable', 'exists:jurusans,id'],
             'kode' => ['required', 'string', 'max:20', 'unique:jurusans,kode'],
             'nama' => ['required', 'string', 'max:255'],
             'kepala_bengkel' => ['nullable', 'string', 'max:255'],
@@ -67,6 +70,7 @@ class JurusanController extends Controller
         $validated['kode'] = strtoupper(trim($validated['kode']));
 
         $jurusan = Jurusan::create([
+            'parent_id' => $validated['parent_id'] ?? null,
             'kode' => $validated['kode'],
             'nama' => $validated['nama'],
             'kepala_bengkel' => $validated['kepala_bengkel'] ?? null,
@@ -104,7 +108,13 @@ class JurusanController extends Controller
      */
     public function edit(Jurusan $jurusan): View
     {
-        return view('jurusans.edit', compact('jurusan'));
+        $parentCandidates = Jurusan::whereNull('parent_id')
+            ->where('id', '!=', $jurusan->id)
+            ->where('kode', '!=', 'SAR')
+            ->orderBy('nama')
+            ->get();
+
+        return view('jurusans.edit', compact('jurusan', 'parentCandidates'));
     }
 
     /**
@@ -113,6 +123,7 @@ class JurusanController extends Controller
     public function update(Request $request, Jurusan $jurusan): RedirectResponse
     {
         $validated = $request->validate([
+            'parent_id' => ['nullable', 'exists:jurusans,id', Rule::notIn([$jurusan->id])],
             'kode' => ['required', 'string', 'max:20', Rule::unique('jurusans', 'kode')->ignore($jurusan->id)],
             'nama' => ['required', 'string', 'max:255'],
             'kepala_bengkel' => ['nullable', 'string', 'max:255'],

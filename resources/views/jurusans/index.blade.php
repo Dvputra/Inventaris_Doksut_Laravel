@@ -105,14 +105,34 @@
                                     <span class="inline-flex items-center gap-1 text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-0.5 rounded-full shadow-xs">
                                         <i class="bi bi-shield-check text-xs"></i> SAR
                                     </span>
+                                @elseif($j->parent_id)
+                                    <span class="inline-flex items-center gap-1 text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full shadow-xs">
+                                        <i class="bi bi-diagram-2 text-xs"></i> {{ $j->kode }}
+                                    </span>
                                 @else
                                     <span class="inline-flex items-center text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full shadow-xs">
                                         {{ $j->kode }}
                                     </span>
                                 @endif
                             </td>
-                            <td class="py-3.5 px-4 whitespace-nowrap">
-                                <div class="font-bold text-slate-900">{{ $j->nama }}</div>
+                            <td class="py-3.5 px-4">
+                                <div class="flex items-center gap-2">
+                                    @if($j->parent_id)
+                                        <span class="text-purple-400 font-mono text-sm">↳</span>
+                                    @endif
+                                    <div>
+                                        <div class="font-bold text-slate-900 {{ $j->parent_id ? 'text-slate-800' : '' }}">{{ $j->nama }}</div>
+                                        @if($j->parent)
+                                            <div class="text-[11px] text-purple-600 font-medium">
+                                                Sub-Unit dari: <span class="font-semibold">{{ $j->parent->nama }} ({{ $j->parent->kode }})</span>
+                                            </div>
+                                        @elseif($j->children->count() > 0)
+                                            <div class="text-[11px] text-blue-600 font-medium">
+                                                Membawahi: {{ $j->children->count() }} Sub-Unit / Lab
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
                             </td>
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-1.5 font-semibold text-slate-800">

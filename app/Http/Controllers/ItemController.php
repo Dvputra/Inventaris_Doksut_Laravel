@@ -25,10 +25,33 @@ class ItemController extends Controller
 
         $sarJurusan = Jurusan::where('kode', 'SAR')->first();
         $sarJurusanId = $sarJurusan?->id;
+        $myJurusan = $user->jurusan;
+        $mySubUnits = collect();
 
-        // Jika user adalah jurusan, batasi hanya data inventaris jurusannya sendiri
-        if ($user->isJurusan()) {
-            $query->where('jurusan_id', $user->jurusan_id);
+        // Jika user adalah jurusan:
+        if ($user->isJurusan() && $myJurusan) {
+            // Jika akun ini adalah unit induk (punya sub-unit/lab):
+            if ($myJurusan->children()->exists()) {
+                $mySubUnits = $myJurusan->children()->get();
+                // Jika sedang memfilter sub-unit tertentu
+                if ($request->filled('sub_unit_id')) {
+                    $selectedSubId = (int) $request->sub_unit_id;
+                    // Pastikan sub-unit yang dipilih memang anak dari unit induk ini
+                    if ($mySubUnits->pluck('id')->contains($selectedSubId) || $selectedSubId === $myJurusan->id) {
+                        $query->where('jurusan_id', $selectedSubId);
+                    } else {
+                        $allIds = $mySubUnits->pluck('id')->push($myJurusan->id);
+                        $query->whereIn('jurusan_id', $allIds);
+                    }
+                } else {
+                    // Default unit induk: tampilkan semua barang jurusannya + seluruh sub-unit anaknya
+                    $allIds = $mySubUnits->pluck('id')->push($myJurusan->id);
+                    $query->whereIn('jurusan_id', $allIds);
+                }
+            } else {
+                // Jika akun ini adalah sub-unit tunggal atau unit biasa tanpa anak
+                $query->where('jurusan_id', $user->jurusan_id);
+            }
         } elseif ($request->filled('jurusan_id')) {
             $query->where('jurusan_id', $request->jurusan_id);
         }
@@ -141,7 +164,7 @@ class ItemController extends Controller
         $categories = Category::all();
         $jurusans = Jurusan::all();
 
-        return view('items.index', compact('items', 'categories', 'jurusans', 'sarJurusan'));
+        return view('items.index', compact('items', 'categories', 'jurusans', 'sarJurusan', 'myJurusan', 'mySubUnits'));
     }
 
     /**
@@ -169,7 +192,11 @@ class ItemController extends Controller
     public function generateCode(Request $request): JsonResponse
     {
         $user = $request->user();
-        $jurusanId = $user->isJurusan() ? $user->jurusan_id : $request->input('jurusan_id');
+        if ($user->isJurusan() && $user->jurusan && $user->jurusan->children()->exists() && $request->filled('jurusan_id')) {
+            $jurusanId = (int) $request->input('jurusan_id');
+        } else {
+            $jurusanId = $user->isJurusan() ? $user->jurusan_id : $request->input('jurusan_id');
+        }
         $categoryId = $request->input('category_id');
 
         $code = $this->createItemCode($jurusanId, $categoryId);
@@ -272,6 +299,8 @@ class ItemController extends Controller
         if ($user->isSarprasOrKepalaSekolah() || ! $user->jurusan_id) {
             $rules['jurusan_id'] = ['required', 'exists:jurusans,id'];
             $rules['penempatan_sarpras'] = ['nullable', 'in:gudang,umum'];
+        } elseif ($user->jurusan && $user->jurusan->children()->exists()) {
+            $rules['jurusan_id'] = ['required', 'exists:jurusans,id'];
         }
 
         $validated = $request->validate($rules, [
@@ -280,7 +309,15 @@ class ItemController extends Controller
         ]);
 
         if ($user->isJurusan()) {
-            $validated['jurusan_id'] = $user->jurusan_id;
+            if ($user->jurusan && $user->jurusan->children()->exists() && ! empty($validated['jurusan_id'])) {
+                // Pastikan jurusan_id yang dipilih adalah unitnya sendiri atau salah satu sub-unit anaknya
+                $allowedIds = $user->jurusan->children()->pluck('id')->push($user->jurusan->id);
+                if (! $allowedIds->contains((int) $validated['jurusan_id'])) {
+                    $validated['jurusan_id'] = $user->jurusan_id;
+                }
+            } else {
+                $validated['jurusan_id'] = $user->jurusan_id;
+            }
         }
 
         // Jika kode_barang kosong, generate otomatis

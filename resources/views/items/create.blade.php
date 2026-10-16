@@ -47,11 +47,31 @@
                     </p>
                     @error('jurusan_id') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
                 </div>
+            @elseif(Auth::user()->jurusan && Auth::user()->jurusan->children()->exists())
+                <div class="md:col-span-6">
+                    <label for="jurusan_id" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                        Penempatan Lab / Ruangan <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="jurusan_id" id="jurusan_id" 
+                            class="w-full px-3.5 py-2.5 text-xs rounded-xl border @error('jurusan_id') border-rose-300 ring-1 ring-rose-200 @else border-slate-200 @enderror focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white shadow-xs" 
+                            required onchange="handleJurusanChange()">
+                        <option value="{{ Auth::user()->jurusan_id }}" data-kode="{{ Auth::user()->jurusan->kode }}">
+                            [Induk] {{ Auth::user()->jurusan->nama }} ({{ Auth::user()->jurusan->kode }})
+                        </option>
+                        @foreach(Auth::user()->jurusan->children as $sub)
+                            <option value="{{ $sub->id }}" data-kode="{{ $sub->kode }}" {{ old('jurusan_id') == $sub->id ? 'selected' : '' }}>
+                                ↳ [{{ $sub->kode }}] {{ $sub->nama }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-[11px] text-slate-500 mt-1">Pilih apakah barang ini ditempatkan di induk jurusan atau spesifik di salah satu lab.</p>
+                    @error('jurusan_id') <p class="text-xs text-rose-600 mt-1">{{ $message }}</p> @enderror
+                </div>
             @else
                 <div class="md:col-span-6">
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5">Jurusan Penempatan</label>
                     <input type="text" class="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-600" value="{{ Auth::user()->jurusan ? (Auth::user()->jurusan->nama . ' (' . Auth::user()->jurusan->kode . ')') : '-' }}" readonly disabled>
-                    <input type="hidden" id="jurusan_id" value="{{ Auth::user()->jurusan_id }}" data-kode="{{ Auth::user()->jurusan->kode ?? 'UMUM' }}">
+                    <input type="hidden" name="jurusan_id" id="jurusan_id" value="{{ Auth::user()->jurusan_id }}" data-kode="{{ Auth::user()->jurusan->kode ?? 'UMUM' }}">
                 </div>
             @endif
 

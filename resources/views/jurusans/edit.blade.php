@@ -38,6 +38,50 @@
             @method('PUT')
 
             <div class="space-y-5">
+                @if($jurusan->kode !== 'SAR')
+                    <!-- Pilihan Unit Kerja Utama (Induk) atau Sub-Unit / Lab -->
+                    <div class="p-4 rounded-2xl bg-blue-50/60 border border-blue-200/80 space-y-3">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-blue-900">
+                            Struktur &amp; Kedudukan Unit Kerja
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-300 transition-all">
+                                <input type="radio" name="is_sub_unit" value="0" {{ old('parent_id', $jurusan->parent_id) ? '' : 'checked' }} onchange="toggleParentSelect(false)" class="text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-800 block">Unit Kerja Utama / Jurusan</span>
+                                    <span class="text-[11px] text-slate-500">Berdiri sendiri (misal: Jurusan RPL, OTKP, BKK)</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200 cursor-pointer hover:border-blue-300 transition-all">
+                                <input type="radio" name="is_sub_unit" value="1" {{ old('parent_id', $jurusan->parent_id) ? 'checked' : '' }} onchange="toggleParentSelect(true)" class="text-blue-600 focus:ring-blue-500">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-800 block">Sub-Unit / Lab / Ruangan</span>
+                                    <span class="text-[11px] text-slate-500">Di bawah naungan jurusan lain (misal: Lab RPL 1)</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div id="parentSelectContainer" class="{{ old('parent_id', $jurusan->parent_id) ? '' : 'hidden' }} pt-2 border-t border-blue-200/60">
+                            <label for="parent_id" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Pilih Unit Kerja Utama (Induk) <span class="text-rose-500">*</span>
+                            </label>
+                            <select name="parent_id" id="parent_id" 
+                                    class="w-full px-3.5 py-2.5 bg-white border @error('parent_id') border-rose-300 ring-1 ring-rose-300 @else border-slate-200 @enderror rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                <option value="">-- Pilih Jurusan Induk --</option>
+                                @foreach($parentCandidates as $p)
+                                    <option value="{{ $p->id }}" {{ old('parent_id', $jurusan->parent_id) == $p->id ? 'selected' : '' }}>
+                                        {{ $p->nama }} ({{ $p->kode }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-[11px] text-slate-500 mt-1">Barang di sub-unit ini nantinya bisa dipantau langsung oleh akun jurusan induknya.</p>
+                            @error('parent_id')
+                                <p class="text-xs text-rose-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+                @endif
+
                 <!-- Kode & Nama Unit -->
                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
                     <div class="sm:col-span-4">
@@ -136,4 +180,19 @@
         </form>
     </div>
 </div>
+
+<script>
+    function toggleParentSelect(show) {
+        const container = document.getElementById('parentSelectContainer');
+        const select = document.getElementById('parent_id');
+        if (show) {
+            container.classList.remove('hidden');
+            select.setAttribute('required', 'required');
+        } else {
+            container.classList.add('hidden');
+            select.removeAttribute('required');
+            select.value = '';
+        }
+    }
+</script>
 @endsection
