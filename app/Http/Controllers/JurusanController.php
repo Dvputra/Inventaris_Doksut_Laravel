@@ -38,7 +38,7 @@ class JurusanController extends Controller
      */
     public function create(): View
     {
-        $parentCandidates = Jurusan::whereNull('parent_id')->where('kode', '!=', 'SAR')->orderBy('nama')->get();
+        $parentCandidates = Jurusan::whereNull('parent_id')->orderByRaw("CASE WHEN kode = 'SAR' THEN 0 ELSE 1 END, nama ASC")->get();
 
         return view('jurusans.create', compact('parentCandidates'));
     }
@@ -110,8 +110,7 @@ class JurusanController extends Controller
     {
         $parentCandidates = Jurusan::whereNull('parent_id')
             ->where('id', '!=', $jurusan->id)
-            ->where('kode', '!=', 'SAR')
-            ->orderBy('nama')
+            ->orderByRaw("CASE WHEN kode = 'SAR' THEN 0 ELSE 1 END, nama ASC")
             ->get();
 
         return view('jurusans.edit', compact('jurusan', 'parentCandidates'));
