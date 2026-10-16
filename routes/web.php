@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BorrowingController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InventoryAuditController;
@@ -161,6 +162,9 @@ Route::middleware('auth')->group(function () {
 
     // Kelola Unit Kerja & Jurusan (Hanya Admin Sarpras)
     Route::resource('jurusans', JurusanController::class)->except(['show'])->middleware('role:sarpras');
+
+    // Kelola Kategori Barang (Hanya Admin Sarpras)
+    Route::resource('categories', CategoryController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('role:sarpras');
 
     // Update Profil Kepala Unit oleh Akun Unit Kerja Mandiri
     Route::patch('/my-unit/update', [JurusanController::class, 'updateMyUnit'])->name('jurusan.my-unit.update');

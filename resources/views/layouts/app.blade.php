@@ -256,6 +256,11 @@
                             <i class="bi bi-building-gear text-base {{ request()->routeIs('jurusans.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
                             <span>Unit Kerja & Jurusan</span>
                         </a>
+                        <a href="{{ route('categories.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 {{ request()->routeIs('categories.*') ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md shadow-blue-900/30 border-l-4 border-amber-400 font-semibold' : 'text-slate-400 hover:text-white hover:bg-slate-800/60' }}">
+                            <i class="bi bi-tags text-base {{ request()->routeIs('categories.*') ? 'text-amber-300' : 'text-slate-400' }} shrink-0"></i>
+                            <span>Kategori Barang</span>
+                        </a>
                     </nav>
                 </div>
             @endif
