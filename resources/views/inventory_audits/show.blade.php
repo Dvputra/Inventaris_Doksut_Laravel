@@ -370,6 +370,8 @@
                                                 $badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
                                             } elseif (stripos($katName, 'mesin') !== false || stripos($katName, 'alat') !== false) {
                                                 $badgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                                            } elseif (stripos($katName, 'musik') !== false || stripos($katName, 'kesenian') !== false) {
+                                                $badgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
                                             }
                                         @endphp
                                         <span class="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold border {{ $badgeClass }}">
@@ -513,6 +515,8 @@
                                             $badgeClass = 'bg-blue-50 text-blue-700 border-blue-200';
                                         } elseif (stripos($katName, 'mesin') !== false || stripos($katName, 'alat') !== false) {
                                             $badgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                                        } elseif (stripos($katName, 'musik') !== false || stripos($katName, 'kesenian') !== false) {
+                                            $badgeClass = 'bg-purple-50 text-purple-700 border-purple-200';
                                         }
                                     @endphp
                                     <span class="inline-block px-2.5 py-1 rounded-lg text-[11px] font-bold border {{ $badgeClass }}">

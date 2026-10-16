@@ -156,6 +156,7 @@ class DatabaseSeeder extends Seeder
             ['kode' => 'MBL', 'nama' => 'Mebel & Furnitur Ruangan', 'keterangan' => 'Meja guru/siswa, kursi, lemari arsip, rak buku, loker, kabinet dan perabot ruang'],
             ['kode' => 'KBS', 'nama' => 'Alat Kebersihan', 'keterangan' => 'Sapu, pel, tempat sampah, ember, pengki, sikat, dan perlengkapan sanitasi'],
             ['kode' => 'ATK', 'nama' => 'Alat Tulis Kantor (ATK)', 'keterangan' => 'Kertas, spidol, pulpen, stapler, binder, buku, dan perlengkapan tulis'],
+            ['kode' => 'MSK', 'nama' => 'Alat Musik & Kesenian', 'keterangan' => 'Gitar, keyboard, drum, gamelan, sound amplifier musik, mikrofon, dan perlengkapan kesenian'],
         ];
 
         $categories = [];
