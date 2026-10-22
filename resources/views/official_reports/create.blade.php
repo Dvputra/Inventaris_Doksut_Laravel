@@ -251,12 +251,17 @@
                             <input type="text" name="items[0][nama_barang]" required placeholder="Contoh: Laptop Acer Aspire 5 / Timah Solder" class="inp-nama w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div class="sm:col-span-3">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                            <input type="text" name="items[0][kode_barang]" placeholder="Auto / Masukkan kode" class="inp-kode w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Otomatis/Manual)</span></label>
+                            <div class="flex gap-1.5">
+                                <input type="text" name="items[0][kode_barang]" placeholder="Otomatis digenerate..." class="inp-kode flex-1 px-2.5 py-2 bg-white border border-slate-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                <button type="button" onclick="generateCodeForCard(this.closest('.item-card'))" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
+                                    <i class="bi bi-magic"></i> Auto
+                                </button>
+                            </div>
                         </div>
                         <div class="sm:col-span-4 section-kategori">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Barang</label>
-                            <select name="items[0][category_id]" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-rose-500">*</span></label>
+                            <select name="items[0][category_id]" onchange="onCategoryChangeInCard(this.closest('.item-card'))" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
                                 <option value="">-- Pilih Kategori --</option>
                                 @foreach($categories as $cat)
                                     <option value="{{ $cat->id }}">{{ $cat->kode }} - {{ $cat->nama }}</option>
@@ -497,7 +502,40 @@ document.addEventListener('DOMContentLoaded', function () {
             optExisting.classList.remove('bg-blue-50', 'text-blue-700', 'font-bold');
             optExisting.classList.add('text-slate-600', 'font-medium');
             card.querySelector('.existing-item-select').value = '';
+            // Otomatis generate kode baru untuk card ini
+            generateCodeForCard(card);
         }
+    };
+
+    window.onCategoryChangeInCard = function (card) {
+        if (!card) return;
+        const tipeRadio = card.querySelector('.radio-tipe:checked');
+        const isNew = !tipeRadio || tipeRadio.value === 'new';
+        if (isNew) {
+            generateCodeForCard(card);
+        }
+    };
+
+    window.generateCodeForCard = function (card) {
+        if (!card) return;
+        const jurusanId = jurusanSelect ? jurusanSelect.value : '';
+        const catSelect = card.querySelector('.inp-category');
+        const categoryId = catSelect ? catSelect.value : '';
+        const kodeInput = card.querySelector('.inp-kode');
+
+        if (!kodeInput) return;
+
+        // Panggil endpoint resmi penomoran kode barang otomatis
+        fetch(`{{ route('items.generate-code') }}?jurusan_id=${jurusanId}&category_id=${categoryId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.code) {
+                    kodeInput.value = data.code;
+                    kodeInput.classList.add('ring-2', 'ring-blue-400');
+                    setTimeout(() => kodeInput.classList.remove('ring-2', 'ring-blue-400'), 600);
+                }
+            })
+            .catch(err => console.error('Gagal generate kode otomatis:', err));
     };
 
     function updateFormMode() {
@@ -592,6 +630,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     jurusanSelect.addEventListener('change', function () {
         syncJurusanToPihakKedua();
+        // Regenerate kode barang otomatis untuk semua kartu barang baru jika ada
+        document.querySelectorAll('.item-card').forEach(card => {
+            const tipeRadio = card.querySelector('.radio-tipe:checked');
+            if (!tipeRadio || tipeRadio.value === 'new') {
+                const catSelect = card.querySelector('.inp-category');
+                if (catSelect && catSelect.value) {
+                    generateCodeForCard(card);
+                }
+            }
+        });
     });
 
     window.updateFormMode = updateFormMode;
@@ -652,12 +700,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="text" name="items[${idx}][nama_barang]" required placeholder="Nama Barang" class="inp-nama w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-3">
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                        <input type="text" name="items[${idx}][kode_barang]" placeholder="Kode Barang" class="inp-kode w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-mono focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Otomatis/Manual)</span></label>
+                        <div class="flex gap-1.5">
+                            <input type="text" name="items[${idx}][kode_barang]" placeholder="Otomatis digenerate..." class="inp-kode flex-1 px-2.5 py-2 bg-white border border-slate-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <button type="button" onclick="generateCodeForCard(this.closest('.item-card'))" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
+                                <i class="bi bi-magic"></i> Auto
+                            </button>
+                        </div>
                     </div>
                     <div class="sm:col-span-4 section-kategori">
-                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Barang</label>
-                        <select name="items[${idx}][category_id]" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-rose-500">*</span></label>
+                        <select name="items[${idx}][category_id]" onchange="onCategoryChangeInCard(this.closest('.item-card'))" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
                             ${catOptions}
                         </select>
                     </div>
