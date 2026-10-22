@@ -503,7 +503,20 @@
                 </p>
 
                 <!-- Optional Preview / Detail Box -->
-                <div id="globalConfirmDetail" class="hidden p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-left mb-5 text-xs text-slate-700"></div>
+                <div id="globalConfirmDetail" class="hidden p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-left mb-4 text-xs text-slate-700"></div>
+
+                <!-- Input Konfirmasi Ketik Tulisan (Type Confirmation) -->
+                <div id="globalConfirmInputContainer" class="hidden text-left mb-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+                    <label id="globalConfirmInputLabel" class="block text-xs font-semibold text-slate-700 mb-1.5 leading-relaxed">
+                        Ketik <strong id="globalConfirmExpectedKeyword" class="text-rose-600 font-mono px-1.5 py-0.5 bg-rose-50 border border-rose-200 rounded">HAPUS</strong> untuk melanjutkan:
+                    </label>
+                    <input type="text" id="globalConfirmTextInput" autocomplete="off" placeholder="Ketik kata di sini..." 
+                           class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                    <p id="globalConfirmInputError" class="hidden text-[11px] font-semibold text-rose-600 mt-1 flex items-center gap-1">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>Teks yang Anda ketik belum cocok.</span>
+                    </p>
+                </div>
 
                 <!-- Action Buttons -->
                 <div class="grid grid-cols-2 gap-3 pt-2">
@@ -591,12 +604,20 @@
             const btnIcon = document.getElementById('globalConfirmBtnIcon');
             const cancelBtn = document.getElementById('globalConfirmCancelBtn');
 
+            // Komponen konfirmasi ketik kata (Type Confirmation)
+            const inputContainer = document.getElementById('globalConfirmInputContainer');
+            const inputLabel = document.getElementById('globalConfirmInputLabel');
+            const expectedKeywordEl = document.getElementById('globalConfirmExpectedKeyword');
+            const textInput = document.getElementById('globalConfirmTextInput');
+            const inputError = document.getElementById('globalConfirmInputError');
+
             const type = options.type || 'danger';
             const title = options.title || (type === 'danger' ? 'Konfirmasi Penghapusan' : 'Konfirmasi Tindakan');
             const message = options.message || 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
             const detail = options.detail || '';
             const confirmText = options.confirmText || (type === 'danger' ? 'Ya, Hapus' : (type === 'success' ? 'Ya, Lanjutkan' : 'Konfirmasi'));
             const cancelText = options.cancelText || 'Batal';
+            const requiredKeyword = options.requireMatch ? String(options.requireMatch).trim() : null;
 
             titleEl.textContent = title;
             msgEl.innerHTML = message;
@@ -607,6 +628,33 @@
             } else {
                 detailEl.classList.add('hidden');
                 detailEl.innerHTML = '';
+            }
+
+            // Setup input konfirmasi ketik tulisan jika requiredKeyword ada
+            if (requiredKeyword) {
+                expectedKeywordEl.textContent = requiredKeyword;
+                expectedKeywordEl.className = type === 'danger' 
+                    ? 'text-rose-600 font-mono px-1.5 py-0.5 bg-rose-50 border border-rose-200 rounded'
+                    : 'text-blue-600 font-mono px-1.5 py-0.5 bg-blue-50 border border-blue-200 rounded';
+                textInput.value = '';
+                textInput.placeholder = `Ketik "${requiredKeyword}" di sini...`;
+                inputError.classList.add('hidden');
+                inputContainer.classList.remove('hidden');
+
+                // Validasi saat mengetik untuk feedback visual
+                textInput.oninput = function() {
+                    const val = textInput.value.trim();
+                    if (val.toUpperCase() === requiredKeyword.toUpperCase()) {
+                        inputError.classList.add('hidden');
+                        textInput.classList.remove('border-rose-400', 'bg-rose-50/30');
+                        textInput.classList.add('border-emerald-500', 'bg-emerald-50/30');
+                    } else {
+                        textInput.classList.remove('border-emerald-500', 'bg-emerald-50/30');
+                    }
+                };
+            } else {
+                inputContainer.classList.add('hidden');
+                textInput.value = '';
             }
 
             btnText.textContent = confirmText;
@@ -643,6 +691,17 @@
             }
 
             activeConfirmCallback = function() {
+                // Jika butuh ketik tulisan, cek kecocokan terlebih dahulu
+                if (requiredKeyword) {
+                    const inputVal = textInput.value.trim();
+                    if (inputVal.toUpperCase() !== requiredKeyword.toUpperCase()) {
+                        inputError.classList.remove('hidden');
+                        textInput.classList.add('border-rose-400', 'bg-rose-50/30');
+                        textInput.focus();
+                        return; // Blokir proses jika kata tidak cocok
+                    }
+                }
+
                 closeConfirmDialog();
                 if (typeof options.onConfirm === 'function') {
                     options.onConfirm();
@@ -655,6 +714,10 @@
 
             modal.classList.remove('hidden');
             document.body.classList.add('overflow-hidden');
+
+            if (requiredKeyword) {
+                setTimeout(() => textInput.focus(), 100);
+            }
         };
 
         window.closeConfirmDialog = function() {
@@ -817,6 +880,7 @@
                         type: form.dataset.confirmType || 'danger',
                         confirmText: form.dataset.confirmBtn || (form.dataset.confirmType === 'success' ? 'Ya, Lanjutkan' : 'Ya, Hapus'),
                         icon: form.dataset.confirmIcon || '',
+                        requireMatch: form.dataset.confirmRequire || null,
                         onConfirm: function() {
                             form.dataset.confirmed = 'true';
                             form.submit();

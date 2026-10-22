@@ -86,16 +86,18 @@
                 $repAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
                 $repCanDelete = Auth::user()->isStaffSarpras() || (!$officialReport->is_locked && !$officialReport->is_synced && $officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras);
                 $deleteWarning = $officialReport->is_synced 
-                    ? "PERINGATAN: Berita Acara ini telah dimasukkan ke data barang inventaris. Menghapus arsip ini akan otomatis me-rollback (menarik kembali stok dan menghapus unit fisik terkait di inventaris). Lanjutkan menghapus?" 
-                    : "Apakah Anda yakin ingin menghapus arsip Berita Acara " . addslashes($officialReport->nomor_surat) . "?";
+                    ? "PERINGATAN SANGAT PENTING: Berita Acara ini telah dimasukkan ke dalam inventaris unit kerja. Menghapus arsip ini akan otomatis me-ROLLBACK seluruh data terkait: stok yang bertambah akan ditarik kembali, dan unit-unit fisik alat yang dibuat akan dihapus dari sistem inventaris!" 
+                    : "Apakah Anda yakin ingin menghapus arsip Berita Acara " . addslashes($officialReport->nomor_surat) . "? Dokumen yang dihapus tidak dapat dipulihkan.";
+                $requireMatchWord = $officialReport->is_synced ? 'ROLLBACK' : 'HAPUS';
             @endphp
             @if($repCanDelete)
                 <form action="{{ route('official-reports.destroy', $officialReport) }}" method="POST" class="inline-block shrink-0"
                       data-confirm="{{ $deleteWarning }}"
-                      data-confirm-title="{{ $officialReport->is_synced ? 'Hapus & Rollback Inventaris' : 'Hapus Berita Acara' }}"
+                      data-confirm-title="{{ $officialReport->is_synced ? 'Peringatan Hapus & Rollback Inventaris' : 'Hapus Arsip Berita Acara' }}"
                       data-confirm-type="danger"
                       data-confirm-btn="{{ $officialReport->is_synced ? 'Ya, Hapus & Rollback' : 'Ya, Hapus Arsip' }}"
-                      data-confirm-icon="bi bi-trash3-fill text-2xl">
+                      data-confirm-require="{{ $requireMatchWord }}"
+                      data-confirm-icon="bi bi-exclamation-triangle-fill text-2xl text-rose-600">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="inline-flex items-center justify-center p-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm transition-colors" title="{{ $officialReport->is_synced ? 'Hapus Dokumen & Rollback Stok Inventaris' : 'Hapus Dokumen' }}">
@@ -145,11 +147,12 @@
                 @if(! $officialReport->is_synced)
                     @if(Auth::user()->isStaffSarpras())
                         <form action="{{ route('official-reports.sync-to-inventory', $officialReport) }}" method="POST" class="shrink-0"
-                              data-confirm="Apakah Anda yakin ingin memasukkan seluruh barang BAST ini ke Data Barang Inventaris Unit {{ addslashes($officialReport->jurusan?->nama ?? '') }}? Stok barang lama akan bertambah (restock) dan barang baru akan dibuat otomatis."
-                              data-confirm-title="Sinkronisasi ke Master Barang"
+                              data-confirm="PERINGATAN SINKRONISASI: Anda akan memasukkan seluruh rincian barang pada Berita Acara {{ addslashes($officialReport->nomor_surat) }} ke dalam Data Barang Inventaris Unit Kerja {{ addslashes($officialReport->jurusan?->nama ?? '') }}. Stok barang lama akan bertambah (re-stock) dan barang baru akan otomatis dibuatkan nomor inventaris serta unit fisiknya."
+                              data-confirm-title="Konfirmasi Masukkan ke Data Barang"
                               data-confirm-type="primary"
-                              data-confirm-btn="Ya, Masukkan ke Inventaris"
-                              data-confirm-icon="bi bi-database-add text-2xl text-blue-600">
+                              data-confirm-btn="Ya, Masukkan ke Data Barang"
+                              data-confirm-require="MASUKKAN"
+                              data-confirm-icon="bi bi-database-fill-gear text-2xl text-blue-600">
                             @csrf
                             <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95">
                                 <i class="bi bi-database-fill-add text-base"></i>
