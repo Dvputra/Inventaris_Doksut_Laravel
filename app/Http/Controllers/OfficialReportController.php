@@ -2,18 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Item;
+use App\Models\ItemRestock;
 use App\Models\ItemUnit;
 use App\Models\Jurusan;
 use App\Models\OfficialReport;
 use App\Models\OfficialReportItem;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
-
-use App\Models\User;
 
 class OfficialReportController extends Controller
 {
@@ -73,6 +75,7 @@ class OfficialReportController extends Controller
     {
         $user = $request->user() ?? auth()->user();
         $jurusans = Jurusan::orderBy('nama')->get();
+        $categories = Category::orderBy('nama')->get();
         $items = Item::with('category')->orderBy('nama_barang')->get();
         $units = ItemUnit::with('item')->where('kondisi', '!=', 'baik')->orWhere('status', '!=', 'tersedia')->get();
 
@@ -119,6 +122,7 @@ class OfficialReportController extends Controller
         return view('official_reports.create', compact(
             'user',
             'jurusans',
+            'categories',
             'items',
             'suggestedNumberSerahTerima',
             'suggestedNumberRusak',
@@ -173,15 +177,22 @@ class OfficialReportController extends Controller
 
             // Rincian barang
             'items' => 'required|array|min:1',
+            'items.*.tipe_barang' => 'nullable|string|in:existing,new',
+            'items.*.item_id' => 'nullable|exists:items,id',
+            'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.jenis' => 'nullable|in:alat,bahan',
+            'items.*.lokasi' => 'nullable|string|max:255',
+            'items.*.spesifikasi' => 'nullable|string',
             'items.*.nama_barang' => 'required|string|max:200',
             'items.*.kode_barang' => 'nullable|string|max:100',
             'items.*.unit_code' => 'nullable|string|max:100',
             'items.*.nomor_seri' => 'nullable|string|max:100',
-            'items.*.jumlah' => 'required|numeric|min:1',
+            'items.*.jumlah' => 'required|numeric|min:0.01',
             'items.*.satuan' => 'required|string|max:50',
             'items.*.kondisi_saat_lapor' => 'nullable|string|max:100',
             'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan' => 'nullable|string|max:255',
+            'status_dokumen' => 'nullable|in:draft,selesai',
         ]);
 
         $filePath = null;
@@ -221,13 +232,13 @@ class OfficialReportController extends Controller
                 'mengetahui_nip' => $validated['mengetahui_nip'] ?? null,
                 'latar_belakang' => $validated['latar_belakang'] ?? null,
                 'total_nominal' => $totalNominal,
-                'status_dokumen' => 'selesai',
+                'status_dokumen' => $request->input('status_dokumen', 'selesai'),
                 'file_lampiran' => $filePath,
                 'catatan' => $validated['catatan'] ?? null,
             ]);
 
             foreach ($request->items as $itemData) {
-                $qty = (int) ($itemData['jumlah'] ?? 1);
+                $qty = (float) str_replace(',', '.', (string) ($itemData['jumlah'] ?? 1));
                 $price = (float) ($itemData['harga_satuan'] ?? 0);
                 $subtotal = $qty * $price;
 
@@ -235,13 +246,18 @@ class OfficialReportController extends Controller
                     'official_report_id' => $report->id,
                     'item_id' => $itemData['item_id'] ?? null,
                     'item_unit_id' => $itemData['item_unit_id'] ?? null,
+                    'tipe_barang' => $itemData['tipe_barang'] ?? 'new',
+                    'category_id' => $itemData['category_id'] ?? null,
+                    'jenis' => $itemData['jenis'] ?? 'alat',
+                    'lokasi' => $itemData['lokasi'] ?? null,
+                    'spesifikasi' => $itemData['spesifikasi'] ?? null,
                     'kode_barang' => $itemData['kode_barang'] ?? null,
                     'nama_barang' => $itemData['nama_barang'],
                     'unit_code' => $itemData['unit_code'] ?? null,
                     'nomor_seri' => $itemData['nomor_seri'] ?? null,
                     'jumlah' => $qty,
                     'satuan' => $itemData['satuan'] ?? 'unit',
-                    'kondisi_saat_lapor' => $itemData['kondisi_saat_lapor'] ?? 'rusak_berat',
+                    'kondisi_saat_lapor' => $itemData['kondisi_saat_lapor'] ?? 'baik',
                     'harga_satuan' => $price,
                     'subtotal' => $subtotal,
                     'keterangan' => $itemData['keterangan'] ?? null,
@@ -249,7 +265,11 @@ class OfficialReportController extends Controller
             }
         });
 
-        return redirect()->route('official-reports.index')->with('success', 'Berita Acara berhasil dibuat dan tercatat resmi.');
+        $message = $request->input('status_dokumen') === 'draft'
+            ? 'Draft Berita Acara berhasil disimpan. Unit kerja dapat mulai melakukan checklist fisik barang.'
+            : 'Berita Acara berhasil dibuat dan tercatat resmi.';
+
+        return redirect()->route('official-reports.index')->with('success', $message);
     }
 
     /**
@@ -257,7 +277,8 @@ class OfficialReportController extends Controller
      */
     public function show(OfficialReport $officialReport): View
     {
-        $officialReport->load(['user', 'jurusan', 'items', 'approver']);
+        $officialReport->load(['user', 'jurusan', 'items.category', 'approver', 'lockedBy', 'syncedBy']);
+        $categories = Category::orderBy('nama')->get();
         $kepsekUser = User::where('role', 'kepala_sekolah')->first();
         $sarprasUser = User::where('role', 'sarpras')->first();
         $sarprasUnit = Jurusan::where('kode', 'SAR')->orWhere('nama', 'like', '%Sarpras%')->first();
@@ -277,11 +298,12 @@ class OfficialReportController extends Controller
             abort(403, 'Hanya tim Sarpras yang berwenang mengedit Berita Acara.');
         }
 
-        $officialReport->load(['items', 'jurusan']);
+        $officialReport->load(['items.category', 'jurusan']);
         $jurusans = Jurusan::orderBy('nama')->get();
+        $categories = Category::orderBy('nama')->get();
         $items = Item::with('category')->orderBy('nama_barang')->get();
 
-        return view('official_reports.edit', compact('officialReport', 'jurusans', 'items', 'user'));
+        return view('official_reports.edit', compact('officialReport', 'jurusans', 'categories', 'items', 'user'));
     }
 
     /**
@@ -293,6 +315,14 @@ class OfficialReportController extends Controller
 
         if (! $user->isStaffSarpras()) {
             abort(403, 'Hanya tim Sarpras yang berwenang memperbarui Berita Acara.');
+        }
+
+        if ($officialReport->is_locked) {
+            return back()->with('error', 'Berita Acara telah dikunci dan tidak dapat diedit kembali.');
+        }
+
+        if ($officialReport->is_synced) {
+            return back()->with('error', 'Berita Acara telah disinkronisasikan ke data barang.');
         }
 
         $validated = $request->validate([
@@ -319,15 +349,22 @@ class OfficialReportController extends Controller
 
             // Rincian barang
             'items' => 'required|array|min:1',
+            'items.*.tipe_barang' => 'nullable|string|in:existing,new',
+            'items.*.item_id' => 'nullable|exists:items,id',
+            'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.jenis' => 'nullable|in:alat,bahan',
+            'items.*.lokasi' => 'nullable|string|max:255',
+            'items.*.spesifikasi' => 'nullable|string',
             'items.*.nama_barang' => 'required|string|max:200',
             'items.*.kode_barang' => 'nullable|string|max:100',
             'items.*.unit_code' => 'nullable|string|max:100',
             'items.*.nomor_seri' => 'nullable|string|max:100',
-            'items.*.jumlah' => 'required|numeric|min:1',
+            'items.*.jumlah' => 'required|numeric|min:0.01',
             'items.*.satuan' => 'required|string|max:50',
             'items.*.kondisi_saat_lapor' => 'nullable|string|max:100',
             'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan' => 'nullable|string|max:255',
+            'status_dokumen' => 'nullable|in:draft,selesai',
         ]);
 
         $filePath = $officialReport->file_lampiran;
@@ -369,6 +406,7 @@ class OfficialReportController extends Controller
                 'mengetahui_nip' => $validated['mengetahui_nip'] ?? null,
                 'latar_belakang' => $validated['latar_belakang'] ?? null,
                 'total_nominal' => $totalNominal,
+                'status_dokumen' => $request->input('status_dokumen', $officialReport->status_dokumen ?? 'selesai'),
                 'file_lampiran' => $filePath,
                 'catatan' => $validated['catatan'] ?? null,
             ]);
@@ -377,7 +415,7 @@ class OfficialReportController extends Controller
             $officialReport->items()->delete();
 
             foreach ($request->items as $itemData) {
-                $qty = (int) ($itemData['jumlah'] ?? 1);
+                $qty = (float) str_replace(',', '.', (string) ($itemData['jumlah'] ?? 1));
                 $price = (float) ($itemData['harga_satuan'] ?? 0);
                 $subtotal = $qty * $price;
 
@@ -385,13 +423,18 @@ class OfficialReportController extends Controller
                     'official_report_id' => $officialReport->id,
                     'item_id' => $itemData['item_id'] ?? null,
                     'item_unit_id' => $itemData['item_unit_id'] ?? null,
+                    'tipe_barang' => $itemData['tipe_barang'] ?? 'new',
+                    'category_id' => $itemData['category_id'] ?? null,
+                    'jenis' => $itemData['jenis'] ?? 'alat',
+                    'lokasi' => $itemData['lokasi'] ?? null,
+                    'spesifikasi' => $itemData['spesifikasi'] ?? null,
                     'kode_barang' => $itemData['kode_barang'] ?? null,
                     'nama_barang' => $itemData['nama_barang'],
                     'unit_code' => $itemData['unit_code'] ?? null,
                     'nomor_seri' => $itemData['nomor_seri'] ?? null,
                     'jumlah' => $qty,
                     'satuan' => $itemData['satuan'] ?? 'unit',
-                    'kondisi_saat_lapor' => $itemData['kondisi_saat_lapor'] ?? 'rusak_berat',
+                    'kondisi_saat_lapor' => $itemData['kondisi_saat_lapor'] ?? 'baik',
                     'harga_satuan' => $price,
                     'subtotal' => $subtotal,
                     'keterangan' => $itemData['keterangan'] ?? null,
@@ -681,11 +724,295 @@ class OfficialReportController extends Controller
     }
 
     /**
+     * Kunci Berita Acara (Hanya Akun Sarpras).
+     */
+    public function lock(OfficialReport $officialReport, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isStaffSarpras()) {
+            abort(403, 'Hanya tim Sarpras yang berwenang mengunci Berita Acara.');
+        }
+
+        $officialReport->update([
+            'is_locked' => true,
+            'locked_at' => now(),
+            'locked_by' => $user->id,
+            'status_dokumen' => 'selesai',
+        ]);
+
+        return back()->with('success', 'Berita Acara berhasil dikunci. Data dokumen dan rincian barang kini dilindungi dari perubahan.');
+    }
+
+    /**
+     * Buka Kunci Berita Acara (Hanya Akun Sarpras).
+     */
+    public function unlock(OfficialReport $officialReport, Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isStaffSarpras()) {
+            abort(403, 'Hanya tim Sarpras yang berwenang membuka kunci Berita Acara.');
+        }
+
+        if ($officialReport->is_synced) {
+            return back()->with('error', 'Berita Acara ini telah dimasukkan/disinkronisasikan ke data barang master. Kunci tidak dapat dibuka.');
+        }
+
+        $officialReport->update([
+            'is_locked' => false,
+            'locked_at' => null,
+            'locked_by' => null,
+            'status_dokumen' => 'draft',
+        ]);
+
+        return back()->with('success', 'Kunci Berita Acara berhasil dibuka. Dokumen kembali dalam mode Draft/Revisi.');
+    }
+
+    /**
+     * Update checklist verifikasi fisik per barang oleh Unit Kerja (atau Sarpras).
+     */
+    public function updateChecklist(Request $request, OfficialReport $officialReport): RedirectResponse
+    {
+        $user = $request->user();
+
+        if ($user->isJurusan() && $officialReport->jurusan_id && $user->jurusan_id !== $officialReport->jurusan_id) {
+            abort(403, 'Anda tidak berwenang melakukan checklist pada Berita Acara unit kerja lain.');
+        }
+
+        if ($officialReport->is_locked) {
+            return back()->with('error', 'Berita Acara telah dikunci dan tidak dapat diubah hasil checklistnya.');
+        }
+
+        $checks = $request->input('checks', []);
+
+        DB::transaction(function () use ($officialReport, $checks, $user) {
+            foreach ($officialReport->items as $item) {
+                $isChecked = isset($checks[$item->id]['is_checked']) && $checks[$item->id]['is_checked'] == '1';
+                $kondisi = $checks[$item->id]['kondisi_cek'] ?? ($item->kondisi_saat_lapor ?? 'baik');
+                $jumlahCek = isset($checks[$item->id]['jumlah_cek']) ? (float) str_replace(',', '.', (string) $checks[$item->id]['jumlah_cek']) : $item->jumlah;
+                $catatanCek = $checks[$item->id]['catatan_cek'] ?? null;
+
+                $item->update([
+                    'is_checked' => $isChecked,
+                    'checked_at' => $isChecked ? ($item->checked_at ?? now()) : null,
+                    'checked_by' => $isChecked ? ($item->checked_by ?? $user->id) : null,
+                    'kondisi_cek' => $kondisi,
+                    'jumlah_cek' => $jumlahCek,
+                    'catatan_cek' => $catatanCek,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Hasil verifikasi checklist fisik barang berhasil disimpan.');
+    }
+
+    /**
+     * Masukkan / Sinkronisasikan barang BAST ke Data Barang (Master Inventaris).
+     */
+    public function syncToInventory(Request $request, OfficialReport $officialReport): RedirectResponse
+    {
+        $user = $request->user();
+
+        if (! $user->isStaffSarpras()) {
+            abort(403, 'Hanya tim Sarpras yang berwenang memasukkan data Berita Acara ke Master Inventaris.');
+        }
+
+        if ($officialReport->is_synced) {
+            return back()->with('error', 'Data Berita Acara ini sudah pernah dimasukkan ke Master Barang sebelumnya.');
+        }
+
+        if ($officialReport->jenis !== 'serah_terima') {
+            return back()->with('error', 'Hanya Berita Acara Serah Terima yang dapat disinkronisasikan ke data barang masuk.');
+        }
+
+        if (! $officialReport->jurusan_id) {
+            return back()->with('error', 'Unit Kerja penerima belum ditentukan pada Berita Acara ini.');
+        }
+
+        $officialReport->load(['items.item', 'jurusan']);
+
+        DB::transaction(function () use ($officialReport, $user) {
+            foreach ($officialReport->items as $reportItem) {
+                $qty = (float) ($reportItem->jumlah_cek ?? $reportItem->jumlah);
+                if ($qty <= 0) {
+                    continue;
+                }
+
+                // OPSI 1: Barang yang sudah ada di unit tersebut (Restock Stok Lama)
+                if ($reportItem->tipe_barang === 'existing' && $reportItem->item_id) {
+                    $existingItem = Item::find($reportItem->item_id);
+                    if ($existingItem) {
+                        $stokSebelum = $existingItem->jumlah;
+                        $stokSesudah = $stokSebelum + $qty;
+
+                        $existingItem->update([
+                            'jumlah' => $stokSesudah,
+                            'kondisi' => $reportItem->kondisi_cek ?? $existingItem->kondisi,
+                        ]);
+
+                        // Buat riwayat restock
+                        ItemRestock::create([
+                            'item_id' => $existingItem->id,
+                            'jurusan_id' => $existingItem->jurusan_id,
+                            'jumlah' => $qty,
+                            'stok_sebelum' => $stokSebelum,
+                            'stok_sesudah' => $stokSesudah,
+                            'tanggal_masuk' => $officialReport->tanggal,
+                            'sumber_dana' => 'BAST Serah Terima: ' . $officialReport->nomor_surat,
+                            'pemasok' => $officialReport->pihak_pertama_nama,
+                            'catatan' => 'Penerimaan barang dari BAST ' . $officialReport->nomor_surat,
+                        ]);
+
+                        // Jika jenisnya alat, tambahkan unit fisik sesuai jumlah jika ada
+                        if ($existingItem->jenis === 'alat') {
+                            $existingUnitsCount = $existingItem->units()->count();
+                            for ($i = 1; $i <= (int) $qty; $i++) {
+                                $unitNum = $existingUnitsCount + $i;
+                                $unitCode = sprintf('%s-U%02d', $existingItem->kode_barang, $unitNum);
+                                ItemUnit::create([
+                                    'item_id' => $existingItem->id,
+                                    'unit_code' => $unitCode,
+                                    'nomor_seri' => null,
+                                    'kondisi' => $reportItem->kondisi_cek ?? 'baik',
+                                    'status' => 'tersedia',
+                                    'tanggal_masuk' => $officialReport->tanggal,
+                                    'lokasi' => $reportItem->lokasi ?? $existingItem->lokasi,
+                                    'keterangan' => 'Unit fisik dari BAST ' . $officialReport->nomor_surat,
+                                ]);
+                            }
+                        }
+                    }
+                } else {
+                    // OPSI 2: Barang Baru (Buat Master Item Baru di Unit Penerima)
+                    $jurusanId = $officialReport->jurusan_id;
+                    $categoryId = $reportItem->category_id;
+
+                    // Generate kode barang otomatis
+                    $generatedCode = $reportItem->kode_barang;
+                    if (empty($generatedCode)) {
+                        $generatedCode = $this->createItemCode($jurusanId, $categoryId);
+                    }
+
+                    $newItem = Item::create([
+                        'kode_barang' => $generatedCode,
+                        'nama_barang' => $reportItem->nama_barang,
+                        'jurusan_id' => $jurusanId,
+                        'category_id' => $categoryId,
+                        'jumlah' => $qty,
+                        'satuan' => $reportItem->satuan ?: 'unit',
+                        'kondisi' => $reportItem->kondisi_cek ?? 'baik',
+                        'lokasi' => $reportItem->lokasi ?? 'Ruang Praktik / Bengkel',
+                        'jenis' => $reportItem->jenis ?? 'alat',
+                        'sumber_dana' => 'BAST Serah Terima: ' . $officialReport->nomor_surat,
+                        'tahun_pengadaan' => (int) date('Y', strtotime($officialReport->tanggal)),
+                        'spesifikasi' => $reportItem->spesifikasi ?? $reportItem->keterangan,
+                        'min_stok' => 0,
+                    ]);
+
+                    // Update referensi item_id di report_items
+                    $reportItem->update([
+                        'item_id' => $newItem->id,
+                        'kode_barang' => $generatedCode,
+                    ]);
+
+                    // Jika barang baru berjenis alat, buatkan item_units otomatis
+                    if ($newItem->jenis === 'alat') {
+                        for ($i = 1; $i <= (int) $qty; $i++) {
+                            $unitCode = sprintf('%s-U%02d', $newItem->kode_barang, $i);
+                            ItemUnit::create([
+                                'item_id' => $newItem->id,
+                                'unit_code' => $unitCode,
+                                'nomor_seri' => ($i === 1) ? $reportItem->nomor_seri : null,
+                                'kondisi' => $reportItem->kondisi_cek ?? 'baik',
+                                'status' => 'tersedia',
+                                'tanggal_masuk' => $officialReport->tanggal,
+                                'lokasi' => $newItem->lokasi,
+                                'keterangan' => 'Unit baru dari BAST ' . $officialReport->nomor_surat,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Tandai Berita Acara sebagai tersinkronisasi
+            $officialReport->update([
+                'is_synced' => true,
+                'synced_at' => now(),
+                'synced_by' => $user->id,
+                'is_locked' => true,
+                'locked_at' => $officialReport->locked_at ?? now(),
+                'locked_by' => $officialReport->locked_by ?? $user->id,
+            ]);
+        });
+
+        return back()->with('success', 'Seluruh barang serah terima berhasil dimasukkan ke Master Data Barang & Inventaris unit terkait.');
+    }
+
+    /**
+     * API ambil daftar barang berdasarkan unit kerja terpilih.
+     */
+    public function getItemsByJurusan(Jurusan $jurusan): JsonResponse
+    {
+        $items = Item::with('category')
+            ->where('jurusan_id', $jurusan->id)
+            ->orderBy('nama_barang')
+            ->get(['id', 'kode_barang', 'nama_barang', 'satuan', 'jumlah', 'kondisi', 'jenis', 'category_id', 'lokasi', 'spesifikasi']);
+
+        return response()->json($items);
+    }
+
+    /**
+     * Helper internal untuk membangkitkan kode barang standar.
+     */
+    protected function createItemCode(?int $jurusanId, ?int $categoryId): string
+    {
+        $jurusanKode = 'UMUM';
+        if ($jurusanId) {
+            $jurusan = Jurusan::find($jurusanId);
+            if ($jurusan) {
+                $jurusanKode = strtoupper(trim($jurusan->kode));
+            }
+        }
+
+        $categoryKode = 'BRG';
+        if ($categoryId) {
+            $category = Category::find($categoryId);
+            if ($category) {
+                $categoryKode = strtoupper(trim($category->kode ?: substr($category->nama, 0, 3)));
+            }
+        }
+
+        $prefix = "{$jurusanKode}-{$categoryKode}-";
+
+        // Cari nomor urut terakhir yang ada
+        $existingCodes = Item::where('kode_barang', 'like', "{$prefix}%")
+            ->pluck('kode_barang')
+            ->toArray();
+
+        $maxNumber = 0;
+        foreach ($existingCodes as $c) {
+            $suffix = substr($c, strlen($prefix));
+            if (is_numeric($suffix)) {
+                $num = (int) $suffix;
+                if ($num > $maxNumber) {
+                    $maxNumber = $num;
+                }
+            }
+        }
+
+        $nextNumber = $maxNumber + 1;
+
+        return sprintf('%s%03d', $prefix, $nextNumber);
+    }
+
+    /**
      * Cetak Berita Acara resmi (format Surat Dinas A4 dengan Kop Resmi).
      */
     public function print(OfficialReport $officialReport): View
     {
-        $officialReport->load(['user', 'jurusan', 'items', 'approver']);
+        $officialReport->load(['user', 'jurusan', 'items.category', 'approver', 'lockedBy', 'syncedBy']);
+        $categories = Category::orderBy('nama')->get();
 
         return view('official_reports.print', compact('officialReport'));
     }

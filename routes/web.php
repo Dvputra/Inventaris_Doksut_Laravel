@@ -130,6 +130,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/official-reports/{officialReport}/cancel-signature', [OfficialReportController::class, 'cancelSignature'])
         ->name('official-reports.cancel-signature')
         ->middleware('role:sarpras,pembantu_sarpras,kepala_sekolah,jurusan');
+    Route::patch('/official-reports/{officialReport}/lock', [OfficialReportController::class, 'lock'])
+        ->name('official-reports.lock')
+        ->middleware('role:sarpras,pembantu_sarpras');
+    Route::patch('/official-reports/{officialReport}/unlock', [OfficialReportController::class, 'unlock'])
+        ->name('official-reports.unlock')
+        ->middleware('role:sarpras,pembantu_sarpras');
+    Route::put('/official-reports/{officialReport}/checklist', [OfficialReportController::class, 'updateChecklist'])
+        ->name('official-reports.update-checklist')
+        ->middleware('role:sarpras,pembantu_sarpras,jurusan');
+    Route::post('/official-reports/{officialReport}/sync-to-inventory', [OfficialReportController::class, 'syncToInventory'])
+        ->name('official-reports.sync-to-inventory')
+        ->middleware('role:sarpras,pembantu_sarpras');
+    Route::get('/api/jurusans/{jurusan}/items', [OfficialReportController::class, 'getItemsByJurusan'])
+        ->name('official-reports.api.items')
+        ->middleware('role:sarpras,pembantu_sarpras,jurusan');
 
     // Audit Inventaris & Verifikasi Fisik Barang (Sarpras & Unit Kerja)
     Route::resource('inventory-audits', InventoryAuditController::class)

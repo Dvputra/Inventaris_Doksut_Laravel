@@ -29,6 +29,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'latar_belakang',
     'total_nominal',
     'status_dokumen',
+    'is_locked',
+    'locked_at',
+    'locked_by',
+    'is_synced',
+    'synced_at',
+    'synced_by',
     'status_approval',
     'approved_by',
     'approved_at',
@@ -52,11 +58,25 @@ class OfficialReport extends Model
         return [
             'tanggal' => 'date',
             'total_nominal' => 'decimal:2',
+            'is_locked' => 'boolean',
+            'locked_at' => 'datetime',
+            'is_synced' => 'boolean',
+            'synced_at' => 'datetime',
             'approved_at' => 'datetime',
             'ttd_pihak_pertama_at' => 'datetime',
             'ttd_pihak_kedua_at' => 'datetime',
             'ttd_mengetahui_at' => 'datetime',
         ];
+    }
+
+    public function lockedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'locked_by');
+    }
+
+    public function syncedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'synced_by');
     }
 
     public function user(): BelongsTo

@@ -15,22 +15,72 @@
                 <span class="inline-block px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider {{ $officialReport->jenis === 'barang_rusak' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800' }}">
                     {{ $officialReport->jenis_label }}
                 </span>
+                @if($officialReport->status_dokumen === 'draft')
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                        <i class="bi bi-clock-history"></i> DRAFT (Belum Final)
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-200">
+                        <i class="bi bi-check-all"></i> DOKUMEN RESMI
+                    </span>
+                @endif
+                @if($officialReport->is_locked)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-800 text-white shadow-2xs">
+                        <i class="bi bi-lock-fill text-amber-400"></i> DIKUNCI
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-300">
+                        <i class="bi bi-unlock"></i> TERBUKA
+                    </span>
+                @endif
+                @if($officialReport->is_synced)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-2xs">
+                        <i class="bi bi-database-check"></i> MASUK DATA BARANG
+                    </span>
+                @endif
                 <span class="text-xs font-medium text-slate-400">|</span>
                 <span class="text-xs font-semibold text-slate-600">No. {{ $officialReport->nomor_surat }}</span>
             </div>
             <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mt-2">{{ $officialReport->judul }}</h1>
         </div>
 
-        <div class="flex items-center gap-2 w-full sm:w-auto">
+        <div class="flex items-center gap-2 w-full sm:w-auto flex-wrap">
             @if(Auth::user()->isStaffSarpras())
-                <a href="{{ route('official-reports.edit', $officialReport) }}" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm shadow-xs transition-colors" title="Edit Berita Acara">
-                    <i class="bi bi-pencil-square text-amber-500"></i>
-                    <span>Edit Dokumen</span>
-                </a>
+                <!-- Tombol Kunci / Buka Kunci -->
+                @if(! $officialReport->is_locked)
+                    <form action="{{ route('official-reports.lock', $officialReport) }}" method="POST" class="inline-block">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-xs transition-all" title="Kunci Berita Acara agar data tidak bisa diubah">
+                            <i class="bi bi-lock-fill text-amber-400"></i>
+                            <span>Kunci Dokumen</span>
+                        </button>
+                    </form>
+                @else
+                    @if(! $officialReport->is_synced)
+                        <form action="{{ route('official-reports.unlock', $officialReport) }}" method="POST" class="inline-block">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs shadow-xs transition-all" title="Buka Kunci untuk revisi data">
+                                <i class="bi bi-unlock-fill text-blue-600"></i>
+                                <span>Buka Kunci</span>
+                            </button>
+                        </form>
+                    @endif
+                @endif
+
+                <!-- Tombol Edit Dokumen -->
+                @if(! $officialReport->is_locked && ! $officialReport->is_synced)
+                    <a href="{{ route('official-reports.edit', $officialReport) }}" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-xs transition-colors" title="Edit Berita Acara">
+                        <i class="bi bi-pencil-square text-amber-500"></i>
+                        <span>Edit</span>
+                    </a>
+                @endif
             @endif
-            <a href="{{ route('official-reports.print', $officialReport) }}" target="_blank" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-colors">
-                <i class="bi bi-printer text-base"></i>
-                <span>Cetak Surat Dinas</span>
+
+            <a href="{{ route('official-reports.print', $officialReport) }}" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors">
+                <i class="bi bi-printer text-sm"></i>
+                <span>Cetak Surat</span>
             </a>
             @php
                 $repAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
@@ -57,6 +107,59 @@
 
     <!-- KOTAK TANDA TANGAN & PERSETUJUAN ONLINE -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-6">
+        <!-- Banner Aksi Khusus BAST: Sinkronisasi ke Master Data Barang -->
+        @if($officialReport->jenis === 'serah_terima')
+            @php
+                $allChecked = $officialReport->items->every(fn($i) => $i->is_checked);
+                $bothSigned = ($officialReport->ttd_pihak_pertama && $officialReport->ttd_pihak_kedua);
+            @endphp
+            <div class="p-5 bg-gradient-to-r from-blue-50 via-indigo-50 to-emerald-50 rounded-2xl border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center text-sm font-bold shadow-xs">
+                            <i class="bi bi-box-seam"></i>
+                        </span>
+                        <h3 class="text-sm font-bold text-slate-900">Integrasi ke Master Data Barang</h3>
+                        @if($officialReport->is_synced)
+                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
+                                <i class="bi bi-check-circle-fill"></i> Sudah Disinkronisasikan
+                            </span>
+                        @else
+                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-100 px-2.5 py-0.5 rounded-full">
+                                <i class="bi bi-hourglass-split"></i> Menunggu Tindakan
+                            </span>
+                        @endif
+                    </div>
+                    <p class="text-xs text-slate-600 pl-10">
+                        @if($officialReport->is_synced)
+                            Seluruh barang serah terima pada dokumen ini telah dimasukkan ke master barang unit <strong>{{ $officialReport->jurusan?->nama }}</strong> pada {{ $officialReport->synced_at ? $officialReport->synced_at->translatedFormat('d M Y, H:i') : '-' }}.
+                        @else
+                            Masukkan seluruh barang di bawah ini ke data barang inventaris unit penerima. Barang lama akan otomatis <strong>Re-stock (tambah stok)</strong>, dan barang baru akan otomatis <strong>didaftarkan sebagai aset baru</strong>.
+                        @endif
+                    </p>
+                </div>
+
+                @if(! $officialReport->is_synced)
+                    @if(Auth::user()->isStaffSarpras())
+                        <form action="{{ route('official-reports.sync-to-inventory', $officialReport) }}" method="POST" class="shrink-0"
+                              data-confirm="Apakah Anda yakin ingin memasukkan seluruh barang BAST ini ke Data Barang Inventaris Unit {{ addslashes($officialReport->jurusan?->nama ?? '') }}? Stok barang lama akan bertambah (restock) dan barang baru akan dibuat otomatis."
+                              data-confirm-title="Sinkronisasi ke Master Barang"
+                              data-confirm-type="primary"
+                              data-confirm-btn="Ya, Masukkan ke Inventaris"
+                              data-confirm-icon="bi bi-database-add text-2xl text-blue-600">
+                            @csrf
+                            <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-emerald-500/20 transition-all active:scale-95">
+                                <i class="bi bi-database-fill-add text-base"></i>
+                                <span>Masukkan ke Data Barang</span>
+                            </button>
+                        </form>
+                    @else
+                        <span class="text-xs text-slate-500 italic shrink-0">Menunggu aksi dari tim Sarpras</span>
+                    @endif
+                @endif
+            </div>
+        @endif
+
         <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                 <i class="bi bi-pen-fill text-amber-500"></i>
@@ -185,19 +288,34 @@
                             $signBtnText = 'Tanda Tangani Saksi / Pelapor Unit';
                         }
                     @endphp
-                    @if($canSignJurusan)
-                        @if(! $officialReport->ttd_pihak_kedua)
+                @if($canSignJurusan)
+                    @php
+                        $isBannedFromSigning = ($officialReport->jenis === 'serah_terima' && !$allChecked);
+                    @endphp
+                    @if(! $officialReport->ttd_pihak_kedua)
+                        @if($isBannedFromSigning)
+                            <div class="space-y-1.5">
+                                <button type="button" disabled class="w-full py-2.5 px-4 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5" title="Selesaikan ceklis fisik barang terlebih dahulu">
+                                    <i class="bi bi-lock-fill"></i>
+                                    <span>{{ $signBtnText }}</span>
+                                </button>
+                                <p class="text-[11px] text-center text-amber-600 font-medium">
+                                    <i class="bi bi-exclamation-circle"></i> Selesaikan verifikasi ceklis seluruh barang di bawah sebelum menandatangani.
+                                </p>
+                            </div>
+                        @else
                             <button type="button" onclick="openSignatureModal('jurusan')" class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5">
                                 <i class="bi bi-pen"></i>
                                 <span>{{ $signBtnText }}</span>
                             </button>
-                        @else
-                            <button type="button" onclick="confirmCancelReportSignature('pihak_kedua')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
-                                <i class="bi bi-arrow-counterclockwise"></i>
-                                <span>Batalkan TTD Pihak Kedua</span>
-                            </button>
                         @endif
+                    @else
+                        <button type="button" onclick="confirmCancelReportSignature('pihak_kedua')" class="w-full py-2 px-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs transition-colors flex items-center justify-center gap-1.5">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            <span>Batalkan TTD Pihak Kedua</span>
+                        </button>
                     @endif
+                @endif
                 </div>
             @endif
 
@@ -283,6 +401,162 @@
             </div>
         @endif
     </div>
+
+    <!-- FORM CHECKLIST PENGECEKAN FISIK OLEH UNIT KERJA (KHUSUS BAST) -->
+    @if($officialReport->jenis === 'serah_terima')
+        @php
+            $isUnitReceiver = (Auth::user()->isJurusan() && Auth::user()->jurusan_id === $officialReport->jurusan_id);
+            $canEditChecklist = (!$officialReport->is_locked && !$officialReport->is_synced) && (Auth::user()->isStaffSarpras() || $isUnitReceiver);
+            $checkedCount = $officialReport->items->where('is_checked', true)->count();
+            $totalCount = $officialReport->items->count();
+            $pctChecked = $totalCount > 0 ? round(($checkedCount / $totalCount) * 100) : 0;
+        @endphp
+
+        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-gradient-to-r from-amber-50/50 to-emerald-50/40">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs font-bold shadow-2xs">
+                            <i class="bi bi-clipboard-check-fill"></i>
+                        </span>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900">
+                            Pengecekan Fisik &amp; Checklist Barang oleh Unit Kerja
+                        </h2>
+                    </div>
+                    <p class="text-xs text-slate-500 pl-9">
+                        Unit kerja penerima (<strong>{{ $officialReport->jurusan?->nama }}</strong>) melakukan ceklis kondisi fisik dan jumlah barang nyata sebelum penandatanganan berita acara.
+                    </p>
+                </div>
+                <div class="flex items-center gap-3 self-end sm:self-center shrink-0">
+                    <div class="text-right">
+                        <span class="text-xs font-bold text-slate-700 block">{{ $checkedCount }} / {{ $totalCount }} Terverifikasi</span>
+                        <div class="w-32 bg-slate-200 h-2 rounded-full overflow-hidden mt-1">
+                            <div class="bg-emerald-500 h-full rounded-full transition-all" style="width: {{ $pctChecked }}%"></div>
+                        </div>
+                    </div>
+                    @if($checkedCount === $totalCount && $totalCount > 0)
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-full">
+                            <i class="bi bi-check-circle-fill"></i> Selesai Dicek
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-1 rounded-full">
+                            <i class="bi bi-hourglass-split"></i> {{ $pctChecked }}% Selesai
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            <form action="{{ route('official-reports.update-checklist', $officialReport) }}" method="POST">
+                @csrf
+                @method('PUT')
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 font-semibold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                                <th class="py-3 px-4 w-12 text-center">Cek</th>
+                                <th class="py-3 px-4">Nama Barang</th>
+                                <th class="py-3 px-4 w-28">Tipe</th>
+                                <th class="py-3 px-4 text-center w-24">Jml Kirim</th>
+                                <th class="py-3 px-4 w-32">Kondisi Fisik Nyata</th>
+                                <th class="py-3 px-4 text-center w-28">Jml Diterima</th>
+                                <th class="py-3 px-4">Catatan Pengecekan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach($officialReport->items as $idx => $item)
+                                <tr class="hover:bg-slate-50/50 transition-colors {{ $item->is_checked ? 'bg-emerald-50/20' : '' }}">
+                                    <td class="py-3 px-4 text-center">
+                                        <input type="hidden" name="items[{{ $idx }}][id]" value="{{ $item->id }}">
+                                        @if($canEditChecklist)
+                                            <input type="checkbox" name="items[{{ $idx }}][is_checked]" value="1" {{ $item->is_checked ? 'checked' : '' }} class="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500 cursor-pointer">
+                                        @else
+                                            @if($item->is_checked)
+                                                <i class="bi bi-check-circle-fill text-emerald-600 text-base" title="Sudah diverifikasi"></i>
+                                            @else
+                                                <i class="bi bi-circle text-slate-300 text-base" title="Belum diverifikasi"></i>
+                                            @endif
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="font-bold text-slate-900">{{ $item->nama_barang }}</div>
+                                        <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                                            @if($item->kode_barang)
+                                                <span class="font-mono bg-slate-100 px-1 rounded">Kode: {{ $item->kode_barang }}</span>
+                                            @endif
+                                            @if($item->category)
+                                                <span>Kat: {{ $item->category->nama }}</span>
+                                            @endif
+                                            @if($item->lokasi)
+                                                <span>Ruang: {{ $item->lokasi }}</span>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        @if($item->tipe_barang === 'existing')
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                                                <i class="bi bi-arrow-repeat"></i> Restock
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                                <i class="bi bi-plus-circle"></i> Baru
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-4 text-center font-bold text-slate-800">
+                                        {{ $item->jumlah }} {{ $item->satuan }}
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        @if($canEditChecklist)
+                                            <select name="items[{{ $idx }}][kondisi_cek]" class="w-full px-2 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                                <option value="baik" {{ ($item->kondisi_cek ?? $item->kondisi_saat_lapor) === 'baik' ? 'selected' : '' }}>Baik / Sesuai</option>
+                                                <option value="rusak_ringan" {{ ($item->kondisi_cek ?? $item->kondisi_saat_lapor) === 'rusak_ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                                                <option value="rusak_berat" {{ ($item->kondisi_cek ?? $item->kondisi_saat_lapor) === 'rusak_berat' ? 'selected' : '' }}>Rusak Berat</option>
+                                                <option value="tidak_lengkap" {{ ($item->kondisi_cek ?? $item->kondisi_saat_lapor) === 'tidak_lengkap' ? 'selected' : '' }}>Tidak Lengkap</option>
+                                            </select>
+                                        @else
+                                            <span class="font-medium text-xs text-slate-700">{{ ucwords(str_replace('_', ' ', $item->kondisi_cek ?? $item->kondisi_saat_lapor)) }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        @if($canEditChecklist)
+                                            <input type="number" name="items[{{ $idx }}][jumlah_cek]" value="{{ $item->jumlah_cek ?? $item->jumlah }}" min="0" step="any" class="w-20 px-2 py-1.5 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                        @else
+                                            <span class="font-bold text-xs text-slate-800">{{ $item->jumlah_cek ?? $item->jumlah }} {{ $item->satuan }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        @if($canEditChecklist)
+                                            <input type="text" name="items[{{ $idx }}][catatan_cek]" value="{{ $item->catatan_cek }}" placeholder="Catatan fisik jika ada kendala..." class="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                        @else
+                                            <span class="text-xs text-slate-500">{{ $item->catatan_cek ?: '-' }}</span>
+                                        @endif
+                                        @if($item->checked_at)
+                                            <div class="text-[10px] text-slate-400 mt-0.5">
+                                                Dicek: {{ $item->checked_at->translatedFormat('d M, H:i') }} ({{ $item->checkedBy?->name ?? 'User' }})
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                @if($canEditChecklist)
+                    <div class="p-4 bg-slate-50 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <p class="text-xs text-slate-500">
+                            <i class="bi bi-info-circle text-blue-600"></i> Simpan hasil ceklis fisik untuk memperbarui status verifikasi barang berita acara.
+                        </p>
+                        <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shadow-xs transition-all active:scale-95">
+                            <i class="bi bi-check2-all text-sm"></i>
+                            <span>Simpan Checklist Fisik</span>
+                        </button>
+                    </div>
+                @endif
+            </form>
+        </div>
+    @endif
 
     <!-- Tabel Daftar Barang -->
     <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
