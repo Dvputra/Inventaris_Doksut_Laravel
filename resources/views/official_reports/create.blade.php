@@ -3,23 +3,20 @@
 @section('title', 'Buat Berita Acara')
 
 @section('content')
-<div class="max-w-5xl mx-auto space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <a href="{{ route('official-reports.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors mb-2">
-                <i class="bi bi-arrow-left"></i>
-                <span>Kembali ke Daftar Berita Acara</span>
-            </a>
-            <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">Buat Berita Acara Sarpras</h1>
-            <p class="text-sm text-slate-500 mt-0.5">
-                Pencatatan formal Berita Acara Serah Terima Barang (BAST), Kerusakan / Afkir, atau Penjualan / Lelang Aset.
-            </p>
-        </div>
-    </div>
+<div class="mb-6">
+    <!-- Tombol Kembali (Konsisten dengan tema Input Barang) -->
+    <a href="{{ route('official-reports.index') }}" 
+       class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-xl shadow-xs transition-all mb-3">
+        <i class="bi bi-arrow-left"></i>
+        <span>Kembali ke Daftar Berita Acara</span>
+    </a>
+    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Buat Berita Acara Sarpras</h2>
+    <p class="text-xs sm:text-sm text-slate-500 mt-1">Pencatatan formal Berita Acara Serah Terima Barang (BAST), Kerusakan / Afkir, atau Penjualan / Lelang Aset.</p>
+</div>
 
+<div class="bg-white rounded-3xl border border-slate-200/90 shadow-xs p-6 sm:p-8">
     @if ($errors->any())
-        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm">
+        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm mb-6">
             <div class="font-bold flex items-center gap-2 mb-1">
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <span>Terdapat kesalahan pengisian formulir:</span>
@@ -37,11 +34,11 @@
         <input type="hidden" name="status_dokumen" id="statusDokumenInput" value="selesai">
 
         <!-- 1. IDENTITAS DOKUMEN & JENIS -->
-        <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 space-y-5">
-            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-                <span class="w-6 h-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center text-xs">1</span>
-                <span>Klasifikasi &amp; Nomor Surat Berita Acara</span>
-            </h2>
+        <div class="p-5 rounded-2xl bg-slate-50/60 border border-slate-200/80 space-y-4">
+            <div class="flex items-center gap-2 text-sm font-bold text-blue-700 pb-2 border-b border-slate-200/70">
+                <i class="bi bi-file-earmark-text text-base"></i>
+                <span>1. Klasifikasi &amp; Nomor Surat Berita Acara</span>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -493,6 +490,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 opt.dataset.jenis = it.jenis || 'alat';
                 opt.dataset.lokasi = it.lokasi || '';
                 opt.dataset.spesifikasi = it.spesifikasi || '';
+                opt.dataset.isComputer = it.is_computer ? '1' : '0';
                 if (currentVal && currentVal == it.id) opt.selected = true;
                 select.appendChild(opt);
             });
@@ -627,10 +625,20 @@ document.addEventListener('DOMContentLoaded', function () {
             card.querySelector('.inp-kode').value = opt.dataset.kode || '';
             card.querySelector('.inp-satuan').value = opt.dataset.satuan || 'unit';
             if (card.querySelector('.inp-kondisi')) card.querySelector('.inp-kondisi').value = opt.dataset.kondisi || 'baik';
-            if (card.querySelector('.inp-category')) card.querySelector('.inp-category').value = opt.dataset.category || '';
+            if (card.querySelector('.inp-category')) {
+                card.querySelector('.inp-category').value = opt.dataset.category || '';
+                // Trigger perubahan kategori agar UI KOM vs Non-KOM menyesuaikan
+                onCategoryChangeInCard(card);
+            }
             if (card.querySelector('.inp-jenis')) card.querySelector('.inp-jenis').value = opt.dataset.jenis || 'alat';
             if (card.querySelector('.inp-lokasi')) card.querySelector('.inp-lokasi').value = opt.dataset.lokasi || '';
             if (card.querySelector('.inp-ket')) card.querySelector('.inp-ket').value = opt.dataset.spesifikasi || '';
+
+            // Set radio is_computer sesuai data barang existing
+            if (opt.dataset.isComputer !== undefined) {
+                const radioIsComp = card.querySelector(`.radio-is-computer[value="${opt.dataset.isComputer}"]`);
+                if (radioIsComp) radioIsComp.checked = true;
+            }
         }
     };
 
@@ -641,6 +649,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const secExisting = card.querySelector('.section-existing');
         const optNew = card.querySelector('.opt-new');
         const optExisting = card.querySelector('.opt-existing');
+        const itTypeSection = card.querySelector('.section-it-type');
 
         if (type === 'existing') {
             secExisting.classList.remove('hidden');
@@ -648,6 +657,11 @@ document.addEventListener('DOMContentLoaded', function () {
             optExisting.classList.remove('text-slate-600', 'font-medium');
             optNew.classList.remove('bg-blue-50', 'text-blue-700', 'font-bold');
             optNew.classList.add('text-slate-600', 'font-medium');
+
+            // Saat mode restock barang unit, sembunyikan klasifikasi komputer baru (karena mengikuti data master unit)
+            if (itTypeSection) {
+                itTypeSection.classList.add('hidden');
+            }
 
             // Cek apakah jurusan sudah dipilih
             if (!jurusanSelect.value) {
@@ -663,6 +677,10 @@ document.addEventListener('DOMContentLoaded', function () {
             optExisting.classList.remove('bg-blue-50', 'text-blue-700', 'font-bold');
             optExisting.classList.add('text-slate-600', 'font-medium');
             card.querySelector('.existing-item-select').value = '';
+            
+            // Cek kembali apakah kategori terpilih adalah KOM untuk menampilkan opsi komputer
+            onCategoryChangeInCard(card);
+
             // Otomatis generate kode baru untuk card ini
             generateCodeForCard(card);
         }
@@ -675,17 +693,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const catKode = selectedOpt ? (selectedOpt.getAttribute('data-kode') || '').toUpperCase() : '';
         const itTypeSection = card.querySelector('.section-it-type');
 
-        // Tampilkan opsi komputer vs non-komputer jika kode kategori KOM
+        const tipeRadio = card.querySelector('.radio-tipe:checked');
+        const isNew = !tipeRadio || tipeRadio.value === 'new';
+
+        // Tampilkan opsi komputer vs non-komputer hanya jika kategori KOM DAN tipe barang baru (bukan ambil existing)
         if (itTypeSection) {
-            if (catKode === 'KOM') {
+            if (catKode === 'KOM' && isNew) {
                 itTypeSection.classList.remove('hidden');
             } else {
                 itTypeSection.classList.add('hidden');
             }
         }
 
-        const tipeRadio = card.querySelector('.radio-tipe:checked');
-        const isNew = !tipeRadio || tipeRadio.value === 'new';
         if (isNew) {
             generateCodeForCard(card);
         }
