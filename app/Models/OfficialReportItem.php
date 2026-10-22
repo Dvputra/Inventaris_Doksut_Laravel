@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'item_unit_id',
     'tipe_barang',
     'category_id',
+    'is_computer',
     'jenis',
     'lokasi',
     'spesifikasi',
@@ -45,6 +46,7 @@ class OfficialReportItem extends Model
             'jumlah' => 'float',
             'jumlah_cek' => 'float',
             'is_checked' => 'boolean',
+            'is_computer' => 'boolean',
             'checked_at' => 'datetime',
         ];
     }

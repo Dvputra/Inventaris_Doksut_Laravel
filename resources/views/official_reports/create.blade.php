@@ -283,11 +283,30 @@
                         <div class="sm:col-span-4 section-kategori">
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-rose-500">*</span></label>
                             <select name="items[0][category_id]" onchange="onCategoryChangeInCard(this.closest('.item-card'))" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <option value="">-- Pilih Kategori --</option>
+                                <option value="" data-kode="">-- Pilih Kategori --</option>
                                 @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->kode }} - {{ $cat->nama }}</option>
+                                    <option value="{{ $cat->id }}" data-kode="{{ $cat->kode }}">{{ $cat->kode }} - {{ $cat->nama }}</option>
                                 @endforeach
                             </select>
+                        </div>
+
+                        <!-- Opsi Khusus jika Kategori KOM (Komputer vs Non-Komputer) -->
+                        <div class="sm:col-span-12 section-it-type hidden p-3 rounded-xl bg-blue-50/60 border border-blue-200">
+                            <span class="block text-xs font-bold text-blue-900 mb-1.5 flex items-center gap-1.5">
+                                <i class="bi bi-cpu text-blue-600"></i> Klasifikasi Perangkat IT (Kategori KOM):
+                            </span>
+                            <div class="flex flex-wrap items-center gap-4 text-xs">
+                                <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-blue-200 cursor-pointer hover:border-blue-400">
+                                    <input type="radio" name="items[0][is_computer]" value="1" checked class="text-blue-600 focus:ring-blue-500 radio-is-computer">
+                                    <span class="font-bold text-slate-900">💻 Unit Komputer / PC / Laptop</span>
+                                    <span class="text-[10px] text-slate-500">(Otomatis dibuat nomor meja & spesifikasi PC)</span>
+                                </label>
+                                <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:border-slate-400">
+                                    <input type="radio" name="items[0][is_computer]" value="0" class="text-amber-600 focus:ring-amber-500 radio-is-computer">
+                                    <span class="font-bold text-slate-900">🖨️ Perangkat IT Non-Komputer</span>
+                                    <span class="text-[10px] text-slate-500">(Printer, Proyektor, Switch, Router, TV, dll.)</span>
+                                </label>
+                            </div>
                         </div>
 
                         <div class="sm:col-span-2">
@@ -651,6 +670,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     window.onCategoryChangeInCard = function (card) {
         if (!card) return;
+        const catSelect = card.querySelector('.inp-category');
+        const selectedOpt = catSelect ? catSelect.options[catSelect.selectedIndex] : null;
+        const catKode = selectedOpt ? (selectedOpt.getAttribute('data-kode') || '').toUpperCase() : '';
+        const itTypeSection = card.querySelector('.section-it-type');
+
+        // Tampilkan opsi komputer vs non-komputer jika kode kategori KOM
+        if (itTypeSection) {
+            if (catKode === 'KOM') {
+                itTypeSection.classList.remove('hidden');
+            } else {
+                itTypeSection.classList.add('hidden');
+            }
+        }
+
         const tipeRadio = card.querySelector('.radio-tipe:checked');
         const isNew = !tipeRadio || tipeRadio.value === 'new';
         if (isNew) {
@@ -797,9 +830,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const isJual = jenisSelect.value === 'penjualan';
         const isSerahTerima = jenisSelect.value === 'serah_terima';
 
-        let catOptions = '<option value="">-- Pilih Kategori --</option>';
+        let catOptions = '<option value="" data-kode="">-- Pilih Kategori --</option>';
         categoriesList.forEach(c => {
-            catOptions += `<option value="${c.id}">${c.kode} - ${c.nama}</option>`;
+            catOptions += `<option value="${c.id}" data-kode="${c.kode}">${c.kode} - ${c.nama}</option>`;
         });
 
         return `
@@ -876,6 +909,25 @@ document.addEventListener('DOMContentLoaded', function () {
                         <select name="items[${idx}][category_id]" onchange="onCategoryChangeInCard(this.closest('.item-card'))" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
                             ${catOptions}
                         </select>
+                    </div>
+
+                    <!-- Opsi Khusus jika Kategori KOM (Komputer vs Non-Komputer) -->
+                    <div class="sm:col-span-12 section-it-type hidden p-3 rounded-xl bg-blue-50/60 border border-blue-200">
+                        <span class="block text-xs font-bold text-blue-900 mb-1.5 flex items-center gap-1.5">
+                            <i class="bi bi-cpu text-blue-600"></i> Klasifikasi Perangkat IT (Kategori KOM):
+                        </span>
+                        <div class="flex flex-wrap items-center gap-4 text-xs">
+                            <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-blue-200 cursor-pointer hover:border-blue-400">
+                                <input type="radio" name="items[${idx}][is_computer]" value="1" checked class="text-blue-600 focus:ring-blue-500 radio-is-computer">
+                                <span class="font-bold text-slate-900">💻 Unit Komputer / PC / Laptop</span>
+                                <span class="text-[10px] text-slate-500">(Otomatis dibuat nomor meja & spesifikasi PC)</span>
+                            </label>
+                            <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:border-slate-400">
+                                <input type="radio" name="items[${idx}][is_computer]" value="0" class="text-amber-600 focus:ring-amber-500 radio-is-computer">
+                                <span class="font-bold text-slate-900">🖨️ Perangkat IT Non-Komputer</span>
+                                <span class="text-[10px] text-slate-500">(Printer, Proyektor, Switch, Router, TV, dll.)</span>
+                            </label>
+                        </div>
                     </div>
 
                     <div class="sm:col-span-2">

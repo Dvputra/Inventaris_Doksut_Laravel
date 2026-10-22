@@ -180,6 +180,7 @@ class OfficialReportController extends Controller
             'items.*.tipe_barang' => 'nullable|string|in:existing,new',
             'items.*.item_id' => 'nullable|exists:items,id',
             'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.is_computer' => 'nullable|boolean',
             'items.*.jenis' => 'nullable|in:alat,bahan',
             'items.*.lokasi' => 'nullable|string|max:255',
             'items.*.spesifikasi' => 'nullable|string',
@@ -248,6 +249,7 @@ class OfficialReportController extends Controller
                     'item_unit_id' => $itemData['item_unit_id'] ?? null,
                     'tipe_barang' => $itemData['tipe_barang'] ?? 'new',
                     'category_id' => $itemData['category_id'] ?? null,
+                    'is_computer' => !empty($itemData['is_computer']),
                     'jenis' => $itemData['jenis'] ?? 'alat',
                     'lokasi' => $itemData['lokasi'] ?? null,
                     'spesifikasi' => $itemData['spesifikasi'] ?? null,
@@ -362,6 +364,7 @@ class OfficialReportController extends Controller
             'items.*.tipe_barang' => 'nullable|string|in:existing,new',
             'items.*.item_id' => 'nullable|exists:items,id',
             'items.*.category_id' => 'nullable|exists:categories,id',
+            'items.*.is_computer' => 'nullable|boolean',
             'items.*.jenis' => 'nullable|in:alat,bahan',
             'items.*.lokasi' => 'nullable|string|max:255',
             'items.*.spesifikasi' => 'nullable|string',
@@ -435,6 +438,7 @@ class OfficialReportController extends Controller
                     'item_unit_id' => $itemData['item_unit_id'] ?? null,
                     'tipe_barang' => $itemData['tipe_barang'] ?? 'new',
                     'category_id' => $itemData['category_id'] ?? null,
+                    'is_computer' => !empty($itemData['is_computer']),
                     'jenis' => $itemData['jenis'] ?? 'alat',
                     'lokasi' => $itemData['lokasi'] ?? null,
                     'spesifikasi' => $itemData['spesifikasi'] ?? null,
@@ -906,15 +910,17 @@ class OfficialReportController extends Controller
                             $existingUnitsCount = $existingItem->units()->count();
                             for ($i = 1; $i <= (int) $qty; $i++) {
                                 $unitNum = $existingUnitsCount + $i;
-                                $unitCode = sprintf('%s-U%02d', $existingItem->kode_barang, $unitNum);
+                                $unitCode = sprintf('%s-%02d', $existingItem->kode_barang, $unitNum);
                                 ItemUnit::create([
                                     'item_id' => $existingItem->id,
+                                    'jurusan_id' => $existingItem->jurusan_id,
                                     'unit_code' => $unitCode,
                                     'nomor_seri' => null,
+                                    'nomor_meja' => $existingItem->is_computer ? sprintf('Meja PC-%02d', $unitNum) : null,
                                     'kondisi' => $reportItem->kondisi_cek ?? 'baik',
                                     'status' => 'tersedia',
                                     'tanggal_masuk' => $officialReport->tanggal,
-                                    'lokasi' => $reportItem->lokasi ?? $existingItem->lokasi,
+                                    'lokasi_penempatan' => $reportItem->lokasi ?? $existingItem->lokasi,
                                     'keterangan' => 'Unit fisik dari BAST ' . $officialReport->nomor_surat,
                                 ]);
                             }
@@ -936,6 +942,7 @@ class OfficialReportController extends Controller
                         'nama_barang' => $reportItem->nama_barang,
                         'jurusan_id' => $jurusanId,
                         'category_id' => $categoryId,
+                        'is_computer' => (bool) $reportItem->is_computer,
                         'jumlah' => $qty,
                         'satuan' => $reportItem->satuan ?: 'unit',
                         'kondisi' => $reportItem->kondisi_cek ?? 'baik',
@@ -956,15 +963,17 @@ class OfficialReportController extends Controller
                     // Jika barang baru berjenis alat, buatkan item_units otomatis
                     if ($newItem->jenis === 'alat') {
                         for ($i = 1; $i <= (int) $qty; $i++) {
-                            $unitCode = sprintf('%s-U%02d', $newItem->kode_barang, $i);
+                            $unitCode = sprintf('%s-%02d', $newItem->kode_barang, $i);
                             ItemUnit::create([
                                 'item_id' => $newItem->id,
+                                'jurusan_id' => $newItem->jurusan_id,
                                 'unit_code' => $unitCode,
+                                'nomor_meja' => $newItem->is_computer ? sprintf('Meja PC-%02d', $i) : null,
                                 'nomor_seri' => ($i === 1) ? $reportItem->nomor_seri : null,
                                 'kondisi' => $reportItem->kondisi_cek ?? 'baik',
                                 'status' => 'tersedia',
                                 'tanggal_masuk' => $officialReport->tanggal,
-                                'lokasi' => $newItem->lokasi,
+                                'lokasi_penempatan' => $newItem->lokasi,
                                 'keterangan' => 'Unit baru dari BAST ' . $officialReport->nomor_surat,
                             ]);
                         }
