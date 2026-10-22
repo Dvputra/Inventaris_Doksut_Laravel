@@ -272,7 +272,7 @@
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Otomatis/Manual)</span></label>
                             <div class="flex gap-1.5">
                                 <input type="text" name="items[0][kode_barang]" placeholder="Otomatis digenerate..." class="inp-kode flex-1 px-2.5 py-2 bg-white border border-slate-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <button type="button" onclick="generateCodeForCard(this.closest('.item-card'))" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
+                                <button type="button" onclick="generateCodeForCard(this.closest('.item-card'), true)" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
                                     <i class="bi bi-magic"></i> Auto
                                 </button>
                             </div>
@@ -710,8 +710,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    window.generateCodeForCard = function (card) {
+    window.generateCodeForCard = function (card, force = false) {
         if (!card) return;
+        // Kode barang hanya digenerate otomatis untuk Berita Acara Serah Terima (BAST).
+        // Untuk Berita Acara Kerusakan (Afkir) dan Penjualan, kode barang tidak digenerate otomatis kecuali tombol "Auto" diklik manual (force = true).
+        if (jenisSelect && jenisSelect.value !== 'serah_terima' && !force) {
+            return;
+        }
+
         const jurusanId = jurusanSelect ? jurusanSelect.value : '';
         const catSelect = card.querySelector('.inp-category');
         const categoryId = catSelect ? catSelect.value : '';
@@ -914,7 +920,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Otomatis/Manual)</span></label>
                         <div class="flex gap-1.5">
                             <input type="text" name="items[${idx}][kode_barang]" placeholder="Otomatis digenerate..." class="inp-kode flex-1 px-2.5 py-2 bg-white border border-slate-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <button type="button" onclick="generateCodeForCard(this.closest('.item-card'))" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
+                            <button type="button" onclick="generateCodeForCard(this.closest('.item-card'), true)" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
                                 <i class="bi bi-magic"></i> Auto
                             </button>
                         </div>
