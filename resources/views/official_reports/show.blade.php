@@ -84,18 +84,21 @@
             </a>
             @php
                 $repAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
-                $repCanDelete = (!$officialReport->is_locked && !$officialReport->is_synced) && (Auth::user()->isSarpras() || ($officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras));
+                $repCanDelete = Auth::user()->isStaffSarpras() || (!$officialReport->is_locked && !$officialReport->is_synced && $officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras);
+                $deleteWarning = $officialReport->is_synced 
+                    ? "PERINGATAN: Berita Acara ini telah dimasukkan ke data barang inventaris. Menghapus arsip ini akan otomatis me-rollback (menarik kembali stok dan menghapus unit fisik terkait di inventaris). Lanjutkan menghapus?" 
+                    : "Apakah Anda yakin ingin menghapus arsip Berita Acara " . addslashes($officialReport->nomor_surat) . "?";
             @endphp
             @if($repCanDelete)
                 <form action="{{ route('official-reports.destroy', $officialReport) }}" method="POST" class="inline-block shrink-0"
-                      data-confirm="Apakah Anda yakin ingin menghapus arsip Berita Acara {{ addslashes($officialReport->nomor_surat) }}?"
-                      data-confirm-title="Hapus Berita Acara"
+                      data-confirm="{{ $deleteWarning }}"
+                      data-confirm-title="{{ $officialReport->is_synced ? 'Hapus & Rollback Inventaris' : 'Hapus Berita Acara' }}"
                       data-confirm-type="danger"
-                      data-confirm-btn="Ya, Hapus Arsip"
+                      data-confirm-btn="{{ $officialReport->is_synced ? 'Ya, Hapus & Rollback' : 'Ya, Hapus Arsip' }}"
                       data-confirm-icon="bi bi-trash3-fill text-2xl">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="inline-flex items-center justify-center p-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm transition-colors" title="Hapus Dokumen">
+                    <button type="submit" class="inline-flex items-center justify-center p-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-sm transition-colors" title="{{ $officialReport->is_synced ? 'Hapus Dokumen & Rollback Stok Inventaris' : 'Hapus Dokumen' }}">
                         <i class="bi bi-trash"></i>
                     </button>
                 </form>

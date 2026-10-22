@@ -461,30 +461,116 @@ class OfficialReportController extends Controller
     }
 
     /**
-     * Hapus arsip Berita Acara.
+     * Hapus arsip Berita Acara dengan rollback otomatis jika sudah sinkron ke inventaris.
      */
     public function destroy(OfficialReport $officialReport, Request $request): RedirectResponse
     {
         $user = $request->user();
 
-        if ($officialReport->is_locked) {
-            return back()->with('error', 'Berita Acara ini telah dikunci dan tidak dapat dihapus. Buka kunci dokumen terlebih dahulu jika memang ingin menghapus.');
-        }
-
-        if ($officialReport->is_synced) {
-            return back()->with('error', 'Berita Acara ini telah disinkronisasikan ke Master Data Barang dan tidak dapat dihapus.');
-        }
-
+        // 1. Cek otorisasi dasar
         if ($user->isJurusan() && $officialReport->jurusan_id && $user->jurusan_id !== $officialReport->jurusan_id) {
-            abort(403, 'Anda tidak berwenang menghapus Berita Acara jurusan lain.');
+            abort(403, 'Anda tidak berwenang menghapus Berita Acara unit kerja lain.');
         }
 
         $isAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
 
-        if (! $user->isSarpras() && $isAccSarpras) {
-            abort(403, 'Berita Acara yang telah ditandatangani/di-ACC oleh Sarpras tidak dapat dihapus oleh akun Jurusan / Unit Kerja.');
+        // Jika user adalah jurusan, dilarang hapus jika sudah di-ACC sarpras, sudah dikunci, atau sudah sinkron
+        if (! $user->isStaffSarpras()) {
+            if ($officialReport->is_locked) {
+                return back()->with('error', 'Berita Acara ini telah dikunci dan tidak dapat dihapus oleh akun Unit Kerja.');
+            }
+            if ($officialReport->is_synced) {
+                return back()->with('error', 'Berita Acara ini telah disinkronisasikan ke inventaris dan hanya dapat dihapus/di-rollback oleh Tim Sarpras.');
+            }
+            if ($isAccSarpras) {
+                abort(403, 'Berita Acara yang telah ditandatangani/di-ACC oleh Sarpras tidak dapat dihapus oleh akun Jurusan / Unit Kerja.');
+            }
         }
 
+        // 2. Jika Berita Acara SUDAH disinkronkan ke Master Data Barang (is_synced = true),
+        // jalankan validasi dependensi transaksi & rollback otomatis stok/unit fisik.
+        if ($officialReport->is_synced) {
+            $officialReport->load(['items.item']);
+            $unitKeteranganMatch = 'dari BAST ' . $officialReport->nomor_surat;
+            $restockCatatanMatch = 'Penerimaan barang dari BAST ' . $officialReport->nomor_surat;
+
+            // Tahap A: Pengecekan Ketergantungan (Dependency Check)
+            foreach ($officialReport->items as $reportItem) {
+                $item = $reportItem->item;
+                if (! $item) {
+                    continue;
+                }
+
+                // Cari unit-unit fisik yang pernah digenerate oleh BAST ini
+                $createdUnits = ItemUnit::where('item_id', $item->id)
+                    ->where(function ($q) use ($unitKeteranganMatch) {
+                        $q->where('keterangan', 'like', "%{$unitKeteranganMatch}%")
+                          ->orWhere('catatan', 'like', "%{$unitKeteranganMatch}%");
+                    })
+                    ->get();
+
+                foreach ($createdUnits as $unit) {
+                    if ($unit->borrowings()->count() > 0) {
+                        return back()->with('error', "Gagal menghapus: Unit fisik [{$unit->unit_code}] dari barang [{$item->nama_barang}] memiliki riwayat peminjaman di sistem. Hapus atau selesaikan data peminjaman terlebih dahulu.");
+                    }
+                    if ($unit->maintenanceLogs()->count() > 0) {
+                        return back()->with('error', "Gagal menghapus: Unit fisik [{$unit->unit_code}] dari barang [{$item->nama_barang}] memiliki riwayat pemeliharaan/perbaikan. Hapus log pemeliharaan terlebih dahulu.");
+                    }
+                }
+
+                // Jika barang ini dibuat baru sepenuhnya oleh BAST ini
+                if ($reportItem->tipe_barang !== 'existing') {
+                    if ($item->borrowings()->count() > 0) {
+                        return back()->with('error', "Gagal menghapus: Barang [{$item->nama_barang}] sudah memiliki riwayat peminjaman.");
+                    }
+                    if ($item->usages()->count() > 0) {
+                        return back()->with('error', "Gagal menghapus: Bahan habis pakai [{$item->nama_barang}] sudah memiliki riwayat pemakaian barang.");
+                    }
+                }
+            }
+
+            // Tahap B: Eksekusi Rollback dalam Database Transaction
+            try {
+                DB::transaction(function () use ($officialReport, $unitKeteranganMatch, $restockCatatanMatch) {
+                    foreach ($officialReport->items as $reportItem) {
+                        $item = $reportItem->item;
+                        if (! $item) {
+                            continue;
+                        }
+
+                        $qty = (float) ($reportItem->jumlah_cek ?? $reportItem->jumlah);
+
+                        if ($reportItem->tipe_barang === 'existing') {
+                            // 1. Kurangi kembali stok item yang bertambah
+                            $newJumlah = max(0, $item->jumlah - $qty);
+                            $item->update(['jumlah' => $newJumlah]);
+
+                            // 2. Hapus log restock yang sesuai dengan BAST ini
+                            ItemRestock::where('item_id', $item->id)
+                                ->where('catatan', 'like', "%{$restockCatatanMatch}%")
+                                ->delete();
+
+                            // 3. Hapus unit fisik yang dibuat dari BAST ini
+                            ItemUnit::where('item_id', $item->id)
+                                ->where(function ($q) use ($unitKeteranganMatch) {
+                                    $q->where('keterangan', 'like', "%{$unitKeteranganMatch}%")
+                                      ->orWhere('catatan', 'like', "%{$unitKeteranganMatch}%");
+                                })
+                                ->delete();
+                        } else {
+                            // Barang Baru: Hapus seluruh unit fisik, riwayat restock, dan master item-nya
+                            ItemUnit::where('item_id', $item->id)->delete();
+                            ItemRestock::where('item_id', $item->id)->delete();
+                            $item->delete();
+                        }
+                    }
+                });
+            } catch (\Exception $e) {
+                return back()->with('error', 'Terjadi kesalahan saat membatalkan (rollback) data inventaris: ' . $e->getMessage());
+            }
+        }
+
+        // 3. Hapus file lampiran fisik jika ada
         if ($officialReport->file_lampiran && Storage::disk('public')->exists($officialReport->file_lampiran)) {
             Storage::disk('public')->delete($officialReport->file_lampiran);
         }
@@ -497,9 +583,14 @@ class OfficialReportController extends Controller
         }
 
         $nomorSurat = $officialReport->nomor_surat;
+        $isSyncedPrior = $officialReport->is_synced;
         $officialReport->delete();
 
-        return redirect()->route('official-reports.index')->with('success', "Arsip Berita Acara [{$nomorSurat}] berhasil dihapus.");
+        $pesanSukses = $isSyncedPrior
+            ? "Arsip Berita Acara [{$nomorSurat}] berhasil dihapus dan seluruh data barang/stok di inventaris telah di-rollback secara otomatis."
+            : "Arsip Berita Acara [{$nomorSurat}] berhasil dihapus.";
+
+        return redirect()->route('official-reports.index')->with('success', $pesanSukses);
     }
 
     /**

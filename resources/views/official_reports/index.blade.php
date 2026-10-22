@@ -210,18 +210,21 @@
                                     @endif
                                     @php
                                         $repAccSarpras = ($rep->ttd_pihak_pertama !== null);
-                                        $repCanDelete = (!$rep->is_locked && !$rep->is_synced) && (Auth::user()->isSarpras() || ($rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras));
+                                        $repCanDelete = Auth::user()->isStaffSarpras() || (!$rep->is_locked && !$rep->is_synced && $rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras);
+                                        $deleteWarning = $rep->is_synced 
+                                            ? "PERINGATAN: Berita Acara ini telah dimasukkan ke data barang inventaris. Menghapus arsip ini akan otomatis me-rollback (menarik kembali stok dan menghapus unit fisik terkait di inventaris). Lanjutkan menghapus?" 
+                                            : "Apakah Anda yakin ingin menghapus arsip Berita Acara " . addslashes($rep->nomor_surat) . "?";
                                     @endphp
                                     @if($repCanDelete)
                                         <form action="{{ route('official-reports.destroy', $rep) }}" method="POST" class="inline-block"
-                                              data-confirm="Apakah Anda yakin ingin menghapus arsip Berita Acara {{ addslashes($rep->nomor_surat) }}?"
-                                              data-confirm-title="Hapus Berita Acara"
+                                              data-confirm="{{ $deleteWarning }}"
+                                              data-confirm-title="{{ $rep->is_synced ? 'Hapus & Rollback Inventaris' : 'Hapus Berita Acara' }}"
                                               data-confirm-type="danger"
-                                              data-confirm-btn="Ya, Hapus Arsip"
+                                              data-confirm-btn="{{ $rep->is_synced ? 'Ya, Hapus & Rollback' : 'Ya, Hapus Arsip' }}"
                                               data-confirm-icon="bi bi-trash3-fill text-2xl">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition-colors" title="Hapus Dokumen">
+                                            <button type="submit" class="inline-flex items-center justify-center w-7 h-7 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition-colors" title="{{ $rep->is_synced ? 'Hapus Dokumen & Rollback Stok Inventaris' : 'Hapus Dokumen' }}">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -314,18 +317,21 @@
                         @endif
                         @php
                             $repMobileAccSarpras = ($rep->ttd_pihak_pertama !== null);
-                            $repMobileCanDelete = (!$rep->is_locked && !$rep->is_synced) && (Auth::user()->isSarpras() || ($rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repMobileAccSarpras));
+                            $repMobileCanDelete = Auth::user()->isStaffSarpras() || (!$rep->is_locked && !$rep->is_synced && $rep->jurusan_id && $rep->jurusan_id === Auth::user()->jurusan_id && ! $repMobileAccSarpras);
+                            $deleteMobileWarning = $rep->is_synced 
+                                ? "PERINGATAN: Berita Acara ini telah dimasukkan ke data barang inventaris. Menghapus arsip ini akan otomatis me-rollback (menarik kembali stok dan menghapus unit fisik terkait di inventaris). Lanjutkan menghapus?" 
+                                : "Apakah Anda yakin ingin menghapus arsip Berita Acara " . addslashes($rep->nomor_surat) . "?";
                         @endphp
                         @if($repMobileCanDelete)
                             <form action="{{ route('official-reports.destroy', $rep) }}" method="POST" class="inline-block"
-                                  data-confirm="Apakah Anda yakin ingin menghapus arsip Berita Acara {{ addslashes($rep->nomor_surat) }}?"
-                                  data-confirm-title="Hapus Berita Acara"
+                                  data-confirm="{{ $deleteMobileWarning }}"
+                                  data-confirm-title="{{ $rep->is_synced ? 'Hapus & Rollback Inventaris' : 'Hapus Berita Acara' }}"
                                   data-confirm-type="danger"
-                                  data-confirm-btn="Ya, Hapus Arsip"
+                                  data-confirm-btn="{{ $rep->is_synced ? 'Ya, Hapus & Rollback' : 'Ya, Hapus Arsip' }}"
                                   data-confirm-icon="bi bi-trash3-fill text-2xl">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="inline-flex items-center justify-center p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition-colors" title="Hapus Dokumen">
+                                <button type="submit" class="inline-flex items-center justify-center p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs transition-colors" title="{{ $rep->is_synced ? 'Hapus Dokumen & Rollback Stok Inventaris' : 'Hapus Dokumen' }}">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
