@@ -896,7 +896,9 @@ class OfficialReportController extends Controller
                         ItemRestock::create([
                             'item_id' => $existingItem->id,
                             'jurusan_id' => $existingItem->jurusan_id,
+                            'user_id' => Auth::id(),
                             'jumlah' => $qty,
+                            'satuan' => $reportItem->satuan ?: ($existingItem->satuan ?: 'unit'),
                             'stok_sebelum' => $stokSebelum,
                             'stok_sesudah' => $stokSesudah,
                             'tanggal_masuk' => $officialReport->tanggal,
