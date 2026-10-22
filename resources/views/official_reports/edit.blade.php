@@ -96,7 +96,7 @@
                         @endforeach
                     </select>
                     <p class="text-[11px] text-blue-600 mt-1" id="jurusanInfoHelp">
-                        <i class="bi bi-info-circle"></i> Memilih unit kerja akan memuat data inventaris unit tersebut untuk opsi Restock Barang.
+                        <i class="bi bi-info-circle"></i> Memilih unit kerja akan memuat data inventaris unit tersebut untuk opsi "Ambil dari Data Barang Unit".
                     </p>
                 </div>
             </div>
@@ -226,15 +226,15 @@
                                 <span class="text-xs font-bold uppercase text-slate-700 item-title">Barang #{{ $loop->iteration }}</span>
                             </div>
                             <div class="flex items-center gap-3">
-                                <!-- Toggle Tipe Barang (Khusus Serah Terima) -->
-                                <div class="tipe-barang-toggle flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-xs {{ $officialReport->jenis === 'serah_terima' ? '' : 'hidden' }}">
+                                <!-- Toggle Tipe Barang (Barang Baru vs Ambil dari Data Barang Unit) -->
+                                <div class="tipe-barang-toggle flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-xs">
                                     <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors {{ !$isExistingType ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 font-medium' }} opt-new">
                                         <input type="radio" name="items[{{ $idx }}][tipe_barang]" value="new" {{ !$isExistingType ? 'checked' : '' }} class="hidden radio-tipe" onchange="toggleItemType({{ $idx }}, 'new')">
-                                        <span>Barang Baru</span>
+                                        <span>Barang Baru / Manual</span>
                                     </label>
                                     <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors {{ $isExistingType ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 font-medium' }} opt-existing">
                                         <input type="radio" name="items[{{ $idx }}][tipe_barang]" value="existing" {{ $isExistingType ? 'checked' : '' }} class="hidden radio-tipe" onchange="toggleItemType({{ $idx }}, 'existing')">
-                                        <span>Ambil dari Data Barang Unit (Restock)</span>
+                                        <span>Ambil dari Data Barang Unit</span>
                                     </label>
                                 </div>
                                 <button type="button" class="remove-card-btn text-slate-400 hover:text-rose-600 p-1" title="Hapus Baris">
@@ -281,7 +281,7 @@
                                     </ul>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-amber-700 mt-1">Stok barang terpilih otomatis bertambah saat berita acara disinkronisasikan ke data barang.</p>
+                            <p class="text-[11px] text-amber-700 mt-1">Data detail barang akan otomatis disalin ke baris ini sesuai data inventaris unit kerja terpilih.</p>
                         </div>
 
                         <!-- Input Detail Barang -->
@@ -744,12 +744,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const isSerahTerima = (mode === 'serah_terima');
         const isJual = (mode === 'penjualan');
 
+        // Toggle tipe barang (Barang Baru vs Ambil dari Data Barang Unit) kini aktif untuk SEMUA jenis Berita Acara
         document.querySelectorAll('.tipe-barang-toggle').forEach(el => {
-            if (isSerahTerima) {
-                el.classList.remove('hidden');
-            } else {
-                el.classList.add('hidden');
-            }
+            el.classList.remove('hidden');
         });
 
         if (isSerahTerima) {
@@ -821,14 +818,14 @@ document.addEventListener('DOMContentLoaded', function () {
                         <span class="text-xs font-bold uppercase text-slate-700 item-title">Barang #${itemsContainer.children.length + 1}</span>
                     </div>
                     <div class="flex items-center gap-3">
-                        <div class="tipe-barang-toggle flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-xs ${isSerahTerima ? '' : 'hidden'}">
+                        <div class="tipe-barang-toggle flex items-center gap-1 bg-slate-50 p-1 rounded-lg border border-slate-200 text-xs">
                             <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors bg-blue-50 text-blue-700 font-bold opt-new">
                                 <input type="radio" name="items[${idx}][tipe_barang]" value="new" checked class="hidden radio-tipe" onchange="toggleItemType(${idx}, 'new')">
-                                <span>Barang Baru</span>
+                                <span>Barang Baru / Manual</span>
                             </label>
                             <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors text-slate-600 font-medium opt-existing">
                                 <input type="radio" name="items[${idx}][tipe_barang]" value="existing" class="hidden radio-tipe" onchange="toggleItemType(${idx}, 'existing')">
-                                <span>Ambil dari Data Barang Unit (Restock)</span>
+                                <span>Ambil dari Data Barang Unit</span>
                             </label>
                         </div>
                         <button type="button" class="remove-card-btn text-slate-400 hover:text-rose-600 p-1" title="Hapus Baris">
@@ -863,7 +860,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </ul>
                         </div>
                     </div>
-                    <p class="text-[11px] text-amber-700 mt-1">Stok barang terpilih otomatis bertambah saat berita acara disinkronisasikan ke data barang.</p>
+                    <p class="text-[11px] text-amber-700 mt-1">Data detail barang akan otomatis disalin ke baris ini sesuai data inventaris unit kerja terpilih.</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs sm:text-sm">
