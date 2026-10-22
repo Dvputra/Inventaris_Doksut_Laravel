@@ -238,9 +238,30 @@
                         <label class="block text-xs font-bold text-amber-900 mb-1">
                             Pilih Barang dari Inventaris Unit:
                         </label>
-                        <select name="items[0][item_id]" class="existing-item-select w-full px-3 py-2 bg-white border border-amber-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20" onchange="handleExistingItemSelect(0, this)">
+                        <!-- Hidden native select for form submit and state -->
+                        <select name="items[0][item_id]" class="existing-item-select hidden" onchange="handleExistingItemSelect(0, this)">
                             <option value="">-- Pilih Barang yang Tersedia di Unit --</option>
                         </select>
+
+                        <!-- Searchable Select UI -->
+                        <div class="searchable-item-wrapper relative">
+                            <div class="searchable-item-trigger w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-lg text-xs sm:text-sm text-slate-700 cursor-pointer flex items-center justify-between gap-2 shadow-2xs hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20" tabindex="0">
+                                <span class="searchable-item-label text-slate-500 truncate flex-1">-- Klik untuk mencari / memilih barang unit --</span>
+                                <i class="bi bi-chevron-expand text-slate-400 text-xs shrink-0"></i>
+                            </div>
+
+                            <div class="searchable-item-dropdown hidden absolute left-0 right-0 top-full mt-1 bg-white border border-amber-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                                <div class="p-2 border-b border-slate-100 bg-amber-50/40">
+                                    <div class="relative">
+                                        <i class="bi bi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                        <input type="text" class="searchable-item-search w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white" placeholder="Ketik nama atau kode barang unit...">
+                                    </div>
+                                </div>
+                                <ul class="searchable-item-options max-h-56 overflow-y-auto py-1 divide-y divide-slate-50">
+                                    <li class="px-3.5 py-2.5 text-xs text-slate-400 italic">Pilih unit kerja terlebih dahulu atau tunggu data...</li>
+                                </ul>
+                            </div>
+                        </div>
                         <p class="text-[11px] text-amber-700 mt-1">Stok barang terpilih otomatis bertambah saat berita acara disinkronisasikan ke data barang.</p>
                     </div>
 
@@ -435,7 +456,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const jurusanId = jurusanSelect.value;
         const items = unitItemsCache[jurusanId] || [];
 
-        document.querySelectorAll('.existing-item-select').forEach(select => {
+        document.querySelectorAll('.item-card').forEach(card => {
+            const select = card.querySelector('.existing-item-select');
+            if (!select) return;
+
             const currentVal = select.value;
             select.innerHTML = '<option value="">-- Pilih Barang dari Master Unit --</option>';
             items.forEach(it => {
@@ -453,8 +477,126 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (currentVal && currentVal == it.id) opt.selected = true;
                 select.appendChild(opt);
             });
+
+            // Update searchable custom dropdown options
+            renderSearchableDropdown(card, items);
         });
     }
+
+    function renderSearchableDropdown(card, items, filterQuery = '') {
+        const wrapper = card.querySelector('.searchable-item-wrapper');
+        if (!wrapper) return;
+
+        const optionsList = wrapper.querySelector('.searchable-item-options');
+        const triggerLabel = wrapper.querySelector('.searchable-item-label');
+        const hiddenSelect = card.querySelector('.existing-item-select');
+        const query = (filterQuery || '').toLowerCase();
+
+        optionsList.innerHTML = '';
+
+        if (!items || items.length === 0) {
+            const li = document.createElement('li');
+            li.className = 'px-3.5 py-3 text-xs text-slate-400 italic text-center';
+            li.textContent = jurusanSelect.value ? 'Tidak ada data barang di unit ini.' : 'Pilih unit kerja terlebih dahulu.';
+            optionsList.appendChild(li);
+            return;
+        }
+
+        let count = 0;
+        items.forEach(it => {
+            const searchTarget = `[${it.kode_barang || ''}] ${it.nama_barang || ''} ${it.lokasi || ''} ${it.satuan || ''}`.toLowerCase();
+            if (query && !searchTarget.includes(query)) return;
+
+            const li = document.createElement('li');
+            const isSelected = (hiddenSelect.value == it.id);
+            li.className = `px-3.5 py-2.5 text-xs cursor-pointer hover:bg-amber-100/60 hover:text-amber-900 transition-colors flex flex-col gap-0.5 ${isSelected ? 'bg-amber-100/80 font-bold text-amber-900' : 'text-slate-800'}`;
+            li.innerHTML = `
+                <div class="flex items-center justify-between gap-2">
+                    <span class="font-bold truncate">${it.nama_barang}</span>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">Stok: ${it.jumlah} ${it.satuan}</span>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] text-slate-400">
+                    <span class="font-mono">${it.kode_barang || 'Tanpa Kode'}</span>
+                    ${it.lokasi ? `<span>• Ruang: ${it.lokasi}</span>` : ''}
+                    <span>• ${it.jenis === 'alat' ? 'Alat (Aset)' : 'Bahan'}</span>
+                </div>
+            `;
+
+            li.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                hiddenSelect.value = it.id;
+                triggerLabel.innerHTML = `<strong>[${it.kode_barang || 'NO-CODE'}]</strong> ${it.nama_barang} <span class="text-xs text-slate-500 font-normal">(Stok: ${it.jumlah} ${it.satuan})</span>`;
+                triggerLabel.classList.remove('text-slate-500');
+                triggerLabel.classList.add('text-slate-900');
+                
+                // Trigger event autofill detail barang
+                handleExistingItemSelect(card.dataset.idx, hiddenSelect);
+                closeSearchableDropdown(card);
+            });
+
+            optionsList.appendChild(li);
+            count++;
+        });
+
+        if (count === 0) {
+            const li = document.createElement('li');
+            li.className = 'px-3.5 py-3 text-xs text-slate-400 italic text-center';
+            li.textContent = `Barang "${filterQuery}" tidak ditemukan.`;
+            optionsList.appendChild(li);
+        }
+    }
+
+    function initSearchableSelectForCard(card) {
+        const wrapper = card.querySelector('.searchable-item-wrapper');
+        if (!wrapper || wrapper.dataset.initialized) return;
+        wrapper.dataset.initialized = 'true';
+
+        const trigger = wrapper.querySelector('.searchable-item-trigger');
+        const dropdown = wrapper.querySelector('.searchable-item-dropdown');
+        const searchInput = wrapper.querySelector('.searchable-item-search');
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            // Tutup dropdown lain
+            document.querySelectorAll('.searchable-item-dropdown').forEach(d => {
+                if (d !== dropdown) d.classList.add('hidden');
+            });
+
+            const isOpening = dropdown.classList.contains('hidden');
+            if (isOpening) {
+                dropdown.classList.remove('hidden');
+                searchInput.value = '';
+                const jurusanId = jurusanSelect.value;
+                const items = unitItemsCache[jurusanId] || [];
+                renderSearchableDropdown(card, items, '');
+                setTimeout(() => searchInput.focus(), 50);
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        searchInput.addEventListener('input', function () {
+            const jurusanId = jurusanSelect.value;
+            const items = unitItemsCache[jurusanId] || [];
+            renderSearchableDropdown(card, items, this.value);
+        });
+
+        searchInput.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    }
+
+    function closeSearchableDropdown(card) {
+        const dropdown = card.querySelector('.searchable-item-dropdown');
+        if (dropdown) dropdown.classList.add('hidden');
+    }
+
+    // Tutup dropdown jika klik di luar
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('.searchable-item-wrapper')) {
+            document.querySelectorAll('.searchable-item-dropdown').forEach(d => d.classList.add('hidden'));
+        }
+    });
 
     window.handleExistingItemSelect = function (idx, select) {
         const opt = select.options[select.selectedIndex];
@@ -688,9 +830,30 @@ document.addEventListener('DOMContentLoaded', function () {
                     <label class="block text-xs font-bold text-amber-900 mb-1">
                         Pilih Barang dari Inventaris Unit:
                     </label>
-                    <select name="items[${idx}][item_id]" class="existing-item-select w-full px-3 py-2 bg-white border border-amber-300 rounded-lg text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20" onchange="handleExistingItemSelect(${idx}, this)">
+                    <!-- Hidden native select for form submit and state -->
+                    <select name="items[${idx}][item_id]" class="existing-item-select hidden" onchange="handleExistingItemSelect(${idx}, this)">
                         <option value="">-- Pilih Barang yang Tersedia di Unit --</option>
                     </select>
+
+                    <!-- Searchable Select UI -->
+                    <div class="searchable-item-wrapper relative">
+                        <div class="searchable-item-trigger w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-lg text-xs sm:text-sm text-slate-700 cursor-pointer flex items-center justify-between gap-2 shadow-2xs hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20" tabindex="0">
+                            <span class="searchable-item-label text-slate-500 truncate flex-1">-- Klik untuk mencari / memilih barang unit --</span>
+                            <i class="bi bi-chevron-expand text-slate-400 text-xs shrink-0"></i>
+                        </div>
+
+                        <div class="searchable-item-dropdown hidden absolute left-0 right-0 top-full mt-1 bg-white border border-amber-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                            <div class="p-2 border-b border-slate-100 bg-amber-50/40">
+                                <div class="relative">
+                                    <i class="bi bi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                    <input type="text" class="searchable-item-search w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white" placeholder="Ketik nama atau kode barang unit...">
+                                </div>
+                            </div>
+                            <ul class="searchable-item-options max-h-56 overflow-y-auto py-1 divide-y divide-slate-50">
+                                <li class="px-3.5 py-2.5 text-xs text-slate-400 italic">Pilih unit kerja terlebih dahulu atau tunggu data...</li>
+                            </ul>
+                        </div>
+                    </div>
                     <p class="text-[11px] text-amber-700 mt-1">Stok barang terpilih otomatis bertambah saat berita acara disinkronisasikan ke data barang.</p>
                 </div>
 
@@ -791,6 +954,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.querySelectorAll('.inp-qty, .inp-price').forEach(inp => {
             inp.oninput = calculateTotal;
+        });
+
+        // Inisialisasi searchable select per kartu
+        document.querySelectorAll('.item-card').forEach(card => {
+            initSearchableSelectForCard(card);
         });
     }
 
