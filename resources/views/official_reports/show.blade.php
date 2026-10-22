@@ -520,9 +520,9 @@
                                     </td>
                                     <td class="py-3 px-4 text-center">
                                         @if($canEditChecklist)
-                                            <input type="number" name="items[{{ $idx }}][jumlah_cek]" value="{{ $item->jumlah_cek ?? $item->jumlah }}" min="0" step="any" class="w-20 px-2 py-1.5 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                            <input type="number" name="items[{{ $idx }}][jumlah_cek]" value="{{ $item->jumlah_cek ?? (int)$item->jumlah == $item->jumlah ? (int)$item->jumlah : $item->jumlah }}" min="0" step="1" class="w-20 px-2 py-1.5 text-center bg-white border border-slate-200 rounded-lg text-xs font-bold focus:outline-none focus:ring-1 focus:ring-blue-500">
                                         @else
-                                            <span class="font-bold text-xs text-slate-800">{{ $item->jumlah_cek ?? $item->jumlah }} {{ $item->satuan }}</span>
+                                            <span class="font-bold text-xs text-slate-800">{{ (int)($item->jumlah_cek ?? $item->jumlah) == ($item->jumlah_cek ?? $item->jumlah) ? (int)($item->jumlah_cek ?? $item->jumlah) : ($item->jumlah_cek ?? $item->jumlah) }} {{ $item->satuan }}</span>
                                         @endif
                                     </td>
                                     <td class="py-3 px-4">

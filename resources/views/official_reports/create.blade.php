@@ -292,7 +292,7 @@
 
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah <span class="text-rose-500">*</span></label>
-                            <input type="number" name="items[0][jumlah]" value="1" min="0.01" step="any" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <input type="number" name="items[0][jumlah]" value="1" min="0" step="1" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
                         </div>
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-semibold text-slate-700 mb-1">Satuan <span class="text-rose-500">*</span></label>
@@ -880,7 +880,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah <span class="text-rose-500">*</span></label>
-                        <input type="number" name="items[${idx}][jumlah]" value="1" min="0.01" step="any" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="number" name="items[${idx}][jumlah]" value="1" min="0" step="1" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Satuan <span class="text-rose-500">*</span></label>
