@@ -784,14 +784,33 @@ class OfficialReportController extends Controller
             return back()->with('error', 'Berita Acara telah dikunci dan tidak dapat diubah hasil checklistnya.');
         }
 
-        $checks = $request->input('checks', []);
+        // Support both formats: $request->items (list with 'id') or $request->checks (keyed by id)
+        $itemsData = $request->input('items', []);
+        $checksMap = [];
 
-        DB::transaction(function () use ($officialReport, $checks, $user) {
+        if (! empty($itemsData) && is_array($itemsData)) {
+            foreach ($itemsData as $entry) {
+                if (isset($entry['id'])) {
+                    $checksMap[$entry['id']] = $entry;
+                }
+            }
+        } else {
+            $checksMap = $request->input('checks', []);
+        }
+
+        DB::transaction(function () use ($officialReport, $checksMap, $user) {
             foreach ($officialReport->items as $item) {
-                $isChecked = isset($checks[$item->id]['is_checked']) && $checks[$item->id]['is_checked'] == '1';
-                $kondisi = $checks[$item->id]['kondisi_cek'] ?? ($item->kondisi_saat_lapor ?? 'baik');
-                $jumlahCek = isset($checks[$item->id]['jumlah_cek']) ? (float) str_replace(',', '.', (string) $checks[$item->id]['jumlah_cek']) : $item->jumlah;
-                $catatanCek = $checks[$item->id]['catatan_cek'] ?? null;
+                $row = $checksMap[$item->id] ?? null;
+                $isChecked = false;
+                if ($row) {
+                    $isChecked = isset($row['is_checked']) && in_array((string)$row['is_checked'], ['1', 'true', 'on'], true);
+                }
+
+                $kondisi = $row['kondisi_cek'] ?? ($item->kondisi_saat_lapor ?? 'baik');
+                $jumlahCek = isset($row['jumlah_cek']) && $row['jumlah_cek'] !== ''
+                    ? (float) str_replace(',', '.', (string) $row['jumlah_cek'])
+                    : $item->jumlah;
+                $catatanCek = $row['catatan_cek'] ?? null;
 
                 $item->update([
                     'is_checked' => $isChecked,
