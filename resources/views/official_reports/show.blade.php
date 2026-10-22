@@ -84,7 +84,7 @@
             </a>
             @php
                 $repAccSarpras = ($officialReport->ttd_pihak_pertama !== null);
-                $repCanDelete = Auth::user()->isSarpras() || ($officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras);
+                $repCanDelete = (!$officialReport->is_locked && !$officialReport->is_synced) && (Auth::user()->isSarpras() || ($officialReport->jurusan_id && $officialReport->jurusan_id === Auth::user()->jurusan_id && ! $repAccSarpras));
             @endphp
             @if($repCanDelete)
                 <form action="{{ route('official-reports.destroy', $officialReport) }}" method="POST" class="inline-block shrink-0"

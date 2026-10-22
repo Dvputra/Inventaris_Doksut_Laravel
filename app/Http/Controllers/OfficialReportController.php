@@ -290,12 +290,22 @@ class OfficialReportController extends Controller
     /**
      * Tampilkan form edit Berita Acara (Hanya Akun Sarpras).
      */
-    public function edit(OfficialReport $officialReport, Request $request): View
+    public function edit(OfficialReport $officialReport, Request $request): View|RedirectResponse
     {
         $user = $request->user();
 
         if (! $user->isStaffSarpras()) {
             abort(403, 'Hanya tim Sarpras yang berwenang mengedit Berita Acara.');
+        }
+
+        if ($officialReport->is_locked) {
+            return redirect()->route('official-reports.show', $officialReport)
+                ->with('error', 'Berita Acara ini telah dikunci. Buka kunci dokumen terlebih dahulu jika ingin mengedit data.');
+        }
+
+        if ($officialReport->is_synced) {
+            return redirect()->route('official-reports.show', $officialReport)
+                ->with('error', 'Berita Acara telah disinkronisasikan ke data barang master dan tidak dapat diedit lagi.');
         }
 
         $officialReport->load(['items.category', 'jurusan']);
@@ -451,6 +461,14 @@ class OfficialReportController extends Controller
     public function destroy(OfficialReport $officialReport, Request $request): RedirectResponse
     {
         $user = $request->user();
+
+        if ($officialReport->is_locked) {
+            return back()->with('error', 'Berita Acara ini telah dikunci dan tidak dapat dihapus. Buka kunci dokumen terlebih dahulu jika memang ingin menghapus.');
+        }
+
+        if ($officialReport->is_synced) {
+            return back()->with('error', 'Berita Acara ini telah disinkronisasikan ke Master Data Barang dan tidak dapat dihapus.');
+        }
 
         if ($user->isJurusan() && $officialReport->jurusan_id && $user->jurusan_id !== $officialReport->jurusan_id) {
             abort(403, 'Anda tidak berwenang menghapus Berita Acara jurusan lain.');
