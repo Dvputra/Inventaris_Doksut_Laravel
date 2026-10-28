@@ -112,7 +112,7 @@
                 <span>Pihak yang Terlibat &amp; Menandatangani</span>
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <!-- Pihak Pertama -->
                 <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
                     <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-800">
@@ -178,6 +178,29 @@
                             <label class="block text-xs font-semibold text-slate-600 mb-1">No. Kontak / HP</label>
                             <input type="text" name="pihak_kedua_kontak" id="pihakKeduaKontak" value="{{ old('pihak_kedua_kontak') }}" placeholder="08..." class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
                         </div>
+                    </div>
+                </div>
+
+                <!-- Mengetahui (Kepala Sekolah) -->
+                <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
+                    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-800">
+                        <i class="bi bi-shield-check"></i>
+                        <span>Mengetahui (Kepala Sekolah)</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Kepala Sekolah <span class="text-rose-500">*</span></label>
+                        <input type="text" name="mengetahui_nama" id="mengetahuiNama" value="{{ old('mengetahui_nama', $defaultMengetahuiNama ?? '') }}" required placeholder="Nama Kepala Sekolah" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Jabatan <span class="text-rose-500">*</span></label>
+                        <input type="text" name="mengetahui_jabatan" id="mengetahuiJabatan" value="{{ old('mengetahui_jabatan', $defaultMengetahuiJabatan ?? 'Kepala SMK Dr. Sutomo Temanggung') }}" required class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">NIP / NIY / NPY (Opsional)</label>
+                        <input type="text" name="mengetahui_nip" id="mengetahuiNip" value="{{ old('mengetahui_nip', $defaultMengetahuiNip ?? '') }}" placeholder="Contoh: 1975... atau nomor NIY" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-purple-50/70 border border-purple-200/60 text-[11px] text-purple-800 leading-relaxed">
+                        <i class="bi bi-info-circle mr-1"></i> Tanda tangan Kepala Sekolah dapat dibubuhkan setelah Berita Acara dibuat melalui tombol <strong>ACC &amp; TTD Kepsek</strong> pada halaman detail.
                     </div>
                 </div>
             </div>

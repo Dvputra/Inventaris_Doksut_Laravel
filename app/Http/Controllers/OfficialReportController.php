@@ -315,8 +315,9 @@ class OfficialReportController extends Controller
         $jurusans = Jurusan::orderBy('nama')->get();
         $categories = Category::orderBy('nama')->get();
         $items = Item::with('category')->orderBy('nama_barang')->get();
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first();
 
-        return view('official_reports.edit', compact('officialReport', 'jurusans', 'categories', 'items', 'user'));
+        return view('official_reports.edit', compact('officialReport', 'jurusans', 'categories', 'items', 'user', 'kepsekUser'));
     }
 
     /**
@@ -632,7 +633,7 @@ class OfficialReportController extends Controller
         }
 
         if ($type === 'kepsek') {
-            if (! $user->isKepalaSekolah() && ! $user->isSarpras()) {
+            if (! $user->isKepalaSekolah() && ! $user->isStaffSarpras()) {
                 abort(403, 'Hanya Kepala Sekolah atau Sarpras yang berwenang membatalkan pengesahan Kepala Sekolah.');
             }
 
@@ -658,7 +659,7 @@ class OfficialReportController extends Controller
     {
         $user = $request->user();
 
-        if (! $user->isKepalaSekolah() && ! $user->isSarpras()) {
+        if (! $user->isKepalaSekolah() && ! $user->isStaffSarpras()) {
             abort(403, 'Hanya Kepala Sekolah atau Sarpras yang dapat melakukan persetujuan/ACC.');
         }
 
@@ -688,7 +689,7 @@ class OfficialReportController extends Controller
 
         $officialReport->update([
             'status_approval' => 'disetujui',
-            'approved_by' => $kepsekUser->id,
+            'approved_by' => $kepsekUser?->id ?? $user->id,
             'approved_at' => now(),
             'catatan_approval' => $request->catatan_approval,
             'ttd_mengetahui' => $signaturePath,
@@ -1153,7 +1154,8 @@ class OfficialReportController extends Controller
     {
         $officialReport->load(['user', 'jurusan', 'items.category', 'approver', 'lockedBy', 'syncedBy']);
         $categories = Category::orderBy('nama')->get();
+        $kepsekUser = User::where('role', 'kepala_sekolah')->first();
 
-        return view('official_reports.print', compact('officialReport'));
+        return view('official_reports.print', compact('officialReport', 'kepsekUser'));
     }
 }

@@ -149,6 +149,17 @@
                                 <div class="text-xs text-slate-600 line-clamp-1 mt-0.5 font-medium">
                                     {{ $rep->judul }}
                                 </div>
+                                <div class="flex items-center gap-1.5 mt-1">
+                                    @if($rep->status_approval === 'disetujui' || $rep->ttd_mengetahui)
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
+                                            <i class="bi bi-shield-fill-check"></i> ACC Kepsek
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
+                                            <i class="bi bi-hourglass"></i> Menunggu ACC
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="py-3.5 px-4">
                                 @if($rep->jenis === 'serah_terima')
@@ -273,6 +284,11 @@
                                 @else
                                     <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700">
                                         Penjualan
+                                    </span>
+                                @endif
+                                @if($rep->status_approval === 'disetujui' || $rep->ttd_mengetahui)
+                                    <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-100 text-purple-700">
+                                        ACC Kepsek
                                     </span>
                                 @endif
                             </div>
