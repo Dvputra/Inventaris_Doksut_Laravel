@@ -733,7 +733,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    window.generateCodeForCard = function (card, force = false) {
+    window.generateCodeForCard = async function (card, force = false) {
         if (!card) return;
         // Kode barang hanya digenerate otomatis untuk Berita Acara Serah Terima (BAST).
         // Untuk Berita Acara Kerusakan (Afkir) dan Penjualan, kode barang tidak digenerate otomatis kecuali tombol "Auto" diklik manual (force = true).
@@ -748,17 +748,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!kodeInput) return;
 
-        // Panggil endpoint resmi penomoran kode barang otomatis
-        fetch(`{{ route('items.generate-code') }}?jurusan_id=${jurusanId}&category_id=${categoryId}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.code) {
-                    kodeInput.value = data.code;
-                    kodeInput.classList.add('ring-2', 'ring-blue-400');
-                    setTimeout(() => kodeInput.classList.remove('ring-2', 'ring-blue-400'), 600);
+        // Kumpulkan semua kode barang yang saat ini sudah terisi di kartu lain pada form
+        const usedCodes = [];
+        document.querySelectorAll('.item-card').forEach(c => {
+            if (c !== card) {
+                const otherKode = c.querySelector('.inp-kode')?.value?.trim();
+                if (otherKode) {
+                    usedCodes.push(otherKode);
                 }
-            })
-            .catch(err => console.error('Gagal generate kode otomatis:', err));
+            }
+        });
+
+        let url = `{{ route('items.generate-code') }}?jurusan_id=${encodeURIComponent(jurusanId)}&category_id=${encodeURIComponent(categoryId)}`;
+        usedCodes.forEach(c => {
+            url += `&used_codes[]=${encodeURIComponent(c)}`;
+        });
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.code) {
+                kodeInput.value = data.code;
+                kodeInput.classList.add('ring-2', 'ring-blue-400');
+                setTimeout(() => kodeInput.classList.remove('ring-2', 'ring-blue-400'), 600);
+            }
+        } catch (err) {
+            console.error('Gagal generate kode otomatis:', err);
+        }
     };
 
     function updateFormMode() {
@@ -847,18 +863,19 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    jurusanSelect.addEventListener('change', function () {
+    jurusanSelect.addEventListener('change', async function () {
         syncJurusanToPihakKedua();
-        // Regenerate kode barang otomatis untuk semua kartu barang baru jika ada
-        document.querySelectorAll('.item-card').forEach(card => {
+        // Regenerate kode barang otomatis secara berurutan untuk semua kartu barang baru
+        const cards = Array.from(document.querySelectorAll('.item-card'));
+        for (const card of cards) {
             const tipeRadio = card.querySelector('.radio-tipe:checked');
             if (!tipeRadio || tipeRadio.value === 'new') {
                 const catSelect = card.querySelector('.inp-category');
                 if (catSelect && catSelect.value) {
-                    generateCodeForCard(card);
+                    await generateCodeForCard(card);
                 }
             }
-        });
+        }
     });
 
     window.updateFormMode = updateFormMode;
@@ -1029,6 +1046,13 @@ document.addEventListener('DOMContentLoaded', function () {
         rowIdx++;
         attachCardEvents();
         populateAllExistingSelects();
+
+        // Otomatis generate kode barang baru untuk baris yang baru ditambah
+        const catSelect = card.querySelector('.inp-category');
+        if (catSelect && catSelect.value) {
+            generateCodeForCard(card);
+        }
+
         card.querySelector('.inp-nama').focus();
     }
 

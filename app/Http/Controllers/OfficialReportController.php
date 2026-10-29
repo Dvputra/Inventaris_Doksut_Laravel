@@ -239,10 +239,21 @@ class OfficialReportController extends Controller
                 'catatan' => $validated['catatan'] ?? null,
             ]);
 
+            $savedCodesInThisReport = [];
             foreach ($request->items as $itemData) {
                 $qty = (float) str_replace(',', '.', (string) ($itemData['jumlah'] ?? 1));
                 $price = (float) ($itemData['harga_satuan'] ?? 0);
                 $subtotal = $qty * $price;
+                $code = trim($itemData['kode_barang'] ?? '');
+                $tipe = $itemData['tipe_barang'] ?? 'new';
+
+                // Cegah duplikasi kode barang baru di dalam laporan yang sama
+                if ($tipe === 'new' && !empty($code)) {
+                    if (in_array($code, $savedCodesInThisReport)) {
+                        $code = $this->createItemCode($report->jurusan_id, $itemData['category_id'] ?? null, $savedCodesInThisReport);
+                    }
+                    $savedCodesInThisReport[] = $code;
+                }
 
                 OfficialReportItem::create([
                     'official_report_id' => $report->id,
@@ -254,7 +265,7 @@ class OfficialReportController extends Controller
                     'jenis' => $itemData['jenis'] ?? 'alat',
                     'lokasi' => $itemData['lokasi'] ?? null,
                     'spesifikasi' => $itemData['spesifikasi'] ?? null,
-                    'kode_barang' => $itemData['kode_barang'] ?? null,
+                    'kode_barang' => $code ?: null,
                     'nama_barang' => $itemData['nama_barang'],
                     'unit_code' => $itemData['unit_code'] ?? null,
                     'nomor_seri' => $itemData['nomor_seri'] ?? null,
@@ -429,10 +440,21 @@ class OfficialReportController extends Controller
             // Hapus items lama dan ganti dengan items baru
             $officialReport->items()->delete();
 
+            $savedCodesInThisReport = [];
             foreach ($request->items as $itemData) {
                 $qty = (float) str_replace(',', '.', (string) ($itemData['jumlah'] ?? 1));
                 $price = (float) ($itemData['harga_satuan'] ?? 0);
                 $subtotal = $qty * $price;
+                $code = trim($itemData['kode_barang'] ?? '');
+                $tipe = $itemData['tipe_barang'] ?? 'new';
+
+                // Cegah duplikasi kode barang baru di dalam laporan yang sama
+                if ($tipe === 'new' && !empty($code)) {
+                    if (in_array($code, $savedCodesInThisReport)) {
+                        $code = $this->createItemCode($officialReport->jurusan_id, $itemData['category_id'] ?? null, $savedCodesInThisReport);
+                    }
+                    $savedCodesInThisReport[] = $code;
+                }
 
                 OfficialReportItem::create([
                     'official_report_id' => $officialReport->id,
@@ -444,7 +466,7 @@ class OfficialReportController extends Controller
                     'jenis' => $itemData['jenis'] ?? 'alat',
                     'lokasi' => $itemData['lokasi'] ?? null,
                     'spesifikasi' => $itemData['spesifikasi'] ?? null,
-                    'kode_barang' => $itemData['kode_barang'] ?? null,
+                    'kode_barang' => $code ?: null,
                     'nama_barang' => $itemData['nama_barang'],
                     'unit_code' => $itemData['unit_code'] ?? null,
                     'nomor_seri' => $itemData['nomor_seri'] ?? null,
@@ -967,6 +989,7 @@ class OfficialReportController extends Controller
         $officialReport->load(['items.item', 'jurusan']);
 
         DB::transaction(function () use ($officialReport, $user) {
+            $batchCreatedCodes = [];
             foreach ($officialReport->items as $reportItem) {
                 $qty = (float) ($reportItem->jumlah_cek ?? $reportItem->jumlah);
                 if ($qty <= 0) {
@@ -1026,11 +1049,12 @@ class OfficialReportController extends Controller
                     $jurusanId = $officialReport->jurusan_id;
                     $categoryId = $reportItem->category_id;
 
-                    // Generate kode barang otomatis
-                    $generatedCode = $reportItem->kode_barang;
-                    if (empty($generatedCode)) {
-                        $generatedCode = $this->createItemCode($jurusanId, $categoryId);
+                    // Generate kode barang otomatis dan pastikan benar-benar unik di database
+                    $generatedCode = trim($reportItem->kode_barang ?? '');
+                    if (empty($generatedCode) || in_array($generatedCode, $batchCreatedCodes) || Item::where('kode_barang', $generatedCode)->exists()) {
+                        $generatedCode = $this->createItemCode($jurusanId, $categoryId, $batchCreatedCodes);
                     }
+                    $batchCreatedCodes[] = $generatedCode;
 
                     $newItem = Item::create([
                         'kode_barang' => $generatedCode,
@@ -1106,7 +1130,7 @@ class OfficialReportController extends Controller
     /**
      * Helper internal untuk membangkitkan kode barang standar.
      */
-    protected function createItemCode(?int $jurusanId, ?int $categoryId): string
+    protected function createItemCode(?int $jurusanId, ?int $categoryId, array $usedCodes = []): string
     {
         $jurusanKode = 'UMUM';
         if ($jurusanId) {
@@ -1126,14 +1150,21 @@ class OfficialReportController extends Controller
 
         $prefix = "{$jurusanKode}-{$categoryKode}-";
 
-        // Cari nomor urut terakhir yang ada
+        // Cari nomor urut terakhir yang ada di database
         $existingCodes = Item::where('kode_barang', 'like', "{$prefix}%")
             ->pluck('kode_barang')
             ->toArray();
 
+        // Gabungkan dengan kode yang sedang diproses di batch saat ini
+        $cleanUsedCodes = array_filter($usedCodes, function ($c) use ($prefix) {
+            return is_string($c) && str_starts_with(trim($c), $prefix);
+        });
+
+        $allCodes = array_merge($existingCodes, $cleanUsedCodes);
+
         $maxNumber = 0;
-        foreach ($existingCodes as $c) {
-            $suffix = substr($c, strlen($prefix));
+        foreach ($allCodes as $c) {
+            $suffix = substr(trim($c), strlen($prefix));
             if (is_numeric($suffix)) {
                 $num = (int) $suffix;
                 if ($num > $maxNumber) {

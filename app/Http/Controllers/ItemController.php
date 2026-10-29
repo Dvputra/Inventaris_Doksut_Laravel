@@ -198,8 +198,9 @@ class ItemController extends Controller
             $jurusanId = $user->isJurusan() ? $user->jurusan_id : $request->input('jurusan_id');
         }
         $categoryId = $request->input('category_id');
+        $usedCodes = (array) $request->input('used_codes', []);
 
-        $code = $this->createItemCode($jurusanId, $categoryId);
+        $code = $this->createItemCode($jurusanId, $categoryId, $usedCodes);
 
         return response()->json(['code' => $code]);
     }
@@ -207,7 +208,7 @@ class ItemController extends Controller
     /**
      * Helper internal untuk membangkitkan kode barang standar.
      */
-    protected function createItemCode(?int $jurusanId, ?int $categoryId): string
+    protected function createItemCode(?int $jurusanId, ?int $categoryId, array $usedCodes = []): string
     {
         $jurusanKode = 'UMUM';
         if ($jurusanId) {
@@ -227,14 +228,21 @@ class ItemController extends Controller
 
         $prefix = "{$jurusanKode}-{$categoryKode}-";
 
-        // Cari nomor urut terakhir yang ada
+        // Cari nomor urut terakhir yang ada di database
         $existingCodes = Item::where('kode_barang', 'like', "{$prefix}%")
             ->pluck('kode_barang')
             ->toArray();
 
+        // Gabungkan dengan kode-kode yang sedang digunakan di form aktif (belum tersimpan di DB)
+        $cleanUsedCodes = array_filter($usedCodes, function ($c) use ($prefix) {
+            return is_string($c) && str_starts_with(trim($c), $prefix);
+        });
+
+        $allCodes = array_merge($existingCodes, $cleanUsedCodes);
+
         $maxNumber = 0;
-        foreach ($existingCodes as $c) {
-            $suffix = substr($c, strlen($prefix));
+        foreach ($allCodes as $c) {
+            $suffix = substr(trim($c), strlen($prefix));
             if (is_numeric($suffix)) {
                 $num = (int) $suffix;
                 if ($num > $maxNumber) {
