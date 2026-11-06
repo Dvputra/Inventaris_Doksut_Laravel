@@ -228,152 +228,186 @@
 
             <!-- Kontainer Kartu / Baris Barang Dinamis -->
             <div id="itemsContainer" class="space-y-4">
-                <!-- Baris Pertama Default -->
-                <div class="item-card p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 relative transition-all" data-idx="0">
-                    <div class="flex items-center justify-between pb-2 border-b border-slate-200/80">
-                        <div class="flex items-center gap-2">
-                            <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center row-num">1</span>
-                            <span class="text-xs font-bold uppercase text-slate-700 item-title">Barang #1</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <!-- Toggle Tipe Barang (Barang Baru vs Ambil dari Data Barang Unit) -->
-                            <div class="tipe-barang-toggle flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 text-xs">
-                                <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors bg-blue-50 text-blue-700 font-bold opt-new">
-                                    <input type="radio" name="items[0][tipe_barang]" value="new" checked class="hidden radio-tipe" onchange="toggleItemType(0, 'new')">
-                                    <span>Barang Baru / Manual</span>
-                                </label>
-                                <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors text-slate-600 font-medium opt-existing">
-                                    <input type="radio" name="items[0][tipe_barang]" value="existing" class="hidden radio-tipe" onchange="toggleItemType(0, 'existing')">
-                                    <span>Ambil dari Data Barang Unit</span>
-                                </label>
+                @php
+                    $formItems = old('items', [
+                        ['nama_barang' => '', 'kode_barang' => '', 'jumlah' => 1, 'satuan' => 'unit', 'tipe_barang' => 'new', 'category_id' => null, 'is_computer' => 0, 'jenis' => 'alat', 'kondisi_saat_lapor' => 'baik', 'lokasi' => '', 'harga_satuan' => 0, 'keterangan' => '']
+                    ]);
+                    if (empty($formItems)) {
+                        $formItems = [
+                            ['nama_barang' => '', 'kode_barang' => '', 'jumlah' => 1, 'satuan' => 'unit', 'tipe_barang' => 'new', 'category_id' => null, 'is_computer' => 0, 'jenis' => 'alat', 'kondisi_saat_lapor' => 'baik', 'lokasi' => '', 'harga_satuan' => 0, 'keterangan' => '']
+                        ];
+                    }
+                @endphp
+
+                @foreach($formItems as $idx => $it)
+                    @php
+                        $isExistingType = (($it['tipe_barang'] ?? '') === 'existing');
+                        $itemCatId = $it['category_id'] ?? null;
+                        $catKode = $itemCatId ? ($categories->firstWhere('id', $itemCatId)?->kode ?? '') : '';
+                        $showKomSection = ($catKode === 'KOM' && !$isExistingType);
+                        $isCompVal = !empty($it['is_computer']) ? 1 : 0;
+                        $valJumlah = $it['jumlah'] ?? 1;
+                        if (is_numeric($valJumlah)) {
+                            $valJumlah = ((float)$valJumlah == (int)$valJumlah) ? (int)$valJumlah : (float)$valJumlah;
+                        }
+                    @endphp
+                    <div class="item-card p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3 relative transition-all" data-idx="{{ $idx }}">
+                        <div class="flex items-center justify-between pb-2 border-b border-slate-200/80">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center row-num">{{ $loop->iteration }}</span>
+                                <span class="text-xs font-bold uppercase text-slate-700 item-title">Barang #{{ $loop->iteration }}</span>
                             </div>
-                            <button type="button" class="remove-card-btn text-slate-400 hover:text-rose-600 p-1" title="Hapus Baris">
-                                <i class="bi bi-trash text-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Bagian Pemilihan Barang Existing (Restock) -->
-                    <div class="section-existing hidden p-3 rounded-xl bg-amber-50/80 border border-amber-200/80">
-                        <label class="block text-xs font-bold text-amber-900 mb-1">
-                            Pilih Barang dari Inventaris Unit:
-                        </label>
-                        <!-- Hidden native select for form submit and state -->
-                        <select name="items[0][item_id]" class="existing-item-select hidden" onchange="handleExistingItemSelect(0, this)">
-                            <option value="">-- Pilih Barang yang Tersedia di Unit --</option>
-                        </select>
-
-                        <!-- Searchable Select UI -->
-                        <div class="searchable-item-wrapper relative">
-                            <div class="searchable-item-trigger w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-lg text-xs sm:text-sm text-slate-700 cursor-pointer flex items-center justify-between gap-2 shadow-2xs hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20" tabindex="0">
-                                <span class="searchable-item-label text-slate-500 truncate flex-1">-- Klik untuk mencari / memilih barang unit --</span>
-                                <i class="bi bi-chevron-expand text-slate-400 text-xs shrink-0"></i>
-                            </div>
-
-                            <div class="searchable-item-dropdown hidden absolute left-0 right-0 top-full mt-1 bg-white border border-amber-200 rounded-xl shadow-xl z-50 overflow-hidden">
-                                <div class="p-2 border-b border-slate-100 bg-amber-50/40">
-                                    <div class="relative">
-                                        <i class="bi bi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                        <input type="text" class="searchable-item-search w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white" placeholder="Ketik nama atau kode barang unit...">
-                                    </div>
+                            <div class="flex items-center gap-3">
+                                <!-- Toggle Tipe Barang (Barang Baru vs Ambil dari Data Barang Unit) -->
+                                <div class="tipe-barang-toggle flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 text-xs">
+                                    <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors {{ !$isExistingType ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 font-medium' }} opt-new">
+                                        <input type="radio" name="items[{{ $idx }}][tipe_barang]" value="new" {{ !$isExistingType ? 'checked' : '' }} class="hidden radio-tipe" onchange="toggleItemType({{ $idx }}, 'new')">
+                                        <span>Barang Baru / Manual</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors {{ $isExistingType ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-600 font-medium' }} opt-existing">
+                                        <input type="radio" name="items[{{ $idx }}][tipe_barang]" value="existing" {{ $isExistingType ? 'checked' : '' }} class="hidden radio-tipe" onchange="toggleItemType({{ $idx }}, 'existing')">
+                                        <span>Ambil dari Data Barang Unit</span>
+                                    </label>
                                 </div>
-                                <ul class="searchable-item-options max-h-56 overflow-y-auto py-1 divide-y divide-slate-50">
-                                    <li class="px-3.5 py-2.5 text-xs text-slate-400 italic">Pilih unit kerja terlebih dahulu atau tunggu data...</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <p class="text-[11px] text-amber-700 mt-1">Data detail barang akan otomatis disalin ke baris ini sesuai data inventaris unit kerja terpilih.</p>
-                    </div>
-
-                    <!-- Input Detail Barang -->
-                    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs sm:text-sm">
-                        <div class="sm:col-span-5">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Barang <span class="text-rose-500">*</span></label>
-                            <input type="text" name="items[0][nama_barang]" required placeholder="Contoh: Laptop Acer Aspire 5 / Timah Solder" class="inp-nama w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        </div>
-                        <div class="sm:col-span-3">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Otomatis/Manual)</span></label>
-                            <div class="flex gap-1.5">
-                                <input type="text" name="items[0][kode_barang]" placeholder="Otomatis digenerate..." class="inp-kode flex-1 px-2.5 py-2 bg-white border border-slate-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <button type="button" onclick="generateCodeForCard(this.closest('.item-card'), true)" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
-                                    <i class="bi bi-magic"></i> Auto
+                                <button type="button" class="remove-card-btn text-slate-400 hover:text-rose-600 p-1" title="Hapus Baris">
+                                    <i class="bi bi-trash text-sm"></i>
                                 </button>
                             </div>
                         </div>
-                        <div class="sm:col-span-4 section-kategori">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-rose-500">*</span></label>
-                            <select name="items[0][category_id]" onchange="onCategoryChangeInCard(this.closest('.item-card'))" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <option value="" data-kode="">-- Pilih Kategori --</option>
-                                @foreach($categories as $cat)
-                                    <option value="{{ $cat->id }}" data-kode="{{ $cat->kode }}">{{ $cat->kode }} - {{ $cat->nama }}</option>
-                                @endforeach
+
+                        <!-- Bagian Pemilihan Barang Existing (Restock) -->
+                        <div class="section-existing {{ $isExistingType ? '' : 'hidden' }} p-3 rounded-xl bg-amber-50/80 border border-amber-200/80">
+                            <label class="block text-xs font-bold text-amber-900 mb-1">
+                                Pilih Barang dari Inventaris Unit:
+                            </label>
+                            <!-- Hidden native select for form submit and state -->
+                            <select name="items[{{ $idx }}][item_id]" class="existing-item-select hidden" onchange="handleExistingItemSelect({{ $idx }}, this)">
+                                <option value="">-- Pilih Barang yang Tersedia di Unit --</option>
+                                @if(!empty($it['item_id']))
+                                    <option value="{{ $it['item_id'] }}" selected>[{{ $it['kode_barang'] ?? '' }}] {{ $it['nama_barang'] ?? '' }}</option>
+                                @endif
                             </select>
+
+                            <!-- Searchable Select UI -->
+                            <div class="searchable-item-wrapper relative">
+                                <div class="searchable-item-trigger w-full px-3.5 py-2.5 bg-white border border-amber-300 rounded-lg text-xs sm:text-sm text-slate-700 cursor-pointer flex items-center justify-between gap-2 shadow-2xs hover:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20" tabindex="0">
+                                    <span class="searchable-item-label {{ !empty($it['item_id']) ? 'text-slate-900 font-bold' : 'text-slate-500' }} truncate flex-1">
+                                        @if(!empty($it['item_id']))
+                                            <strong>[{{ $it['kode_barang'] ?? '-' }}]</strong> {{ $it['nama_barang'] }}
+                                        @else
+                                            -- Klik untuk mencari / memilih barang unit --
+                                        @endif
+                                    </span>
+                                    <i class="bi bi-chevron-expand text-slate-400 text-xs shrink-0"></i>
+                                </div>
+
+                                <div class="searchable-item-dropdown hidden absolute left-0 right-0 top-full mt-1 bg-white border border-amber-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                                    <div class="p-2 border-b border-slate-100 bg-amber-50/40">
+                                        <div class="relative">
+                                            <i class="bi bi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                            <input type="text" class="searchable-item-search w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white" placeholder="Ketik nama atau kode barang unit...">
+                                        </div>
+                                    </div>
+                                    <ul class="searchable-item-options max-h-56 overflow-y-auto py-1 divide-y divide-slate-50">
+                                        <li class="px-3.5 py-2.5 text-xs text-slate-400 italic">Pilih unit kerja terlebih dahulu atau tunggu data...</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-amber-700 mt-1">Data detail barang akan otomatis disalin ke baris ini sesuai data inventaris unit kerja terpilih.</p>
                         </div>
 
-                        <!-- Opsi Khusus jika Kategori KOM (Komputer vs Non-Komputer) -->
-                        <div class="sm:col-span-12 section-it-type hidden p-3 rounded-xl bg-blue-50/60 border border-blue-200">
-                            <span class="block text-xs font-bold text-blue-900 mb-1.5 flex items-center gap-1.5">
-                                <i class="bi bi-cpu text-blue-600"></i> Klasifikasi Perangkat IT (Kategori KOM):
-                            </span>
-                            <div class="flex flex-wrap items-center gap-4 text-xs">
-                                <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-blue-200 cursor-pointer hover:border-blue-400">
-                                    <input type="radio" name="items[0][is_computer]" value="1" checked class="text-blue-600 focus:ring-blue-500 radio-is-computer">
-                                    <span class="font-bold text-slate-900">💻 Unit Komputer / PC / Laptop</span>
-                                    <span class="text-[10px] text-slate-500">(Otomatis dibuat nomor meja & spesifikasi PC)</span>
-                                </label>
-                                <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:border-slate-400">
-                                    <input type="radio" name="items[0][is_computer]" value="0" class="text-amber-600 focus:ring-amber-500 radio-is-computer">
-                                    <span class="font-bold text-slate-900">🖨️ Perangkat IT Non-Komputer</span>
-                                    <span class="text-[10px] text-slate-500">(Printer, Proyektor, Switch, Router, TV, dll.)</span>
-                                </label>
+                        <!-- Input Detail Barang -->
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs sm:text-sm">
+                            <div class="sm:col-span-5">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Barang <span class="text-rose-500">*</span></label>
+                                <input type="text" name="items[{{ $idx }}][nama_barang]" value="{{ $it['nama_barang'] ?? '' }}" required placeholder="Contoh: Laptop Acer Aspire 5 / Timah Solder" class="inp-nama w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kode Barang <span class="text-slate-400 font-normal">(Otomatis/Manual)</span></label>
+                                <div class="flex gap-1.5">
+                                    <input type="text" name="items[{{ $idx }}][kode_barang]" value="{{ $it['kode_barang'] ?? '' }}" placeholder="Otomatis digenerate..." class="inp-kode flex-1 px-2.5 py-2 bg-white border border-slate-200 rounded-lg font-mono text-xs focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    <button type="button" onclick="generateCodeForCard(this.closest('.item-card'), true)" class="btn-gen-code px-2.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-all shrink-0 active:scale-95" title="Generate Kode Barang Otomatis">
+                                        <i class="bi bi-magic"></i> Auto
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="sm:col-span-4 section-kategori">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori Barang <span class="text-rose-500">*</span></label>
+                                <select name="items[{{ $idx }}][category_id]" onchange="onCategoryChangeInCard(this.closest('.item-card'))" class="inp-category w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    <option value="" data-kode="">-- Pilih Kategori --</option>
+                                    @foreach($categories as $cat)
+                                        <option value="{{ $cat->id }}" data-kode="{{ $cat->kode }}" {{ (string)$cat->id === (string)($it['category_id'] ?? '') ? 'selected' : '' }}>{{ $cat->kode }} - {{ $cat->nama }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <!-- Opsi Khusus jika Kategori KOM (Komputer vs Non-Komputer) -->
+                            <div class="sm:col-span-12 section-it-type {{ $showKomSection ? '' : 'hidden' }} p-3 rounded-xl bg-blue-50/60 border border-blue-200">
+                                <span class="block text-xs font-bold text-blue-900 mb-1.5 flex items-center gap-1.5">
+                                    <i class="bi bi-cpu text-blue-600"></i> Klasifikasi Perangkat IT (Kategori KOM):
+                                </span>
+                                <div class="flex flex-wrap items-center gap-4 text-xs">
+                                    <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-blue-200 cursor-pointer hover:border-blue-400">
+                                        <input type="radio" name="items[{{ $idx }}][is_computer]" value="1" {{ $isCompVal == 1 ? 'checked' : '' }} class="text-blue-600 focus:ring-blue-500 radio-is-computer">
+                                        <span class="font-bold text-slate-900">💻 Unit Komputer / PC / Laptop</span>
+                                        <span class="text-[10px] text-slate-500">(Otomatis dibuat nomor meja & spesifikasi PC)</span>
+                                    </label>
+                                    <label class="inline-flex items-center gap-2 p-2 rounded-lg bg-white border border-slate-200 cursor-pointer hover:border-slate-400">
+                                        <input type="radio" name="items[{{ $idx }}][is_computer]" value="0" {{ $isCompVal == 0 ? 'checked' : '' }} class="text-amber-600 focus:ring-amber-500 radio-is-computer">
+                                        <span class="font-bold text-slate-900">🖨️ Perangkat IT Non-Komputer</span>
+                                        <span class="text-[10px] text-slate-500">(Printer, Proyektor, Switch, Router, TV, dll.)</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah <span class="text-rose-500">*</span></label>
+                                <input type="number" name="items[{{ $idx }}][jumlah]" value="{{ $valJumlah }}" min="0" step="any" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Satuan <span class="text-rose-500">*</span></label>
+                                <input type="text" name="items[{{ $idx }}][satuan]" value="{{ $it['satuan'] ?? 'unit' }}" required placeholder="unit, pcs, box" class="inp-satuan w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Kondisi</label>
+                                <select name="items[{{ $idx }}][kondisi_saat_lapor]" class="inp-kondisi w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    <option value="baik" {{ ($it['kondisi_saat_lapor'] ?? '') == 'baik' ? 'selected' : '' }}>Kondisi Baik (Baru / Normal)</option>
+                                    <option value="rusak_ringan" {{ ($it['kondisi_saat_lapor'] ?? '') == 'rusak_ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                                    <option value="bekas_layak" {{ ($it['kondisi_saat_lapor'] ?? '') == 'bekas_layak' ? 'selected' : '' }}>Bekas Masih Layak</option>
+                                    <option value="lengkap" {{ ($it['kondisi_saat_lapor'] ?? '') == 'lengkap' ? 'selected' : '' }}>Lengkap &amp; Siap Digunakan</option>
+                                    <option value="rusak_berat" {{ ($it['kondisi_saat_lapor'] ?? '') == 'rusak_berat' ? 'selected' : '' }}>Rusak Berat</option>
+                                    <option value="rusak_total" {{ ($it['kondisi_saat_lapor'] ?? '') == 'rusak_total' ? 'selected' : '' }}>Rusak Total / Afkir</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-2 section-jenis">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis</label>
+                                <select name="items[{{ $idx }}][jenis]" class="inp-jenis w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                                    <option value="alat" {{ ($it['jenis'] ?? '') == 'alat' ? 'selected' : '' }}>Alat (Aset)</option>
+                                    <option value="bahan" {{ ($it['jenis'] ?? '') == 'bahan' ? 'selected' : '' }}>Bahan Habis Pakai</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3 section-lokasi">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Ruang / Penempatan</label>
+                                <input type="text" name="items[{{ $idx }}][lokasi]" value="{{ $it['lokasi'] ?? '' }}" placeholder="Contoh: Lab 1, Bengkel" class="inp-lokasi w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+
+                            <!-- Kolom Harga khusus penjualan -->
+                            <div class="sm:col-span-3 col-harga hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Harga Satuan (Rp)</label>
+                                <input type="number" name="items[{{ $idx }}][harga_satuan]" value="{{ $it['harga_satuan'] ?? 0 }}" min="0" step="1000" class="inp-price w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            </div>
+                            <div class="sm:col-span-3 col-subtotal hidden">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Subtotal (Rp)</label>
+                                <input type="text" readonly value="Rp 0" class="inp-subtotal w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-right font-bold text-emerald-700">
+                            </div>
+
+                            <div class="sm:col-span-12">
+                                <label class="block text-xs font-semibold text-slate-700 mb-1">Spesifikasi / Keterangan Tambahan</label>
+                                <input type="text" name="items[{{ $idx }}][keterangan]" value="{{ $it['keterangan'] ?? '' }}" placeholder="Spesifikasi teknis, merk, kelengkapan, dll." class="inp-ket w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
                             </div>
                         </div>
-
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah <span class="text-rose-500">*</span></label>
-                            <input type="number" name="items[0][jumlah]" value="1" min="0" step="1" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        </div>
-                        <div class="sm:col-span-2">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Satuan <span class="text-rose-500">*</span></label>
-                            <input type="text" name="items[0][satuan]" value="unit" required placeholder="unit, pcs, box" class="inp-satuan w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        </div>
-                        <div class="sm:col-span-3">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Kondisi</label>
-                            <select name="items[0][kondisi_saat_lapor]" class="inp-kondisi w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <option value="baik">Kondisi Baik (Baru / Normal)</option>
-                                <option value="rusak_ringan">Rusak Ringan</option>
-                                <option value="bekas_layak">Bekas Masih Layak</option>
-                                <option value="lengkap">Lengkap &amp; Siap Digunakan</option>
-                            </select>
-                        </div>
-                        <div class="sm:col-span-2 section-jenis">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Jenis</label>
-                            <select name="items[0][jenis]" class="inp-jenis w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                                <option value="alat">Alat (Aset)</option>
-                                <option value="bahan">Bahan Habis Pakai</option>
-                            </select>
-                        </div>
-                        <div class="sm:col-span-3 section-lokasi">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Ruang / Penempatan</label>
-                            <input type="text" name="items[0][lokasi]" placeholder="Contoh: Lab 1, Bengkel" class="inp-lokasi w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        </div>
-
-                        <!-- Kolom Harga khusus penjualan -->
-                        <div class="sm:col-span-3 col-harga hidden">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Harga Satuan (Rp)</label>
-                            <input type="number" name="items[0][harga_satuan]" value="0" min="0" step="1000" class="inp-price w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-right font-semibold focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        </div>
-                        <div class="sm:col-span-3 col-subtotal hidden">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Subtotal (Rp)</label>
-                            <input type="text" readonly value="Rp 0" class="inp-subtotal w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-lg text-right font-bold text-emerald-700">
-                        </div>
-
-                        <div class="sm:col-span-12">
-                            <label class="block text-xs font-semibold text-slate-700 mb-1">Spesifikasi / Keterangan Tambahan</label>
-                            <input type="text" name="items[0][keterangan]" placeholder="Spesifikasi teknis, merk, kelengkapan, dll." class="inp-ket w-full px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500">
-                        </div>
                     </div>
-                </div>
+                @endforeach
             </div>
 
             <!-- Tombol Tambah Baris Barang di Bawah Tabel -->
@@ -452,8 +486,12 @@ let unitItemsCache = {}; // Cache data barang per jurusan id
 let categoriesList = @json($categories);
 
 function submitAs(status) {
+    const form = document.getElementById('reportForm');
     document.getElementById('statusDokumenInput').value = status;
-    document.getElementById('reportForm').submit();
+    if (!form.reportValidity()) {
+        return;
+    }
+    form.submit();
 }
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -882,7 +920,7 @@ document.addEventListener('DOMContentLoaded', function () {
     jenisSelect.addEventListener('change', updateFormMode);
 
     // Dynamic Row Add
-    let rowIdx = 1;
+    let rowIdx = {{ count($formItems) }};
     const addItemRowBtn = document.getElementById('addItemRowBtn');
     const addItemRowBtnBottom = document.getElementById('addItemRowBtnBottom');
     const itemsContainer = document.getElementById('itemsContainer');
@@ -993,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah <span class="text-rose-500">*</span></label>
-                        <input type="number" name="items[${idx}][jumlah]" value="1" min="0" step="1" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
+                        <input type="number" name="items[${idx}][jumlah]" value="1" min="0" step="any" required class="inp-qty w-full px-3 py-2 bg-white border border-slate-200 rounded-lg font-bold text-center focus:outline-none focus:ring-1 focus:ring-blue-500">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-semibold text-slate-700 mb-1">Satuan <span class="text-rose-500">*</span></label>

@@ -154,6 +154,20 @@ class OfficialReportController extends Controller
             }
         }
 
+        // Normalisasi data items sebelum validasi (koma menjadi titik desimal, trim whitespace)
+        if ($request->has('items') && is_array($request->items)) {
+            $cleanedItems = $request->items;
+            foreach ($cleanedItems as $key => $item) {
+                if (isset($item['jumlah']) && is_string($item['jumlah'])) {
+                    $cleanedItems[$key]['jumlah'] = str_replace(',', '.', trim($item['jumlah']));
+                }
+                if (isset($item['harga_satuan']) && is_string($item['harga_satuan'])) {
+                    $cleanedItems[$key]['harga_satuan'] = str_replace(',', '.', trim($item['harga_satuan']));
+                }
+            }
+            $request->merge(['items' => $cleanedItems]);
+        }
+
         $validated = $request->validate([
             'nomor_surat' => 'required|string|max:100|unique:official_reports,nomor_surat',
             'jenis' => ['required', $allowedJenis],
@@ -195,6 +209,12 @@ class OfficialReportController extends Controller
             'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan' => 'nullable|string|max:255',
             'status_dokumen' => 'nullable|in:draft,selesai',
+        ], [
+            'items.*.nama_barang.required' => 'Barang ke-:position: Nama barang wajib diisi.',
+            'items.*.jumlah.required' => 'Barang ke-:position: Jumlah barang wajib diisi.',
+            'items.*.jumlah.numeric' => 'Barang ke-:position: Jumlah barang harus berupa angka yang valid.',
+            'items.*.jumlah.min' => 'Barang ke-:position: Jumlah barang minimal 0.',
+            'items.*.satuan.required' => 'Barang ke-:position: Satuan barang wajib diisi.',
         ]);
 
         $filePath = null;
@@ -350,6 +370,20 @@ class OfficialReportController extends Controller
             return back()->with('error', 'Berita Acara telah disinkronisasikan ke data barang.');
         }
 
+        // Normalisasi data items sebelum validasi (koma menjadi titik desimal, trim whitespace)
+        if ($request->has('items') && is_array($request->items)) {
+            $cleanedItems = $request->items;
+            foreach ($cleanedItems as $key => $item) {
+                if (isset($item['jumlah']) && is_string($item['jumlah'])) {
+                    $cleanedItems[$key]['jumlah'] = str_replace(',', '.', trim($item['jumlah']));
+                }
+                if (isset($item['harga_satuan']) && is_string($item['harga_satuan'])) {
+                    $cleanedItems[$key]['harga_satuan'] = str_replace(',', '.', trim($item['harga_satuan']));
+                }
+            }
+            $request->merge(['items' => $cleanedItems]);
+        }
+
         $validated = $request->validate([
             'nomor_surat' => 'required|string|max:100|unique:official_reports,nomor_surat,' . $officialReport->id,
             'jenis' => 'required|in:serah_terima,barang_rusak,penjualan',
@@ -391,6 +425,12 @@ class OfficialReportController extends Controller
             'items.*.harga_satuan' => 'nullable|numeric|min:0',
             'items.*.keterangan' => 'nullable|string|max:255',
             'status_dokumen' => 'nullable|in:draft,selesai',
+        ], [
+            'items.*.nama_barang.required' => 'Barang ke-:position: Nama barang wajib diisi.',
+            'items.*.jumlah.required' => 'Barang ke-:position: Jumlah barang wajib diisi.',
+            'items.*.jumlah.numeric' => 'Barang ke-:position: Jumlah barang harus berupa angka yang valid.',
+            'items.*.jumlah.min' => 'Barang ke-:position: Jumlah barang minimal 0.',
+            'items.*.satuan.required' => 'Barang ke-:position: Satuan barang wajib diisi.',
         ]);
 
         $filePath = $officialReport->file_lampiran;
